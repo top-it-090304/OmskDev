@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://c32ctu4hq5ibv"
+path="res://.godot/imported/GoblinDownRun.aseprite-47f9a966482e5f1e914b1b969bee6b31.res"
+
+[deps]
+
+source_file="res://scene/enemy/goblin_axe/Down/GoblinDownRun.aseprite"
+dest_files=["res://.godot/imported/GoblinDownRun.aseprite-47f9a966482e5f1e914b1b969bee6b31.res"]
+
+[params]
+
