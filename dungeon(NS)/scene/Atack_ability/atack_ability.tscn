@@ -1,0 +1,45 @@
+[gd_scene load_steps=8 format=3 uid="uid://ciaqb58qc8irp"]
+
+[ext_resource type="Texture2D" uid="uid://r4tj88ytjthd" path="res://scene/player/Atack/WarriorDownAttack01(UNpacked)Layer 2.png" id="1_fxt7t"]
+[ext_resource type="Texture2D" uid="uid://brth4h3i3kail" path="res://scene/player/Atack/WarriorDownAttack01(UNpacked)Layer 4.png" id="2_htxey"]
+[ext_resource type="Texture2D" uid="uid://bjiy8bjlj1nih" path="res://scene/player/Atack/WarriorDownAttack01(UNpacked)Layer 3.png" id="3_5fb12"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sbvak"]
+atlas = ExtResource("1_fxt7t")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wopu4"]
+atlas = ExtResource("2_htxey")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_n6qn7"]
+atlas = ExtResource("3_5fb12")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_jguwx"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sbvak")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wopu4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_n6qn7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sbvak")
+}],
+"loop": false,
+"name": &"atack",
+"speed": 5.0
+}]
+
+[node name="Atack_ability" type="Node2D"]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_jguwx")
+animation = &"atack"
+autoplay = "atack"
+frame_progress = 0.967214

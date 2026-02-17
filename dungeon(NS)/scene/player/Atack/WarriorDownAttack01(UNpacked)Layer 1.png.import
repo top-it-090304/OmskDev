@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bpiyhvxhul3jg"
-path="res://.godot/imported/wizzard_f_idle_anim_f0.png-353cfc425365505a5188c2cef8d0fee7.ctex"
+uid="uid://byx08mj6qmvmr"
+path="res://.godot/imported/WarriorDownAttack01(UNpacked)Layer 1.png-fe893977c117de79afbd9781186a4c64.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://scene/player/wizzard_f_idle_anim_f0.png"
-dest_files=["res://.godot/imported/wizzard_f_idle_anim_f0.png-353cfc425365505a5188c2cef8d0fee7.ctex"]
+source_file="res://scene/player/Atack/WarriorDownAttack01(UNpacked)Layer 1.png"
+dest_files=["res://.godot/imported/WarriorDownAttack01(UNpacked)Layer 1.png-fe893977c117de79afbd9781186a4c64.ctex"]
 
 [params]
 
