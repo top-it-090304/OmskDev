@@ -4,5 +4,8 @@
 [ext_resource type="PackedScene" uid="uid://ciaqb58qc8irp" path="res://scene/Atack_ability/atack_ability.tscn" id="2_vdynj"]
 
 [node name="atack_spawn" type="Node2D"]
+texture_repeat = 1
 script = ExtResource("1_hcgff")
 atack_ability = ExtResource("2_vdynj")
+
+[node name="Timer" type="Timer" parent="."]

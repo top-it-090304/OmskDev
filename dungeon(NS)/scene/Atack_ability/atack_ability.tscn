@@ -1,6 +1,7 @@
-[gd_scene load_steps=8 format=3 uid="uid://ciaqb58qc8irp"]
+[gd_scene load_steps=9 format=3 uid="uid://ciaqb58qc8irp"]
 
 [ext_resource type="Texture2D" uid="uid://r4tj88ytjthd" path="res://scene/player/Atack/WarriorDownAttack01(UNpacked)Layer 2.png" id="1_fxt7t"]
+[ext_resource type="Script" uid="uid://dotflj7aw6r6j" path="res://scene/Atack_ability/atack_ability.gd" id="1_htxey"]
 [ext_resource type="Texture2D" uid="uid://brth4h3i3kail" path="res://scene/player/Atack/WarriorDownAttack01(UNpacked)Layer 4.png" id="2_htxey"]
 [ext_resource type="Texture2D" uid="uid://bjiy8bjlj1nih" path="res://scene/player/Atack/WarriorDownAttack01(UNpacked)Layer 3.png" id="3_5fb12"]
 
@@ -27,9 +28,6 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_n6qn7")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_sbvak")
 }],
 "loop": false,
 "name": &"atack",
@@ -37,6 +35,7 @@ animations = [{
 }]
 
 [node name="Atack_ability" type="Node2D"]
+script = ExtResource("1_htxey")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_jguwx")
