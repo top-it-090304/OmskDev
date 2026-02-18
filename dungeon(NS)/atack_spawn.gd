@@ -30,6 +30,6 @@ func place_player():
 	
 	player.add_child(attack_inst)
 	attack_inst.global_position=player.global_position
-	await get_tree().create_timer(0.26).timeout
+	await get_tree().create_timer(0.3).timeout
 	attack_inst.queue_free()
 	

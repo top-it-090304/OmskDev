@@ -82,6 +82,7 @@ animations = [{
 }]
 
 [node name="Player" type="CharacterBody2D" groups=["player"]]
+z_index = 2
 script = ExtResource("1_e68h0")
 
 [node name="ability_manager" type="Node" parent="."]
@@ -89,13 +90,14 @@ script = ExtResource("1_e68h0")
 [node name="atack_spawn" parent="ability_manager" instance=ExtResource("2_lrjex")]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0, -8)
+position = Vector2(-1, 1)
 shape = SubResource("CircleShape2D_fpbkd")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
-position = Vector2(0, -14)
+z_index = 2
+position = Vector2(2, 3)
 sprite_frames = SubResource("SpriteFrames_uvqrg")
 animation = &"atack"
-autoplay = "idle"
+autoplay = "atack"
 
 [node name="Camera2D" type="Camera2D" parent="."]
