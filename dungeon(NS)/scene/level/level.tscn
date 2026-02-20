@@ -1,8 +1,9 @@
-[gd_scene load_steps=9 format=4 uid="uid://bsde14gmx8yj8"]
+[gd_scene load_steps=10 format=4 uid="uid://bsde14gmx8yj8"]
 
 [ext_resource type="PackedScene" uid="uid://xawnnltchw47" path="res://scene/player/character_body_2d.tscn" id="2_5lpb7"]
 [ext_resource type="Texture2D" uid="uid://dwdbmqji2ppp1" path="res://assets/Platformer Asset All F.png" id="2_s8ale"]
 [ext_resource type="Texture2D" uid="uid://dcwxg2dsm28ql" path="res://assets/Platformer Asset All G.png" id="3_plauu"]
+[ext_resource type="PackedScene" uid="uid://bkg2dkeugttp8" path="res://scene/player/cooldown.tscn" id="5_dcgxc"]
 [ext_resource type="PackedScene" uid="uid://djme8hqe5u87s" path="res://scene/enemy/goblin_axe/enemy(goblin_axe).tscn" id="5_plauu"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_dcgxc"]
@@ -23361,4 +23362,18 @@ tile_map_data = PackedByteArray("AAADAAAAAABLAEkAAAADAAEAAABLAEoAAAAEAAAAAABMAEk
 tile_set = SubResource("TileSet_xfrsa")
 
 [node name="enemy(goblin_axe)" parent="." instance=ExtResource("5_plauu")]
-position = Vector2(272, 140)
+position = Vector2(127, 294)
+
+[node name="enemy(goblin_axe)2" parent="." instance=ExtResource("5_plauu")]
+position = Vector2(132, 45)
+
+[node name="enemy(goblin_axe)3" parent="." instance=ExtResource("5_plauu")]
+position = Vector2(602, 308)
+
+[node name="enemy(goblin_axe)4" parent="." instance=ExtResource("5_plauu")]
+position = Vector2(362, 32)
+
+[node name="enemy(goblin_axe)5" parent="." instance=ExtResource("5_plauu")]
+position = Vector2(596, 84)
+
+[node name="CanvasLayer" parent="." instance=ExtResource("5_dcgxc")]

@@ -91,11 +91,11 @@ animations = [{
 }]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_6027f"]
-radius = 9.0
+radius = 12.0
 height = 32.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_q3hyu"]
-radius = 20.0998
+radius = 16.0312
 
 [node name="enemy(goblin_axe)" type="CharacterBody2D"]
 script = ExtResource("1_2xi4h")
@@ -104,8 +104,8 @@ script = ExtResource("1_2xi4h")
 z_index = 1
 position = Vector2(16, 0)
 sprite_frames = SubResource("SpriteFrames_yl1a4")
-animation = &"idleDown"
-autoplay = "idleDown"
+animation = &"runDown"
+autoplay = "runDown"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(16, 3)

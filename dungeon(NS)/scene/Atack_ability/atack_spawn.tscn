@@ -9,3 +9,9 @@ script = ExtResource("1_hcgff")
 atack_ability = ExtResource("2_vdynj")
 
 [node name="Timer" type="Timer" parent="."]
+
+[node name="Label" type="Label" parent="."]
+offset_left = 106.0
+offset_top = 24.0
+offset_right = 146.0
+offset_bottom = 47.0

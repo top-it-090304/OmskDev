@@ -1,6 +1,7 @@
 extends CharacterBody2D
 var hp=20
-var max_speed=150
+var max_speed=randf_range(70,160)
+var damage=5
 func _process(delta) :
 	if hp==0:
 		queue_free()

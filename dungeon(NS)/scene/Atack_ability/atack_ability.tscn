@@ -1,6 +1,7 @@
-[gd_scene load_steps=7 format=3 uid="uid://ciaqb58qc8irp"]
+[gd_scene load_steps=8 format=3 uid="uid://ciaqb58qc8irp"]
 
 [ext_resource type="Texture2D" uid="uid://r4tj88ytjthd" path="res://scene/player/Atack/WarriorDownAttack01(UNpacked)Layer 2.png" id="1_fxt7t"]
+[ext_resource type="Script" uid="uid://dotflj7aw6r6j" path="res://scene/Atack_ability/atack_ability.gd" id="1_htxey"]
 [ext_resource type="Texture2D" uid="uid://brth4h3i3kail" path="res://scene/player/Atack/WarriorDownAttack01(UNpacked)Layer 4.png" id="2_htxey"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_sbvak"]
@@ -17,7 +18,7 @@ animations = [{
 "duration": 0.3,
 "texture": SubResource("AtlasTexture_sbvak")
 }, {
-"duration": 1.0,
+"duration": 0.3,
 "texture": SubResource("AtlasTexture_wopu4")
 }],
 "loop": false,
@@ -26,10 +27,11 @@ animations = [{
 }]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_2ej8v"]
-radius = 14.0
+radius = 6.0
 height = 44.0
 
 [node name="Atack_ability" type="Node2D"]
+script = ExtResource("1_htxey")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 z_index = 1
@@ -62,5 +64,8 @@ collision_layer = 4
 collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
-position = Vector2(-9, 1)
+top_level = true
+position = Vector2(-10, 0)
 shape = SubResource("CapsuleShape2D_2ej8v")
+
+[connection signal="animation_finished" from="AnimatedSprite2D" to="." method="_on_animated_sprite_2d_animation_finished"]

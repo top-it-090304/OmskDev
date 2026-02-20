@@ -1,5 +1,6 @@
 extends Node2D
-func animation():
-	var animated_sprite=$AnimatedSprite2D
-	if animated_sprite.has_signal("animation_finished"):
-		queue_free()
+
+
+
+func _on_animated_sprite_2d_animation_finished() -> void:
+	queue_free()# Replace with function body.
