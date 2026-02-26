@@ -3,12 +3,12 @@ extends Node2D
 
 
 var last_attack_time :=0
-var cooldown =1000
+var cooldown = 1000
 func _process(delta):	
 
 
-	var at = Input.is_action_just_pressed("attack")
-	if at:
+
+	if  Input.is_action_just_pressed("attack"):
 		if can_attack():
 			place_player()	
 	return
@@ -22,7 +22,7 @@ func can_attack() -> bool:
 func place_player():
 		
 	var player=get_tree().get_first_node_in_group("player") as Node2D
-	if player==null:
+	if player == null:
 		return 
 	var attack_inst = atack_ability.instantiate() as Node2D
 	player.add_child(attack_inst)

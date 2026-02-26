@@ -5,6 +5,7 @@ var countdown_time=0
 
 var last_attack_time :=0
 var cooldown:=1000
+
 func _process(delta):	
 	if countdown_time>0:
 		countdown_time -= delta

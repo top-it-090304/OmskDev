@@ -1,6 +1,7 @@
-[gd_scene load_steps=92 format=3 uid="uid://xawnnltchw47"]
+[gd_scene load_steps=93 format=3 uid="uid://xawnnltchw47"]
 
 [ext_resource type="Script" uid="uid://b4d56hcuiwhmy" path="res://scene/game_objects/player/player.gd" id="1_e68h0"]
+[ext_resource type="PackedScene" uid="uid://5f3o7tew7oun" path="res://scene/button/mobile_controller.tscn" id="2_1tyhs"]
 [ext_resource type="PackedScene" uid="uid://qrbrq7ydk14j" path="res://scene/abilities/atack_ability/atack_spawn.tscn" id="2_lrjex"]
 [ext_resource type="Texture2D" uid="uid://cchweqcdon53u" path="res://sprites/player/Left/Png/WarriorLeftAttack01.png" id="3_p3aiu"]
 [ext_resource type="Texture2D" uid="uid://bcaqgrbnjsx8q" path="res://sprites/player/Left/Png/WarriorLeftIdle.png" id="3_pisg7"]
@@ -614,6 +615,8 @@ animations = [{
 [node name="Player" type="CharacterBody2D" groups=["player"]]
 z_index = 2
 script = ExtResource("1_e68h0")
+
+[node name="MobileController" parent="." instance=ExtResource("2_1tyhs")]
 
 [node name="ability_manager" type="Node" parent="."]
 

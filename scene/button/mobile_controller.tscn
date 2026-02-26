@@ -1,0 +1,15 @@
+[gd_scene load_steps=2 format=3 uid="uid://5f3o7tew7oun"]
+
+[ext_resource type="PackedScene" uid="uid://dmr0fcamx7t56" path="res://addons/virtual_joystick/virtual_joystick_scene.tscn" id="1_meroc"]
+
+[node name="MobileController" type="CanvasLayer"]
+
+[node name="Virtual Joystick" parent="." instance=ExtResource("1_meroc")]
+offset_top = -149.0
+offset_bottom = 151.0
+scale = Vector2(0.5, 0.5)
+clampzone_size = 35.0
+action_left = "move_left"
+action_right = "move_right"
+action_up = "move_up"
+action_down = "move_down"
