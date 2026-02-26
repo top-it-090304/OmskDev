@@ -7,7 +7,7 @@ var cooldown =1000
 func _process(delta):	
 
 
-	var at = Input.is_action_just_pressed("mouse_left_click")
+	var at = Input.is_action_just_pressed("attack")
 	if at:
 		if can_attack():
 			place_player()	

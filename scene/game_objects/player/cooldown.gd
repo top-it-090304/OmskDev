@@ -11,7 +11,7 @@ func _process(delta):
 		update_label()
 	else:
 		timer_label.text =""
-	var at= Input.is_action_just_pressed("mouse_left_click")
+	var at= Input.is_action_just_pressed("attack")
 	if at:
 		if can_attack():
 			countdown_time=1.0

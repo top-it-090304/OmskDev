@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://bbqt8wm3klsxy"
+path="res://.godot/imported/CharAni-Sheet4.aseprite-b6ed124a1fbc6ce34433cd4c793c59e5.res"
+
+[deps]
+
+source_file="res://scene/player/CharAni-Sheet4.aseprite"
+dest_files=["res://.godot/imported/CharAni-Sheet4.aseprite-b6ed124a1fbc6ce34433cd4c793c59e5.res"]
+
+[params]
+

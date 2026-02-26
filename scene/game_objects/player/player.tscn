@@ -341,9 +341,9 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_u550l")
 }],
-"loop": true,
+"loop": false,
 "name": &"attack_down",
-"speed": 5.0
+"speed": 20.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -364,9 +364,9 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_much0")
 }],
-"loop": true,
+"loop": false,
 "name": &"attack_left",
-"speed": 5.0
+"speed": 20.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -387,9 +387,9 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_nypvy")
 }],
-"loop": true,
+"loop": false,
 "name": &"attack_right",
-"speed": 5.0
+"speed": 20.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -410,9 +410,9 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_olffl")
 }],
-"loop": true,
+"loop": false,
 "name": &"attack_up",
-"speed": 5.0
+"speed": 20.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -626,7 +626,7 @@ shape = SubResource("RectangleShape2D_lrjex")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 z_index = 2
 sprite_frames = SubResource("SpriteFrames_uvqrg")
-animation = &"attack_right"
+animation = &"attack_down"
 autoplay = "idle_down"
 
 [node name="Camera2D" type="Camera2D" parent="."]
