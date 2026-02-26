@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://bvmep5ts2s50k"
+path="res://.godot/imported/WarriorDownAttack03.aseprite-e6cc1132d790bc0e77d5efc8934528e1.res"
+
+[deps]
+
+source_file="res://sprites/player/Down/Ase/WarriorDownAttack03.aseprite"
+dest_files=["res://.godot/imported/WarriorDownAttack03.aseprite-e6cc1132d790bc0e77d5efc8934528e1.res"]
+
+[params]
+

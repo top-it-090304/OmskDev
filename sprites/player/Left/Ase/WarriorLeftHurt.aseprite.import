@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://7jjufh1gtnbw"
+path="res://.godot/imported/WarriorLeftHurt.aseprite-305ceea7da4a9bdf0936841cd4377bea.res"
+
+[deps]
+
+source_file="res://sprites/player/Left/Ase/WarriorLeftHurt.aseprite"
+dest_files=["res://.godot/imported/WarriorLeftHurt.aseprite-305ceea7da4a9bdf0936841cd4377bea.res"]
+
+[params]
+

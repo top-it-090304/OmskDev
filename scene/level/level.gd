@@ -37,4 +37,3 @@ func spawn_enemy():
 	var angle = randf() * TAU  # Случайный угол от 0 до 2π
 	var offset = Vector2(cos(angle), sin(angle)) * spawn_distance
 	enemy.global_position = player.global_position + offset
-

@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://hf2tst41bs3w"
+path="res://.godot/imported/WarriorDownJump.aseprite-cc7d29e93e624e0c5a8abbb86b937d94.res"
+
+[deps]
+
+source_file="res://sprites/player/Down/Ase/WarriorDownJump.aseprite"
+dest_files=["res://.godot/imported/WarriorDownJump.aseprite-cc7d29e93e624e0c5a8abbb86b937d94.res"]
+
+[params]
+

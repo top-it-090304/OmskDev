@@ -4,6 +4,7 @@ var max_speed = 200
 @onready var anim = $AnimatedSprite2D
 enum{ DOWN, UP, LEFT, RIGHT }
 var idle_dir = DOWN
+var attack_dir = DOWN
 func walk_process(vector:Vector2):
 	if vector.x > 0:
 		walk_right()
@@ -19,17 +20,32 @@ func walk_process(vector:Vector2):
 func walk_up():
 	anim.play("walk_up")
 	idle_dir = UP
+	attack_dir = UP
 func walk_down():
 	anim.play("walk_down")
 	idle_dir =  DOWN
+	attack_dir = DOWN
 func walk_left():
 	anim.play("walk_left")
 	idle_dir = LEFT
+	attack_dir = LEFT
 func walk_right():
 	anim.play("walk_right")
 	idle_dir = RIGHT
+	attack_dir = RIGHT
 	
 	
+func anim_attack(attack_dir):
+	match attack_dir:
+		DOWN:
+			anim.play("idle_down")
+		UP:
+			anim.play("idle_up")
+		LEFT:
+			anim.play("idle_left")
+		RIGHT:
+			anim.play("idle_right")
+			
 func anim_idle(idle_dir):
 	match idle_dir:
 		DOWN:

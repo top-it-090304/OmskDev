@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://dq6dyg72lhm8d"
+path="res://.godot/imported/WarriorRightWalk.aseprite-3e0cfd9f3304924bbaa923452409b7f2.res"
+
+[deps]
+
+source_file="res://sprites/player/Right/Ase/WarriorRightWalk.aseprite"
+dest_files=["res://.godot/imported/WarriorRightWalk.aseprite-3e0cfd9f3304924bbaa923452409b7f2.res"]
+
+[params]
+

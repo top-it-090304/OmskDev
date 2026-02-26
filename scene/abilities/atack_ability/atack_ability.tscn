@@ -1,0 +1,67 @@
+[gd_scene load_steps=6 format=3 uid="uid://ciaqb58qc8irp"]
+
+[ext_resource type="Script" uid="uid://dotflj7aw6r6j" path="res://scene/abilities/atack_ability/atack_ability.gd" id="1_htxey"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sbvak"]
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wopu4"]
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_jguwx"]
+animations = [{
+"frames": [{
+"duration": 0.3,
+"texture": SubResource("AtlasTexture_sbvak")
+}, {
+"duration": 0.3,
+"texture": SubResource("AtlasTexture_wopu4")
+}],
+"loop": false,
+"name": &"atack",
+"speed": 5.0
+}]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_2ej8v"]
+radius = 6.0
+height = 44.0
+
+[node name="Atack_ability" type="Node2D"]
+script = ExtResource("1_htxey")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+z_index = 1
+position = Vector2(2.38419e-07, -1.19209e-07)
+rotation = 0.633555
+sprite_frames = SubResource("SpriteFrames_jguwx")
+animation = &"atack"
+autoplay = "atack"
+frame = 1
+frame_progress = 1.0
+metadata/_aseprite_wizard_interface_config_ = {
+"layer_section": true,
+"pending_changes": {
+"embed_tex": true,
+"layers": [],
+"o_ex_p": "",
+"o_folder": "",
+"o_name": "",
+"only_visible": false,
+"scale": "1.0",
+"should_round_fps": true,
+"slice": "",
+"source": "",
+"source_uid": -1
+}
+}
+
+[node name="Area2D" type="Area2D" parent="."]
+collision_layer = 4
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+top_level = true
+position = Vector2(-10, 0)
+shape = SubResource("CapsuleShape2D_2ej8v")
+
+[connection signal="animation_finished" from="AnimatedSprite2D" to="." method="_on_animated_sprite_2d_animation_finished"]

@@ -31,4 +31,3 @@ func _on_body_entered(body: Node2D):
 			print("Враг не имеет метода die()")
 	else:
 		print("Объект не в группе enemy: ", body.name)
-

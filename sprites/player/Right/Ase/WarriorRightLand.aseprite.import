@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://c2n0amvlrnktv"
+path="res://.godot/imported/WarriorRightLand.aseprite-874dad7ef0e197bcb806a6f817be76ae.res"
+
+[deps]
+
+source_file="res://sprites/player/Right/Ase/WarriorRightLand.aseprite"
+dest_files=["res://.godot/imported/WarriorRightLand.aseprite-874dad7ef0e197bcb806a6f817be76ae.res"]
+
+[params]
+

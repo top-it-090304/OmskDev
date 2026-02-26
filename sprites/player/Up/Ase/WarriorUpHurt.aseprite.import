@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://jv1qhr57rqv"
+path="res://.godot/imported/WarriorUpHurt.aseprite-01fccf8808f2cce7507b1ad60848c18c.res"
+
+[deps]
+
+source_file="res://sprites/player/Up/Ase/WarriorUpHurt.aseprite"
+dest_files=["res://.godot/imported/WarriorUpHurt.aseprite-01fccf8808f2cce7507b1ad60848c18c.res"]
+
+[params]
+
