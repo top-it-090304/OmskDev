@@ -2,10 +2,16 @@ extends CharacterBody2D
 
 @export var max_speed = 200
 @onready var anim = $AnimatedSprite2D
+@export var max_health := 100
 
 enum Dir { DOWN, UP, LEFT, RIGHT }
 var current_dir = Dir.DOWN
 var can_move = true
+signal health_changed(new_health, max_health)
+var health : int
+
+func _ready():
+	health = max_health
 
 func _physics_process(_delta: float) -> void:
 	if !can_move:
@@ -62,3 +68,8 @@ func attack():
 		Dir.RIGHT: anim.play("attack_right")
 	await anim.animation_finished
 	can_move = true
+func take_damage(amount: int):
+	health = max(0, health - amount)
+	health_changed.emit(health, max_health)
+	if health == 0:
+		queue_free() 
