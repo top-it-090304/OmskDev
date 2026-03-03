@@ -13108,7 +13108,7 @@ sources/0 = SubResource("TileSetAtlasSource_yrl12")
 
 [node name="Level" type="Node"]
 
-[node name="CharacterBody2D" parent="." instance=ExtResource("2_5lpb7")]
+[node name="Player" parent="." instance=ExtResource("2_5lpb7")]
 z_index = 3
 position = Vector2(288, 123)
 motion_mode = 1

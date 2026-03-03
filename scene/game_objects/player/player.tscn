@@ -1,4 +1,4 @@
-[gd_scene load_steps=93 format=3 uid="uid://xawnnltchw47"]
+[gd_scene load_steps=94 format=3 uid="uid://xawnnltchw47"]
 
 [ext_resource type="Script" uid="uid://b4d56hcuiwhmy" path="res://scene/game_objects/player/player.gd" id="1_e68h0"]
 [ext_resource type="PackedScene" uid="uid://5f3o7tew7oun" path="res://scene/button/mobile_controller.tscn" id="2_1tyhs"]
@@ -14,6 +14,9 @@
 [ext_resource type="Texture2D" uid="uid://d3v260y8kwlh1" path="res://sprites/player/Up/Png/WarriorUpIdle.png" id="5_qjg4s"]
 [ext_resource type="Texture2D" uid="uid://cjxyvgkgdp8iv" path="res://sprites/player/Down/Png/WarriorDownAttack01.png" id="6_5g408"]
 [ext_resource type="Texture2D" uid="uid://b7p53fge0l6ge" path="res://sprites/player/Up/Png/WarriorUpWalk.png" id="6_pisg7"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1tyhs"]
+size = Vector2(29, 49)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_lrjex"]
 size = Vector2(21, 35)
@@ -115,7 +118,6 @@ atlas = ExtResource("5_oen5c")
 region = Rect2(240, 0, 48, 48)
 
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_qjg4s"]
-load_path = "res://.godot/imported/WarriorDownIdle(UNpacked).png-0cde0b8e21632f9d9d7f53f8b208ac5f.ctex"
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_lf2vq"]
 atlas = SubResource("CompressedTexture2D_qjg4s")
@@ -615,6 +617,15 @@ animations = [{
 [node name="Player" type="CharacterBody2D" groups=["player"]]
 z_index = 2
 script = ExtResource("1_e68h0")
+
+[node name="Area2D" type="Area2D" parent="."]
+collision_layer = 8
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+position = Vector2(-0.5, 0.5)
+shape = SubResource("RectangleShape2D_1tyhs")
+debug_color = Color(0.290712, 0.629766, 0, 0.42)
 
 [node name="MobileController" parent="." instance=ExtResource("2_1tyhs")]
 
