@@ -1,14 +1,14 @@
 extends CharacterBody2D
 
-@export var max_speed = 200
+var max_speed = 200
 @onready var anim = $AnimatedSprite2D
-@export var max_health := 100
+var max_health = 100
 
 enum Dir { DOWN, UP, LEFT, RIGHT }
 var current_dir = Dir.DOWN
 var can_move = true
 signal health_changed(new_health, max_health)
-var health : int
+var health = 50
 
 func _ready():
 	health = max_health

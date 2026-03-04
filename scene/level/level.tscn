@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=4 uid="uid://v7rf2etmhsrr"]
+[gd_scene load_steps=26 format=4 uid="uid://v7rf2etmhsrr"]
 
 [ext_resource type="PackedScene" uid="uid://xawnnltchw47" path="res://scene/game_objects/player/player.tscn" id="2_5lpb7"]
 [ext_resource type="Texture2D" uid="uid://dwdbmqji2ppp1" path="res://assets/Platformer Asset All F.png" id="2_s8ale"]
@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://bkg2dkeugttp8" path="res://scene/game_objects/player/cooldown.tscn" id="5_dcgxc"]
 [ext_resource type="PackedScene" uid="uid://djme8hqe5u87s" path="res://scene/game_objects/enemy/goblin_axe/enemy(goblin_axe).tscn" id="5_plauu"]
 [ext_resource type="Texture2D" uid="uid://c6koxi2pp32bu" path="res://assets/Dungeon_DecorationsC.png" id="9_yrl12"]
+[ext_resource type="PackedScene" uid="uid://dcammhhhactxc" path="res://scene/pick_up/heal_potion.tscn" id="10_cqsgc"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_plauu"]
 
@@ -13155,3 +13156,15 @@ position = Vector2(8, 0)
 tile_set = SubResource("TileSet_cqsgc")
 
 [node name="collision" type="StaticBody2D" parent="."]
+
+[node name="heal_potion" parent="." instance=ExtResource("10_cqsgc")]
+z_index = 5
+position = Vector2(78, 79)
+
+[node name="heal_potion2" parent="." instance=ExtResource("10_cqsgc")]
+z_index = 5
+position = Vector2(280, -40)
+
+[node name="heal_potion3" parent="." instance=ExtResource("10_cqsgc")]
+z_index = 5
+position = Vector2(461, 62)

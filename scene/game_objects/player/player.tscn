@@ -1,4 +1,4 @@
-[gd_scene load_steps=94 format=3 uid="uid://xawnnltchw47"]
+[gd_scene load_steps=95 format=3 uid="uid://xawnnltchw47"]
 
 [ext_resource type="Script" uid="uid://b4d56hcuiwhmy" path="res://scene/game_objects/player/player.gd" id="1_e68h0"]
 [ext_resource type="PackedScene" uid="uid://5f3o7tew7oun" path="res://scene/button/mobile_controller.tscn" id="2_1tyhs"]
@@ -14,12 +14,13 @@
 [ext_resource type="Texture2D" uid="uid://d3v260y8kwlh1" path="res://sprites/player/Up/Png/WarriorUpIdle.png" id="5_qjg4s"]
 [ext_resource type="Texture2D" uid="uid://cjxyvgkgdp8iv" path="res://sprites/player/Down/Png/WarriorDownAttack01.png" id="6_5g408"]
 [ext_resource type="Texture2D" uid="uid://b7p53fge0l6ge" path="res://sprites/player/Up/Png/WarriorUpWalk.png" id="6_pisg7"]
+[ext_resource type="PackedScene" uid="uid://cjc0dix6qvqtu" path="res://scene/game_objects/player/health.tscn" id="15_0ygly"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1tyhs"]
 size = Vector2(29, 49)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_lrjex"]
-size = Vector2(21, 35)
+size = Vector2(16, 13)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_jvhot"]
 atlas = ExtResource("6_5g408")
@@ -614,7 +615,7 @@ animations = [{
 "speed": 5.0
 }]
 
-[node name="Player" type="CharacterBody2D" groups=["player"]]
+[node name="player" type="CharacterBody2D" groups=["player"]]
 z_index = 2
 script = ExtResource("1_e68h0")
 
@@ -634,13 +635,16 @@ debug_color = Color(0.290712, 0.629766, 0, 0.42)
 [node name="atack_spawn" parent="ability_manager" instance=ExtResource("2_lrjex")]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(-0.5, 1.5)
+position = Vector2(0, 11)
 shape = SubResource("RectangleShape2D_lrjex")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 z_index = 2
+position = Vector2(0, -1)
 sprite_frames = SubResource("SpriteFrames_uvqrg")
 animation = &"attack_down"
 autoplay = "idle_down"
 
 [node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="Health" parent="." instance=ExtResource("15_0ygly")]

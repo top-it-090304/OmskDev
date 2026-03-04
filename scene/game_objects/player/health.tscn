@@ -1,15 +1,24 @@
-[gd_scene load_steps=2 format=3 uid="uid://cjc0dix6qvqtu"]
+[gd_scene load_steps=4 format=3 uid="uid://cjc0dix6qvqtu"]
 
 [ext_resource type="Script" uid="uid://bxelbrdtxv7u6" path="res://scene/game_objects/player/health.gd" id="1_312jh"]
+[ext_resource type="Texture2D" uid="uid://pagggpic45vn" path="res://sprites/player/Health/Health_progressbar_sprite_under.png" id="1_m6hu6"]
+[ext_resource type="Texture2D" uid="uid://dxdn8h61vtnv5" path="res://sprites/player/Health/Health_progressbar_sprite_progress.png" id="2_pihsf"]
 
 [node name="CanvasLayer" type="CanvasLayer"]
 
-[node name="TextureProgressBar" type="TextureProgressBar" parent="."]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="MarginContainer" type="MarginContainer" parent="."]
+anchors_preset = -1
+anchor_right = 0.123438
+anchor_bottom = 0.0333333
+size_flags_horizontal = 0
+size_flags_vertical = 0
+
+[node name="TextureProgressBar" type="TextureProgressBar" parent="MarginContainer"]
+layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
+step = 10.0
+value = 20.0
+texture_under = ExtResource("1_m6hu6")
+texture_progress = ExtResource("2_pihsf")
 script = ExtResource("1_312jh")
