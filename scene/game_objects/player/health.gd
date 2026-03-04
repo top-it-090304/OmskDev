@@ -1,8 +1,7 @@
 extends TextureProgressBar
 
 
-   
-
+@export var player: CharacterBody2D
 
 func _ready():
    

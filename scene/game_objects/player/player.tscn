@@ -1,4 +1,4 @@
-[gd_scene load_steps=95 format=3 uid="uid://xawnnltchw47"]
+[gd_scene load_steps=97 format=3 uid="uid://xawnnltchw47"]
 
 [ext_resource type="Script" uid="uid://b4d56hcuiwhmy" path="res://scene/game_objects/player/player.gd" id="1_e68h0"]
 [ext_resource type="PackedScene" uid="uid://5f3o7tew7oun" path="res://scene/button/mobile_controller.tscn" id="2_1tyhs"]
@@ -14,7 +14,9 @@
 [ext_resource type="Texture2D" uid="uid://d3v260y8kwlh1" path="res://sprites/player/Up/Png/WarriorUpIdle.png" id="5_qjg4s"]
 [ext_resource type="Texture2D" uid="uid://cjxyvgkgdp8iv" path="res://sprites/player/Down/Png/WarriorDownAttack01.png" id="6_5g408"]
 [ext_resource type="Texture2D" uid="uid://b7p53fge0l6ge" path="res://sprites/player/Up/Png/WarriorUpWalk.png" id="6_pisg7"]
-[ext_resource type="PackedScene" uid="uid://cjc0dix6qvqtu" path="res://scene/game_objects/player/health.tscn" id="15_0ygly"]
+[ext_resource type="Texture2D" uid="uid://pagggpic45vn" path="res://sprites/player/Health/Health_progressbar_sprite_under.png" id="15_p0vsu"]
+[ext_resource type="Texture2D" uid="uid://dxdn8h61vtnv5" path="res://sprites/player/Health/Health_progressbar_sprite_progress.png" id="16_lfjyr"]
+[ext_resource type="Script" uid="uid://bxelbrdtxv7u6" path="res://scene/game_objects/player/health.gd" id="17_amje0"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1tyhs"]
 size = Vector2(29, 49)
@@ -619,6 +621,20 @@ animations = [{
 z_index = 2
 script = ExtResource("1_e68h0")
 
+[node name="TextureProgressBar" type="TextureProgressBar" parent="." node_paths=PackedStringArray("player")]
+offset_left = -309.0
+offset_top = -169.0
+offset_right = -230.0
+offset_bottom = -157.0
+size_flags_horizontal = 0
+size_flags_vertical = 4
+step = 10.0
+value = 20.0
+texture_under = ExtResource("15_p0vsu")
+texture_progress = ExtResource("16_lfjyr")
+script = ExtResource("17_amje0")
+player = NodePath("..")
+
 [node name="Area2D" type="Area2D" parent="."]
 collision_layer = 8
 collision_mask = 0
@@ -646,5 +662,3 @@ animation = &"attack_down"
 autoplay = "idle_down"
 
 [node name="Camera2D" type="Camera2D" parent="."]
-
-[node name="Health" parent="." instance=ExtResource("15_0ygly")]
