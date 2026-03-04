@@ -1,16 +1,20 @@
 extends Node2D
 @export var atack_ability: PackedScene
 
-
+var ready_for_animation=false
 var last_attack_time :=0
 var cooldown = 1000
+
+
+
 func _process(delta):	
 
 
 
 	if  Input.is_action_just_pressed("attack"):
 		if can_attack():
-			place_player()	
+			place_player()
+				
 	return
 	
 func can_attack() -> bool:
@@ -27,6 +31,7 @@ func place_player():
 	var attack_inst = atack_ability.instantiate() as Node2D
 	player.add_child(attack_inst)
 	attack_inst.global_position=player.global_position
-
+	ready_for_animation=true
+	
 
 	

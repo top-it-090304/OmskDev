@@ -1,5 +1,5 @@
 extends CharacterBody2D
-
+@export var atack_spawn:Node
 var max_speed = 200
 @onready var anim = $AnimatedSprite2D
 var max_health = 100
@@ -12,13 +12,15 @@ var health = 50
 
 func _ready():
 	health = max_health
-
+	
+	
 func _physics_process(_delta: float) -> void:
 	if !can_move:
 
 		return
-
-	if Input.is_action_just_pressed("attack"):
+	
+	
+	if atack_spawn.ready_for_animation==true:
 		attack()
 		return 
 
@@ -67,9 +69,13 @@ func attack():
 		Dir.LEFT: anim.play("attack_left")
 		Dir.RIGHT: anim.play("attack_right")
 	await anim.animation_finished
+	atack_spawn.wready_for_animation=false
 	can_move = true
 func take_damage(amount: int):
 	health = max(0, health - amount)
 	health_changed.emit(health, max_health)
 	if health == 0:
 		queue_free() 
+func _on_attack_placed(attack_instance: Node2D):
+	# Здесь делайте то, что хотели (например, атаку)
+	attack()
