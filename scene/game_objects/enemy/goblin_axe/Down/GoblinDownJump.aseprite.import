@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://coux7pi7d2j3p"
+path="res://.godot/imported/GoblinDownJump.aseprite-a6f1f8fed195d6334cdee31385c1a403.res"
+
+[deps]
+
+source_file="res://scene/game_objects/enemy/goblin_axe/Down/GoblinDownJump.aseprite"
+dest_files=["res://.godot/imported/GoblinDownJump.aseprite-a6f1f8fed195d6334cdee31385c1a403.res"]
+
+[params]
+

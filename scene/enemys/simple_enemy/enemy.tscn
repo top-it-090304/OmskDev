@@ -1,0 +1,85 @@
+[gd_scene load_steps=14 format=3 uid="uid://c3qghbl2esqh7"]
+
+[ext_resource type="Script" uid="uid://db02ii2tjiw11" path="res://scene/enemys/simple_enemy/enemy.gd" id="1_syv50"]
+[ext_resource type="Texture2D" uid="uid://by2s71kltwfsi" path="res://scene/enemys/Attack/Attack_West.png" id="2_syv50"]
+[ext_resource type="Texture2D" uid="uid://wwq8wp6yadao" path="res://scene/enemys/Hurt/Hurt_West.png" id="3_ht2nw"]
+[ext_resource type="Texture2D" uid="uid://c0xt8esast5n5" path="res://scene/enemys/Idle/Idle_West_0.png" id="4_egrgu"]
+[ext_resource type="Texture2D" uid="uid://b1tnebht2rpy8" path="res://scene/enemys/Idle/Idle_West_1.png" id="5_ll1bo"]
+[ext_resource type="Texture2D" uid="uid://bgmox0tvv3546" path="res://scene/enemys/Idle/Idle_West_2.png" id="6_iwp14"]
+[ext_resource type="Texture2D" uid="uid://dy1dh30dmsqij" path="res://scene/enemys/Idle/Idle_West_3.png" id="7_arn1d"]
+[ext_resource type="Texture2D" uid="uid://n5o2i10sodb" path="res://scene/enemys/Run/Run_West_0.png" id="8_e5jcd"]
+[ext_resource type="Texture2D" uid="uid://c3q4kslayhvdq" path="res://scene/enemys/Run/Run_West_1.png" id="9_1308x"]
+[ext_resource type="Texture2D" uid="uid://djjgppk5xwu7h" path="res://scene/enemys/Run/Run_West_2.png" id="10_nnoho"]
+[ext_resource type="Texture2D" uid="uid://c8vptpgpijlju" path="res://scene/enemys/Run/Run_West_3.png" id="11_10usa"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1wtbu"]
+size = Vector2(15, 34.5)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_p3aiu"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_syv50")
+}],
+"loop": true,
+"name": &"attack",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_ht2nw")
+}],
+"loop": true,
+"name": &"hit",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_egrgu")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_ll1bo")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_iwp14")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_arn1d")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("8_e5jcd")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_1308x")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_nnoho")
+}, {
+"duration": 1.0,
+"texture": ExtResource("11_10usa")
+}],
+"loop": true,
+"name": &"run",
+"speed": 5.0
+}]
+
+[node name="enemy" type="CharacterBody2D"]
+script = ExtResource("1_syv50")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-1.5, -9.75)
+shape = SubResource("RectangleShape2D_1wtbu")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." groups=["enemy"]]
+position = Vector2(-1, -15)
+scale = Vector2(1.5, 1.5)
+sprite_frames = SubResource("SpriteFrames_p3aiu")
+animation = &"idle"
+autoplay = "idle"
+
+[node name="Camera2D" type="Camera2D" parent="."]

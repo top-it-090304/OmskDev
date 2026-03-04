@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://j2jxhbltbxpi"
+path="res://.godot/imported/WarriorUpIdle.aseprite-a8a96cead1285e1e42fd5bd526704d69.res"
+
+[deps]
+
+source_file="res://sprites/player/Up/Ase/WarriorUpIdle.aseprite"
+dest_files=["res://.godot/imported/WarriorUpIdle.aseprite-a8a96cead1285e1e42fd5bd526704d69.res"]
+
+[params]
+

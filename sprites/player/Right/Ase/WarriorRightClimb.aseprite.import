@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://6e240us646hj"
+path="res://.godot/imported/WarriorRightClimb.aseprite-0bb742d5b29552f425d5da48e2cae00c.res"
+
+[deps]
+
+source_file="res://sprites/player/Right/Ase/WarriorRightClimb.aseprite"
+dest_files=["res://.godot/imported/WarriorRightClimb.aseprite-0bb742d5b29552f425d5da48e2cae00c.res"]
+
+[params]
+

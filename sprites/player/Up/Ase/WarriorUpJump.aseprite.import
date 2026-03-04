@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://cvoiki5drni87"
+path="res://.godot/imported/WarriorUpJump.aseprite-bc386ab05c2eb208c18b155beef4b9c9.res"
+
+[deps]
+
+source_file="res://sprites/player/Up/Ase/WarriorUpJump.aseprite"
+dest_files=["res://.godot/imported/WarriorUpJump.aseprite-bc386ab05c2eb208c18b155beef4b9c9.res"]
+
+[params]
+

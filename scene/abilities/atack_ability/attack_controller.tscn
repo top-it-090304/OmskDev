@@ -1,0 +1,3 @@
+[gd_scene format=3 uid="uid://de0d5aw6o15nv"]
+
+[node name="AttackController" type="Node"]

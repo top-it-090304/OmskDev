@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://uhw502oytf0m"
+path="res://.godot/imported/WarriorUpDeath.aseprite-f9b0f69669d6774ea7aa485297b49509.res"
+
+[deps]
+
+source_file="res://sprites/player/Up/Ase/WarriorUpDeath.aseprite"
+dest_files=["res://.godot/imported/WarriorUpDeath.aseprite-f9b0f69669d6774ea7aa485297b49509.res"]
+
+[params]
+
