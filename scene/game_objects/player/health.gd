@@ -9,12 +9,14 @@ func _ready():
 	player.connect("health_changed", _on_health_changed)
 	
    
-	value = player.health 
+	value = player.health_int 
 	max_value = player.max_health 
 
 
 
-
+func _process(delta):
+	value = player.health_int 
+	max_value = player.max_health 
 func _on_health_changed(new_health: int, new_max_health: int):
 	value = new_health
 	max_value = new_max_health

@@ -8,10 +8,10 @@ enum Dir { DOWN, UP, LEFT, RIGHT }
 var current_dir = Dir.DOWN
 var can_move = true
 signal health_changed(new_health, max_health)
-var health = 50
+var health_int = 50
 
-func _ready():
-	health = max_health
+#func _ready():
+#	health_int = max_health
 	
 	
 func _physics_process(_delta: float) -> void:
@@ -69,13 +69,18 @@ func attack():
 		Dir.LEFT: anim.play("attack_left")
 		Dir.RIGHT: anim.play("attack_right")
 	await anim.animation_finished
-	atack_spawn.wready_for_animation=false
+	atack_spawn.ready_for_animation=false
 	can_move = true
 func take_damage(amount: int):
-	health = max(0, health - amount)
-	health_changed.emit(health, max_health)
-	if health == 0:
-		queue_free() 
+	health_int = max(0, health_int - amount)
+	health_changed.emit(health_int, max_health)
+	if health_int == 0:
+		die() 
+func heal(amount: int):
+	health_int = min(max_health, health_int + amount)
+	health_changed.emit(health_int, max_health)
 func _on_attack_placed(attack_instance: Node2D):
 	# Здесь делайте то, что хотели (например, атаку)
 	attack()
+func die():
+	queue_free()
