@@ -1,26 +1,39 @@
 extends CharacterBody2D
 var hp = 20
-@onready var anim: AnimatedSprite2D = $AnimatedSprite2D
+@onready var anim = $AnimatedSprite2D
 var max_speed = randf_range(70,160)
 var damage = 5
-@onready var player: Node2D = get_tree().get_first_node_in_group("player") as Node2D
+var player: Node2D = null
+const DETECTION_RADIUS := 220.0
+
+
+func _ready() -> void:
+	# Находим игрока по группе
+	player = get_tree().get_first_node_in_group("player") as Node2D
 
 
 func _physics_process(delta: float) -> void:
-	if player :
-		var direction = (player.position - self.position).normalized()
-		velocity = max_speed * direction
-		move_and_slide()
-		if abs(direction.x) > abs(direction.y):
-			if direction.x > 0:
-				anim.play("runRight")
+	if player and is_instance_valid(player):
+		var to_player: Vector2 = player.position - self.position
+		var distance := to_player.length()
+
+		if distance <= DETECTION_RADIUS:
+			var direction = to_player.normalized()
+			velocity = max_speed * direction
+			move_and_slide()
+			if abs(direction.x) > abs(direction.y):
+				if direction.x > 0:
+					anim.play("runRight")
+				else:
+					anim.play("runLeft")
 			else:
-				anim.play("runLeft")
+				if direction.y > 0:
+					anim.play("runDown")
+				else:
+					anim.play("runUp")
 		else:
-			if direction.y > 0:
-				anim.play("runDown")
-			else:
-				anim.play("runUp")
+			velocity = Vector2.ZERO
+			anim.play("idleDown")
 	else:
 		velocity = Vector2.ZERO
 		anim.play("idleDown")
@@ -46,10 +59,12 @@ func _process(delta):
 func _on_detector_body_entered(body: Node2D) -> void:
 	if body.name == "player":
 		player = body
+		print("detector entered:", body.name)
 	
 
 
 func _on_detector_body_exited(body: Node2D) -> void:
 	if body.name == "player":
 		player = null
+		print("detector exited:", body.name)
 	
