@@ -69,6 +69,8 @@ func attack():
 		Dir.LEFT: anim.play("attack_left")
 		Dir.RIGHT: anim.play("attack_right")
 	await anim.animation_finished
+	
+	
 	atack_spawn.ready_for_animation=false
 	can_move = true
 func take_damage(amount: int):
