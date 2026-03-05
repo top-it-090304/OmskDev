@@ -1,4 +1,4 @@
-[gd_scene load_steps=97 format=3 uid="uid://xawnnltchw47"]
+[gd_scene load_steps=98 format=3 uid="uid://xawnnltchw47"]
 
 [ext_resource type="Script" uid="uid://b4d56hcuiwhmy" path="res://scene/game_objects/player/player.gd" id="1_e68h0"]
 [ext_resource type="PackedScene" uid="uid://5f3o7tew7oun" path="res://scene/button/mobile_controller.tscn" id="2_1tyhs"]
@@ -17,9 +17,10 @@
 [ext_resource type="Texture2D" uid="uid://pagggpic45vn" path="res://sprites/player/Health/Health_progressbar_sprite_under.png" id="15_p0vsu"]
 [ext_resource type="Texture2D" uid="uid://dxdn8h61vtnv5" path="res://sprites/player/Health/Health_progressbar_sprite_progress.png" id="16_lfjyr"]
 [ext_resource type="Script" uid="uid://bxelbrdtxv7u6" path="res://scene/game_objects/player/health.gd" id="17_amje0"]
+[ext_resource type="PackedScene" uid="uid://ciaqb58qc8irp" path="res://scene/abilities/atack_ability/atack_ability.tscn" id="18_lfjyr"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_p0vsu"]
-radius = 13.0
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_lfjyr"]
+height = 26.0
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_lrjex"]
 size = Vector2(16, 13)
@@ -637,29 +638,34 @@ script = ExtResource("17_amje0")
 player = NodePath("..")
 
 [node name="Area2D" type="Area2D" parent="."]
+position = Vector2(0, -11)
 collision_layer = 8
 collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
-position = Vector2(0, 11)
-shape = SubResource("CircleShape2D_p0vsu")
+position = Vector2(0, 12)
+shape = SubResource("CapsuleShape2D_lfjyr")
 debug_color = Color(0.290712, 0.629766, 0, 0.42)
 
 [node name="MobileController" parent="." instance=ExtResource("2_1tyhs")]
 
 [node name="ability_manager" type="Node" parent="."]
 
-[node name="atack_spawn" parent="ability_manager" instance=ExtResource("2_lrjex")]
+[node name="atack_spawn" parent="ability_manager" node_paths=PackedStringArray("ability") instance=ExtResource("2_lrjex")]
+ability = NodePath("../../Atack_ability")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0, 11)
+position = Vector2(0, 8)
 shape = SubResource("RectangleShape2D_lrjex")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 z_index = 2
-position = Vector2(0, -1)
 sprite_frames = SubResource("SpriteFrames_uvqrg")
 animation = &"attack_down"
 autoplay = "idle_down"
+frame = 5
+frame_progress = 1.0
 
 [node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="Atack_ability" parent="." instance=ExtResource("18_lfjyr")]

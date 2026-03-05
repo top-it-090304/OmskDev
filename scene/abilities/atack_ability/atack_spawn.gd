@@ -1,6 +1,6 @@
 extends Node2D
-@export var atack_ability: PackedScene
 
+@export var ability:Node
 var ready_for_animation=false
 var last_attack_time :=0
 var cooldown = 1000
@@ -23,15 +23,18 @@ func can_attack() -> bool:
 		last_attack_time = current_time
 		return true
 	return false	
-func place_player():
-		
-	var player=get_tree().get_first_node_in_group("player") as Node2D
-	if player == null:
-		return 
-	var attack_inst = atack_ability.instantiate() as Node2D
-	player.add_child(attack_inst)
-	attack_inst.global_position=player.global_position
-	ready_for_animation=true
-	
 
-	
+func place_player():
+	var player=get_tree().get_first_node_in_group("player") as Node2D
+	match player.current_dir:
+		player.Dir.UP: ability.get_node("Top").get_node("CollisionShape2D").disabled = false
+		player.Dir.DOWN:ability.get_node("Bot").get_node("CollisionShape2D").disabled = false
+		player.Dir.LEFT: ability.get_node("Left").get_node("CollisionShape2D").disabled = false
+		player.Dir.RIGHT: ability.get_node("Right").get_node("CollisionShape2D").disabled = false
+		
+	ready_for_animation=true
+	await get_tree().create_timer(0.05).timeout
+	ability.get_node("Top").get_node("CollisionShape2D").disabled = true
+	ability.get_node("Bot").get_node("CollisionShape2D").disabled = true
+	ability.get_node("Left").get_node("CollisionShape2D").disabled = true
+	ability.get_node("Right").get_node("CollisionShape2D").disabled = true
