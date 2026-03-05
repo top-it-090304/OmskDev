@@ -1,8 +1,8 @@
 [gd_scene load_steps=16 format=3 uid="uid://djme8hqe5u87s"]
 
 [ext_resource type="Script" uid="uid://d2kkculxvdxu5" path="res://scene/game_objects/enemy/goblin_axe/enemy(goblin_axe).gd" id="1_2xi4h"]
-[ext_resource type="Texture2D" uid="uid://dx7udtjmqvj3v" path="res://scene/game_objects/enemy/goblin_axe/GobDOWNidle(UNpacked).png" id="2_q3hyu"]
-[ext_resource type="Texture2D" uid="uid://brsgpb1s4eds4" path="res://scene/game_objects/enemy/goblin_axe/GobDOWNRun(UNpacked).png" id="3_q3hyu"]
+[ext_resource type="Texture2D" path="res://scene/game_objects/enemy/goblin_axe/GobDOWNidle(UNpacked).png" id="2_q3hyu"]
+[ext_resource type="Texture2D" path="res://scene/game_objects/enemy/goblin_axe/GobDOWNRun(UNpacked).png" id="3_q3hyu"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_alucc"]
 atlas = ExtResource("2_q3hyu")
