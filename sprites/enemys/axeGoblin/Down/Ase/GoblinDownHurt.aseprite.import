@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://dahjhs1r0cgo4"
+path="res://.godot/imported/GoblinDownHurt.aseprite-70f9be5819cc8ab1e0b9455935a48c84.res"
+
+[deps]
+
+source_file="res://sprites/enemys/axeGoblin/Down/Ase/GoblinDownHurt.aseprite"
+dest_files=["res://.godot/imported/GoblinDownHurt.aseprite-70f9be5819cc8ab1e0b9455935a48c84.res"]
+
+[params]
+

@@ -13111,7 +13111,7 @@ sources/0 = SubResource("TileSetAtlasSource_yrl12")
 
 [node name="Player" parent="." instance=ExtResource("2_5lpb7")]
 z_index = 3
-position = Vector2(288, 123)
+position = Vector2(279, 242)
 motion_mode = 1
 up_direction = Vector2(0, 1)
 
@@ -13129,19 +13129,19 @@ tile_map_data = PackedByteArray("AAAtABsAAAAFAAcAAAAtABoAAAAEAAcAAAAtABkAAAAAAAg
 tile_set = SubResource("TileSet_xfrsa")
 
 [node name="enemy(goblin_axe)" parent="." instance=ExtResource("5_plauu")]
-position = Vector2(68, 233)
+position = Vector2(-64, 279)
 
 [node name="enemy(goblin_axe)2" parent="." instance=ExtResource("5_plauu")]
-position = Vector2(132, 147)
+position = Vector2(574, -95)
 
 [node name="enemy(goblin_axe)3" parent="." instance=ExtResource("5_plauu")]
-position = Vector2(139, 14)
+position = Vector2(-86, -81)
 
 [node name="enemy(goblin_axe)4" parent="." instance=ExtResource("5_plauu")]
-position = Vector2(404, 121)
+position = Vector2(248, -115)
 
 [node name="enemy(goblin_axe)5" parent="." instance=ExtResource("5_plauu")]
-position = Vector2(360, 214)
+position = Vector2(596, 359)
 
 [node name="CanvasLayer" parent="." instance=ExtResource("5_dcgxc")]
 

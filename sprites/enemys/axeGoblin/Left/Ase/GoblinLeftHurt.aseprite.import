@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://bp7t35w0xobm8"
+path="res://.godot/imported/GoblinLeftHurt.aseprite-e03f8d17620746e791cd0dcda1ba51c2.res"
+
+[deps]
+
+source_file="res://sprites/enemys/axeGoblin/Left/Ase/GoblinLeftHurt.aseprite"
+dest_files=["res://.godot/imported/GoblinLeftHurt.aseprite-e03f8d17620746e791cd0dcda1ba51c2.res"]
+
+[params]
+

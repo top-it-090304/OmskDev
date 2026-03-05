@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://bolnnixvfvul4"
+path="res://.godot/imported/GoblinUpRun.aseprite-57b5765744c902b878713d9a0f5e6d36.res"
+
+[deps]
+
+source_file="res://sprites/enemys/axeGoblin/Up/Ase/GoblinUpRun.aseprite"
+dest_files=["res://.godot/imported/GoblinUpRun.aseprite-57b5765744c902b878713d9a0f5e6d36.res"]
+
+[params]
+

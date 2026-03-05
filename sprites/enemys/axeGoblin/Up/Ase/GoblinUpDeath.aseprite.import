@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://bkqngyuqkqyro"
+path="res://.godot/imported/GoblinUpDeath.aseprite-8272df507be53aa09a5989f668cef824.res"
+
+[deps]
+
+source_file="res://sprites/enemys/axeGoblin/Up/Ase/GoblinUpDeath.aseprite"
+dest_files=["res://.godot/imported/GoblinUpDeath.aseprite-8272df507be53aa09a5989f668cef824.res"]
+
+[params]
+

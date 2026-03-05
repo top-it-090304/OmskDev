@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://djme8hqe5u87s"]
+[gd_scene load_steps=17 format=3 uid="uid://djme8hqe5u87s"]
 
 [ext_resource type="Script" uid="uid://d2kkculxvdxu5" path="res://scene/game_objects/enemy/goblin_axe/enemy(goblin_axe).gd" id="1_2xi4h"]
 [ext_resource type="Texture2D" uid="uid://dx7udtjmqvj3v" path="res://scene/game_objects/enemy/goblin_axe/GobDOWNidle(UNpacked).png" id="2_q3hyu"]
@@ -88,14 +88,32 @@ animations = [{
 "loop": true,
 "name": &"runDown",
 "speed": 5.0
+}, {
+"frames": [],
+"loop": true,
+"name": &"runRight",
+"speed": 5.0
+}, {
+"frames": [],
+"loop": true,
+"name": &"runUP",
+"speed": 5.0
+}, {
+"frames": [],
+"loop": true,
+"name": &"rupLeft",
+"speed": 5.0
 }]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_q3hyu"]
+radius = 16.0312
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_gg0d6"]
+radius = 221.443
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_6027f"]
 radius = 9.0
 height = 18.0
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_q3hyu"]
-radius = 16.0312
 
 [node name="enemy(goblin_axe)" type="CharacterBody2D"]
 script = ExtResource("1_2xi4h")
@@ -107,17 +125,23 @@ sprite_frames = SubResource("SpriteFrames_yl1a4")
 animation = &"runDown"
 autoplay = "runDown"
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(16, 13)
-shape = SubResource("CapsuleShape2D_6027f")
-
 [node name="Area2D" type="Area2D" parent="."]
-collision_layer = 0
-collision_mask = 4
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
 position = Vector2(16, 5)
 shape = SubResource("CircleShape2D_q3hyu")
 debug_color = Color(1, 0.148545, 0.269002, 0.42)
 
+[node name="detector" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="detector"]
+position = Vector2(16, 5)
+shape = SubResource("CircleShape2D_gg0d6")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(16, 13)
+shape = SubResource("CapsuleShape2D_6027f")
+
 [connection signal="area_entered" from="Area2D" to="." method="_on_area_2d_area_entered"]
+[connection signal="body_entered" from="detector" to="." method="_on_detector_body_entered"]
+[connection signal="body_exited" from="detector" to="." method="_on_detector_body_exited"]

@@ -251,7 +251,7 @@ animations = [{
 
 [node name="player" type="CharacterBody2D"]
 position = Vector2(4, -25)
-collision_layer = 0
+collision_layer = 1
 script = ExtResource("1_732fb")
 
 [node name="AbilityManager" type="Node" parent="."]

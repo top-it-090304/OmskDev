@@ -1,4 +1,4 @@
-[gd_scene load_steps=97 format=3 uid="uid://xawnnltchw47"]
+[gd_scene load_steps=98 format=3 uid="uid://xawnnltchw47"]
 
 [ext_resource type="Script" uid="uid://b4d56hcuiwhmy" path="res://scene/game_objects/player/player.gd" id="1_e68h0"]
 [ext_resource type="PackedScene" uid="uid://5f3o7tew7oun" path="res://scene/button/mobile_controller.tscn" id="2_1tyhs"]
@@ -14,6 +14,7 @@
 [ext_resource type="Texture2D" uid="uid://d3v260y8kwlh1" path="res://sprites/player/Up/Png/WarriorUpIdle.png" id="5_qjg4s"]
 [ext_resource type="Texture2D" uid="uid://cjxyvgkgdp8iv" path="res://sprites/player/Down/Png/WarriorDownAttack01.png" id="6_5g408"]
 [ext_resource type="Texture2D" uid="uid://b7p53fge0l6ge" path="res://sprites/player/Up/Png/WarriorUpWalk.png" id="6_pisg7"]
+[ext_resource type="Texture2D" uid="uid://bkfs33021bm81" path="res://sprites/player/Down/Png/WarriorDownIdle.png" id="11_lfjyr"]
 [ext_resource type="Texture2D" uid="uid://pagggpic45vn" path="res://sprites/player/Health/Health_progressbar_sprite_under.png" id="15_p0vsu"]
 [ext_resource type="Texture2D" uid="uid://dxdn8h61vtnv5" path="res://sprites/player/Health/Health_progressbar_sprite_progress.png" id="16_lfjyr"]
 [ext_resource type="Script" uid="uid://bxelbrdtxv7u6" path="res://scene/game_objects/player/health.gd" id="17_amje0"]
@@ -120,23 +121,25 @@ region = Rect2(192, 0, 48, 48)
 atlas = ExtResource("5_oen5c")
 region = Rect2(240, 0, 48, 48)
 
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_qjg4s"]
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_lf2vq"]
-atlas = SubResource("CompressedTexture2D_qjg4s")
+[sub_resource type="AtlasTexture" id="AtlasTexture_amje0"]
+atlas = ExtResource("11_lfjyr")
 region = Rect2(0, 0, 48, 48)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_3ewhm"]
-atlas = SubResource("CompressedTexture2D_qjg4s")
+[sub_resource type="AtlasTexture" id="AtlasTexture_ab7uj"]
+atlas = ExtResource("11_lfjyr")
 region = Rect2(48, 0, 48, 48)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_myiwu"]
-atlas = SubResource("CompressedTexture2D_qjg4s")
-region = Rect2(0, 48, 48, 48)
+[sub_resource type="AtlasTexture" id="AtlasTexture_0nchg"]
+atlas = ExtResource("11_lfjyr")
+region = Rect2(96, 0, 48, 48)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_vcxow"]
-atlas = SubResource("CompressedTexture2D_qjg4s")
-region = Rect2(48, 48, 48, 48)
+[sub_resource type="AtlasTexture" id="AtlasTexture_ptoag"]
+atlas = ExtResource("11_lfjyr")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_e2sng"]
+atlas = ExtResource("11_lfjyr")
+region = Rect2(192, 0, 48, 48)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_j1wnj"]
 atlas = ExtResource("3_pisg7")
@@ -422,19 +425,19 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_lf2vq")
+"texture": SubResource("AtlasTexture_amje0")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_3ewhm")
+"texture": SubResource("AtlasTexture_ab7uj")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_myiwu")
+"texture": SubResource("AtlasTexture_0nchg")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_myiwu")
+"texture": SubResource("AtlasTexture_ptoag")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_vcxow")
+"texture": SubResource("AtlasTexture_e2sng")
 }],
 "loop": true,
 "name": &"idle_down",
@@ -659,7 +662,7 @@ shape = SubResource("RectangleShape2D_lrjex")
 z_index = 2
 position = Vector2(0, -1)
 sprite_frames = SubResource("SpriteFrames_uvqrg")
-animation = &"attack_down"
+animation = &"idle_down"
 autoplay = "idle_down"
 
 [node name="Camera2D" type="Camera2D" parent="."]
