@@ -624,6 +624,7 @@ script = ExtResource("1_e68h0")
 atack_spawn = NodePath("ability_manager/atack_spawn")
 
 [node name="TextureProgressBar" type="TextureProgressBar" parent="." node_paths=PackedStringArray("player")]
+z_index = 10
 offset_left = -309.0
 offset_top = -169.0
 offset_right = -230.0
@@ -639,7 +640,7 @@ player = NodePath("..")
 
 [node name="Area2D" type="Area2D" parent="."]
 position = Vector2(0, -11)
-collision_layer = 8
+collision_layer = 24
 collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
@@ -663,8 +664,6 @@ z_index = 2
 sprite_frames = SubResource("SpriteFrames_uvqrg")
 animation = &"attack_down"
 autoplay = "idle_down"
-frame = 5
-frame_progress = 1.0
 
 [node name="Camera2D" type="Camera2D" parent="."]
 

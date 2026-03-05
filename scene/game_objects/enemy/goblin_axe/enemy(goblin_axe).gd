@@ -4,20 +4,22 @@ var hp = 20
 var max_speed = randf_range(70,160)
 var damage = 5
 var player: Node2D = null
-const DETECTION_RADIUS := 220.0
+var parent_node: Node = null
+
+#const DETECTION_RADIUS := 100
 
 
 func _ready() -> void:
 	# Находим игрока по группе
 	player = get_tree().get_first_node_in_group("player") as Node2D
-
+	parent_node=get_parent()
 
 func _physics_process(delta: float) -> void:
 	if player and is_instance_valid(player):
 		var to_player: Vector2 = player.position - self.position
 		var distance := to_player.length()
-
-		if distance <= DETECTION_RADIUS:
+		
+		if parent_node.aggression==true:
 			var direction = to_player.normalized()
 			velocity = max_speed * direction
 			move_and_slide()
@@ -52,19 +54,19 @@ func _process(delta):
 	#return Vector2.ZERO
 
 
-#func _on_area_2d_area_entered(area: Area2D) -> void:
-#	hp = hp - 10
+func _on_area_2d_area_entered(area: Area2D) -> void:
+	hp = hp - 10
 
 
-func _on_detector_body_entered(body: Node2D) -> void:
-	if body.name == "player":
-		player = body
-		print("detector entered:", body.name)
+#func _on_detector_body_entered(body: Node2D) -> void:
+	#if body.name == "player":
+		#player = body
+		#print("detector entered:", body.name)
 	
 
 
-func _on_detector_body_exited(body: Node2D) -> void:
-	if body.name == "player":
-		player = null
-		print("detector exited:", body.name)
+#func _on_detector_body_exited(body: Node2D) -> void:
+	#if body.name == "player":
+		#player = null
+		#print("detector exited:", body.name)
 	
