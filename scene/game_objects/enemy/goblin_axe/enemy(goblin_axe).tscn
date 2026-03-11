@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://dx7udtjmqvj3v" path="res://scene/game_objects/enemy/goblin_axe/GobDOWNidle(UNpacked).png" id="2_q3hyu"]
 [ext_resource type="Texture2D" uid="uid://brsgpb1s4eds4" path="res://scene/game_objects/enemy/goblin_axe/GobDOWNRun(UNpacked).png" id="3_q3hyu"]
 [ext_resource type="Texture2D" uid="uid://cheaprgwsscm7" path="res://sprites/enemys/axeGoblin/Right/Png/GoblinRightRun.png" id="4_kuux4"]
-[ext_resource type="Texture2D" uid="uid://dspou8l00k7g3" path="res://sprites/enemys/axeGoblin/up/Png/GoblinUpRun.png" id="5_ic4mc"]
+[ext_resource type="Texture2D" uid="uid://dspou8l00k7g3" path="res://sprites/enemys/axeGoblin/Up/Png/GoblinUpRun.png" id="5_ic4mc"]
 [ext_resource type="Texture2D" uid="uid://1hnyhc72grqp" path="res://sprites/enemys/axeGoblin/Left/Png/GoblinLeftRun.png" id="6_uhxqc"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_alucc"]

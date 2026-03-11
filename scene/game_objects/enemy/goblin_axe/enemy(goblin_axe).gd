@@ -1,7 +1,7 @@
 extends CharacterBody2D
 var hp = 20
 @onready var anim = $AnimatedSprite2D
-var max_speed = randf_range(70,160)
+var max_speed = 70
 var damage = 5
 var player: Node2D = null
 const DETECTION_RADIUS := 220.0
