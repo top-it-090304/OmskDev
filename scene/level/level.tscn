@@ -13115,7 +13115,7 @@ size = Vector2(860, 582)
 [node name="Level" type="Node"]
 
 [node name="Player" parent="." instance=ExtResource("2_5lpb7")]
-position = Vector2(250, 430)
+position = Vector2(875, 120)
 motion_mode = 1
 up_direction = Vector2(0, 1)
 
@@ -13176,7 +13176,7 @@ script = ExtResource("11_bgstj")
 position = Vector2(-21, 317)
 
 [node name="enemy(goblin_axe)2" parent="Enemys" instance=ExtResource("5_plauu")]
-position = Vector2(846, 122)
+position = Vector2(-171, 113)
 
 [node name="enemy(goblin_axe)3" parent="Enemys" instance=ExtResource("5_plauu")]
 position = Vector2(588, 386)
