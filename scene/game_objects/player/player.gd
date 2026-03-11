@@ -69,20 +69,23 @@ func attack():
 		Dir.LEFT: anim.play("attack_left")
 		Dir.RIGHT: anim.play("attack_right")
 	await anim.animation_finished
-	
-	
 	atack_spawn.ready_for_animation=false
 	can_move = true
+	
 func take_damage(amount: int):
 	health_int = max(0, health_int - amount)
 	health_changed.emit(health_int, max_health)
 	if health_int == 0:
 		die() 
+		
 func heal(amount: int):
 	health_int = min(max_health, health_int + amount)
 	health_changed.emit(health_int, max_health)
+	
 func _on_attack_placed(attack_instance: Node2D):
-	# Здесь делайте то, что хотели (например, атаку)
+
 	attack()
+	
+	
 func die():
 	queue_free()

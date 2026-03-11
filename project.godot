@@ -24,7 +24,7 @@ window/stretch/mode="viewport"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/AsepriteWizard/plugin.cfg")
+enabled=PackedStringArray()
 
 [input]
 
@@ -64,6 +64,7 @@ pointing/emulate_touch_from_mouse=true
 2d_physics/layer_2="player"
 2d_physics/layer_3="enemy"
 2d_physics/layer_4="pick_up"
+2d_physics/layer_5="aggression"
 
 [rendering]
 
