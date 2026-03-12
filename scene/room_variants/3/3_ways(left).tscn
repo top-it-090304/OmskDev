@@ -13196,7 +13196,7 @@ sources/2 = SubResource("TileSetAtlasSource_xyjec")
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_rwogt"]
 size = Vector2(860, 582)
 
-[node name="3ways(left)" type="Node"]
+[node name="3ways(left)" type="Node2D"]
 
 [node name="Layer2" type="TileMapLayer" parent="."]
 z_index = 2

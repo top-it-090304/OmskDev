@@ -1,7 +1,11 @@
-[gd_scene load_steps=2 format=3 uid="uid://bq40uiaugbfjq"]
+[gd_scene load_steps=3 format=3 uid="uid://bq40uiaugbfjq"]
 
 [ext_resource type="PackedScene" uid="uid://v7rf2etmhsrr" path="res://scene/level/level.tscn" id="1_mln5v"]
+[ext_resource type="PackedScene" uid="uid://bpeeg7f2iy0bg" path="res://scene/room_variants/3/3_ways(left).tscn" id="2_42lqm"]
 
 [node name="Layer" type="Node"]
 
 [node name="Level" parent="." instance=ExtResource("1_mln5v")]
+
+[node name="3ways(left)" parent="." instance=ExtResource("2_42lqm")]
+position = Vector2(-1095, 0)
