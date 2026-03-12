@@ -1,4 +1,4 @@
-[gd_scene load_steps=98 format=3 uid="uid://xawnnltchw47"]
+[gd_scene load_steps=119 format=3 uid="uid://xawnnltchw47"]
 
 [ext_resource type="Script" uid="uid://b4d56hcuiwhmy" path="res://scene/game_objects/player/player.gd" id="1_e68h0"]
 [ext_resource type="PackedScene" uid="uid://5f3o7tew7oun" path="res://scene/button/mobile_controller.tscn" id="2_1tyhs"]
@@ -14,7 +14,15 @@
 [ext_resource type="Texture2D" uid="uid://d3v260y8kwlh1" path="res://sprites/player/Up/Png/WarriorUpIdle.png" id="5_qjg4s"]
 [ext_resource type="Texture2D" uid="uid://cjxyvgkgdp8iv" path="res://sprites/player/Down/Png/WarriorDownAttack01.png" id="6_5g408"]
 [ext_resource type="Texture2D" uid="uid://b7p53fge0l6ge" path="res://sprites/player/Up/Png/WarriorUpWalk.png" id="6_pisg7"]
+<<<<<<< Updated upstream
 [ext_resource type="Texture2D" uid="uid://bkfs33021bm81" path="res://sprites/player/Down/Png/WarriorDownIdle.png" id="11_lfjyr"]
+=======
+[ext_resource type="Texture2D" uid="uid://c34drne3uy81k" path="res://sprites/player/Down/Png/WarriorDownHurt.png" id="8_e2sng"]
+[ext_resource type="Texture2D" uid="uid://cd0d2r0umnoru" path="res://sprites/player/Left/Png/WarriorLeftHurt.png" id="9_lm3u3"]
+[ext_resource type="Texture2D" uid="uid://c8f8at134juve" path="res://sprites/player/Right/Png/WarriorRightHurt.png" id="10_vedbf"]
+[ext_resource type="Texture2D" uid="uid://bkfs33021bm81" path="res://sprites/player/Down/Png/WarriorDownIdle.png" id="11_amje0"]
+[ext_resource type="Texture2D" uid="uid://cyywjoe23ni6a" path="res://sprites/player/Up/Png/WarriorUpHurt.png" id="11_siiro"]
+>>>>>>> Stashed changes
 [ext_resource type="Texture2D" uid="uid://pagggpic45vn" path="res://sprites/player/Health/Health_progressbar_sprite_under.png" id="15_p0vsu"]
 [ext_resource type="Texture2D" uid="uid://dxdn8h61vtnv5" path="res://sprites/player/Health/Health_progressbar_sprite_progress.png" id="16_lfjyr"]
 [ext_resource type="Script" uid="uid://bxelbrdtxv7u6" path="res://scene/game_objects/player/health.gd" id="17_amje0"]
@@ -121,6 +129,7 @@ region = Rect2(192, 0, 48, 48)
 atlas = ExtResource("5_oen5c")
 region = Rect2(240, 0, 48, 48)
 
+<<<<<<< Updated upstream
 [sub_resource type="AtlasTexture" id="AtlasTexture_amje0"]
 atlas = ExtResource("11_lfjyr")
 region = Rect2(0, 0, 48, 48)
@@ -139,6 +148,90 @@ region = Rect2(144, 0, 48, 48)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_e2sng"]
 atlas = ExtResource("11_lfjyr")
+=======
+[sub_resource type="AtlasTexture" id="AtlasTexture_rlg5u"]
+atlas = ExtResource("8_e2sng")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_k07tp"]
+atlas = ExtResource("8_e2sng")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_plpdn"]
+atlas = ExtResource("8_e2sng")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_t526v"]
+atlas = ExtResource("8_e2sng")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uufy7"]
+atlas = ExtResource("9_lm3u3")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_edl67"]
+atlas = ExtResource("9_lm3u3")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_t4lt5"]
+atlas = ExtResource("9_lm3u3")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jyiia"]
+atlas = ExtResource("9_lm3u3")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dx8m4"]
+atlas = ExtResource("10_vedbf")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jpk7t"]
+atlas = ExtResource("10_vedbf")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_y1s0g"]
+atlas = ExtResource("10_vedbf")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fg7ry"]
+atlas = ExtResource("10_vedbf")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4l7a2"]
+atlas = ExtResource("11_siiro")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_v0qdg"]
+atlas = ExtResource("11_siiro")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sxuim"]
+atlas = ExtResource("11_siiro")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_q3uey"]
+atlas = ExtResource("11_siiro")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ab7uj"]
+atlas = ExtResource("11_amje0")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0nchg"]
+atlas = ExtResource("11_amje0")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ptoag"]
+atlas = ExtResource("11_amje0")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_e2sng"]
+atlas = ExtResource("11_amje0")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lm3u3"]
+atlas = ExtResource("11_amje0")
+>>>>>>> Stashed changes
 region = Rect2(192, 0, 48, 48)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_j1wnj"]
@@ -425,6 +518,7 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+<<<<<<< Updated upstream
 "texture": SubResource("AtlasTexture_amje0")
 }, {
 "duration": 1.0,
@@ -438,6 +532,89 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_e2sng")
+=======
+"texture": SubResource("AtlasTexture_rlg5u")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_k07tp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_plpdn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_t526v")
+}],
+"loop": true,
+"name": &"hurtDown",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uufy7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_edl67")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_t4lt5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jyiia")
+}],
+"loop": true,
+"name": &"hurtLeft",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dx8m4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jpk7t")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_y1s0g")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fg7ry")
+}],
+"loop": true,
+"name": &"hurtRight",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4l7a2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_v0qdg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sxuim")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_q3uey")
+}],
+"loop": true,
+"name": &"hurtUp",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ab7uj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0nchg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ptoag")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_e2sng")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lm3u3")
+>>>>>>> Stashed changes
 }],
 "loop": true,
 "name": &"idle_down",
@@ -620,12 +797,17 @@ animations = [{
 "speed": 5.0
 }]
 
-[node name="player" type="CharacterBody2D" node_paths=PackedStringArray("atack_spawn") groups=["player"]]
+[node name="player" type="CharacterBody2D" groups=["player"]]
 z_index = 2
+collision_layer = 2
 script = ExtResource("1_e68h0")
-atack_spawn = NodePath("ability_manager/atack_spawn")
 
+<<<<<<< Updated upstream
 [node name="TextureProgressBar" type="TextureProgressBar" parent="." node_paths=PackedStringArray("player")]
+=======
+[node name="TextureProgressBar" type="TextureProgressBar" parent="."]
+z_index = 10
+>>>>>>> Stashed changes
 offset_left = -309.0
 offset_top = -169.0
 offset_right = -230.0
@@ -637,7 +819,6 @@ value = 20.0
 texture_under = ExtResource("15_p0vsu")
 texture_progress = ExtResource("16_lfjyr")
 script = ExtResource("17_amje0")
-player = NodePath("..")
 
 [node name="Area2D" type="Area2D" parent="."]
 collision_layer = 8
@@ -652,17 +833,28 @@ debug_color = Color(0.290712, 0.629766, 0, 0.42)
 
 [node name="ability_manager" type="Node" parent="."]
 
+<<<<<<< Updated upstream
 [node name="atack_spawn" parent="ability_manager" instance=ExtResource("2_lrjex")]
+=======
+[node name="Atack_ability" parent="ability_manager" instance=ExtResource("18_lfjyr")]
+
+[node name="atack_spawn" parent="ability_manager" node_paths=PackedStringArray("ability") instance=ExtResource("2_lrjex")]
+ability = NodePath("../Atack_ability")
+>>>>>>> Stashed changes
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, 11)
 shape = SubResource("RectangleShape2D_lrjex")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." groups=["player"]]
 z_index = 2
 position = Vector2(0, -1)
 sprite_frames = SubResource("SpriteFrames_uvqrg")
+<<<<<<< Updated upstream
 animation = &"idle_down"
+=======
+animation = &"hurtRight"
+>>>>>>> Stashed changes
 autoplay = "idle_down"
 
 [node name="Camera2D" type="Camera2D" parent="."]
