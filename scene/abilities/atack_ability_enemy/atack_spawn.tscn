@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://dwialxwvn6586"]
+
+[ext_resource type="Script" uid="uid://ba787vlppb0fx" path="res://scene/abilities/atack_ability/atack_spawn.gd" id="1_tm0pw"]
+
+[node name="atack_spawn" type="Node2D"]
+texture_repeat = 1
+script = ExtResource("1_tm0pw")
+
+[node name="Timer" type="Timer" parent="."]

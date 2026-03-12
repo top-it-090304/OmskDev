@@ -24,7 +24,11 @@ window/stretch/mode="viewport"
 
 [editor_plugins]
 
+<<<<<<< Updated upstream
 enabled=PackedStringArray("res://addons/AsepriteWizard/plugin.cfg")
+=======
+enabled=PackedStringArray("res://addons/AS2P/plugin.cfg")
+>>>>>>> Stashed changes
 
 [input]
 
