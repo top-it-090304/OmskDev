@@ -5,7 +5,7 @@ var max_speed = randf_range(70,160)
 var damage = 5
 var player: Node2D = null
 var parent_node: Node = null
-
+var room_node: Node2D = null
 #const DETECTION_RADIUS := 100
 
 
@@ -13,10 +13,11 @@ func _ready() -> void:
 	# Находим игрока по группе
 	player = get_tree().get_first_node_in_group("player") as Node2D
 	parent_node=get_parent()
+	room_node=parent_node.get_parent()
 
 func _physics_process(delta: float) -> void:
 	if player and is_instance_valid(player):
-		var to_player: Vector2 = player.position - self.position
+		var to_player: Vector2 = player.position - self.position -room_node.position
 		var distance := to_player.length()
 		
 		if parent_node.aggression==true:
