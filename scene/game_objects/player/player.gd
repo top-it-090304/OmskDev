@@ -6,7 +6,7 @@ var max_health = 100
 
 enum Dir { DOWN, UP, LEFT, RIGHT }
 var current_dir = Dir.DOWN
-var can_move = true
+var can_anim = true
 signal health_changed(new_health, max_health)
 var health_int = 50
 
@@ -15,24 +15,25 @@ var health_int = 50
 	
 	
 func _physics_process(_delta: float) -> void:
-	if !can_move:
-
-		return
+	
 	
 	
 	if atack_spawn.ready_for_animation==true:
 		attack()
-		return 
+		
 
 	var direction = movement_vector()
 	
 	if direction != Vector2.ZERO:
 		velocity = direction * max_speed
-		update_direction(direction)
-		play_walk_animation()
+		
+		if can_anim:
+			update_direction(direction)
+			play_walk_animation()
 	else:
 		velocity = velocity.move_toward(Vector2.ZERO, max_speed) #
-		play_idle_animation()
+		if can_anim:
+			play_idle_animation()
 
 	move_and_slide()
 
@@ -62,7 +63,7 @@ func play_idle_animation():
 		Dir.RIGHT: anim.play("idle_right")
 
 func attack():
-	can_move = false
+	can_anim = false
 	match current_dir:
 		Dir.UP: anim.play("attack_up")
 		Dir.DOWN: anim.play("attack_down")
@@ -70,7 +71,7 @@ func attack():
 		Dir.RIGHT: anim.play("attack_right")
 	await anim.animation_finished
 	atack_spawn.ready_for_animation=false
-	can_move = true
+	can_anim = true
 	
 func take_damage(amount: int):
 	health_int = max(0, health_int - amount)
