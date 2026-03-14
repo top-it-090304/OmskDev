@@ -10,8 +10,8 @@ var can_move = true
 signal health_changed(new_health, max_health)
 var health_int = 50
 
-func _ready():
-	health_int = max_health
+#func _ready():
+#	health_int = max_health
 	
 	
 func _physics_process(_delta: float) -> void:
