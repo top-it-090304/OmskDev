@@ -3,7 +3,7 @@ var hp = 20
 @onready var anim = $AnimatedSprite2D
 @onready var animP = $AnimationPlayer
 var max_speed = randf_range(70,160)
-var damage = 5
+var damage = 20
 var player: Node2D = null
 var parent_node: Node = null
 var room_node: Node2D = null
@@ -65,7 +65,6 @@ func attack():
 		Dir.DOWN: animP.play("attack_down")
 		Dir.LEFT: animP.play("attack_left")
 		Dir.RIGHT: animP.play("attack_right")
-		_: print("Ну как?")
 	await animP.animation_finished
 	can_move = true	
 
@@ -78,4 +77,10 @@ func _on_detector_body_entered(body: Node2D) -> void:
 func _on_attack_body_entered(body: Node2D) -> void:
 	if body.name == "Player":
 		player = get_tree().get_first_node_in_group("player") as Node2D
-		player.health_int = player.health_int - 20
+		player.take_damage(damage)
+
+
+func _on_hitbox_body_entered(body: Node2D) -> void:
+	if body.name == "Player":
+		player = get_tree().get_first_node_in_group("player") as Node2D
+		player.take_damage(10)
