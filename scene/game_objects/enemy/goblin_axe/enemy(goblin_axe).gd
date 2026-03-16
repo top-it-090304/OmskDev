@@ -65,6 +65,7 @@ func attack():
 		Dir.DOWN: animP.play("attack_down")
 		Dir.LEFT: animP.play("attack_left")
 		Dir.RIGHT: animP.play("attack_right")
+		_: print("ЧМО ЕБАННОЕ ХУЛИ МНЕ АНИМАЦИЮ НЕ ДОБАВИЛ!?")
 	await animP.animation_finished
 	can_move = true	
 
@@ -72,7 +73,7 @@ func attack():
 func _on_detector_body_entered(body: Node2D) -> void:
 	if body.name == "Player":
 		attack()
-
+	
 
 func _on_attack_body_entered(body: Node2D) -> void:
 	if body.name == "Player":
