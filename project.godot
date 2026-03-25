@@ -24,7 +24,7 @@ window/stretch/mode="viewport"
 
 [editor_plugins]
 
-enabled=PackedStringArray()
+enabled=PackedStringArray("res://addons/AS2P/plugin.cfg")
 
 [input]
 

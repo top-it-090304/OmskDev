@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=4 uid="uid://blw42nskxwd6s"]
+[gd_scene load_steps=23 format=4 uid="uid://bs2iab0sb7f52"]
 
 [ext_resource type="Texture2D" uid="uid://dcwxg2dsm28ql" path="res://assets/Platformer Asset All G.png" id="1_df1vk"]
 [ext_resource type="Texture2D" uid="uid://bwj28l4f7rtt1" path="res://assets/Dungeon_FloorsWallsA5.png" id="2_67txn"]
@@ -13223,7 +13223,19 @@ debug_color = Color(0.564706, 0.411765, 0, 0.333333)
 script = ExtResource("7_oy3hb")
 
 [node name="enemy(goblin_axe)4" parent="Enemys" instance=ExtResource("8_rvu75")]
-position = Vector2(152, 104)
+position = Vector2(88, 296)
+
+[node name="enemy(goblin_axe)2" parent="Enemys" instance=ExtResource("8_rvu75")]
+position = Vector2(192, -104)
+
+[node name="enemy(goblin_axe)" parent="Enemys" instance=ExtResource("8_rvu75")]
+position = Vector2(8, 104)
+
+[node name="enemy(goblin_axe)5" parent="Enemys" instance=ExtResource("8_rvu75")]
+position = Vector2(208, 104)
+
+[node name="enemy(goblin_axe)7" parent="Enemys" instance=ExtResource("8_rvu75")]
+position = Vector2(288, 296)
 
 [node name="Layer2" type="TileMapLayer" parent="."]
 z_index = 2

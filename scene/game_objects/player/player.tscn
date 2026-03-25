@@ -801,7 +801,7 @@ shape = SubResource("RectangleShape2D_lrjex")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 z_index = 2
 sprite_frames = SubResource("SpriteFrames_uvqrg")
-animation = &"attack_right"
+animation = &"hurt_down"
 autoplay = "idle_down"
 
 [node name="Camera2D" type="Camera2D" parent="."]

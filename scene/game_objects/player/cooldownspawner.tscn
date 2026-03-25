@@ -1,4 +1,4 @@
-[gd_scene load_steps=0 format=3 uid="uid://1jwh2epgkini"]
+[gd_scene format=3 uid="uid://1jwh2epgkini"]
 
 [node name="cooldownspawner" type="Node2D"]
 
