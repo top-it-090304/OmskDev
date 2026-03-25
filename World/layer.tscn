@@ -1,23 +1,59 @@
-[gd_scene load_steps=6 format=3 uid="uid://bq40uiaugbfjq"]
+[gd_scene load_steps=2 format=3 uid="uid://bq40uiaugbfjq"]
 
-[ext_resource type="PackedScene" uid="uid://v7rf2etmhsrr" path="res://scene/level/level.tscn" id="1_mln5v"]
-[ext_resource type="PackedScene" uid="uid://bpeeg7f2iy0bg" path="res://scene/room_variants/3/3_ways(left).tscn" id="2_42lqm"]
-[ext_resource type="PackedScene" uid="uid://cgje67yvb7u35" path="res://scene/room_variants/3/3_ways(down).tscn" id="3_rkxxr"]
 [ext_resource type="PackedScene" uid="uid://muctk0wtldey" path="res://scene/room_variants/3/3_ways(top).tscn" id="4_ovy2a"]
-[ext_resource type="PackedScene" uid="uid://bs2iab0sb7f52" path="res://scene/room_variants/3/3_ways(right).tscn" id="5_gxdan"]
 
 [node name="Layer" type="Node"]
 
-[node name="Level" parent="." instance=ExtResource("1_mln5v")]
+[node name="Level" parent="."]
+_import_path = NodePath("")
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
+script = null
 
-[node name="3ways(left)" parent="." instance=ExtResource("2_42lqm")]
+[node name="3ways(left)" parent="."]
+_import_path = NodePath("")
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
 position = Vector2(-1095, 0)
+script = null
 
-[node name="3ways(down)" parent="." instance=ExtResource("3_rkxxr")]
+[node name="3ways(down)" parent="."]
+_import_path = NodePath("")
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
 position = Vector2(-17, 841)
+script = null
 
 [node name="3ways(top)" parent="." instance=ExtResource("4_ovy2a")]
 position = Vector2(17, -841)
 
-[node name="3ways(right)" parent="." instance=ExtResource("5_gxdan")]
-position = Vector2(1095, 0)
+[node name="3ways(right)" parent="."]
+_import_path = NodePath("")
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
+position = Vector2(1095, -4)
+script = null

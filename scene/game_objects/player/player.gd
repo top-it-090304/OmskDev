@@ -6,29 +6,29 @@ var max_health = 100
 
 enum Dir { DOWN, UP, LEFT, RIGHT }
 var current_dir = Dir.DOWN
+var can_move = true
 var can_anim = true
 signal health_changed(new_health, max_health)
 var health_int = 50
 
-#func _ready():
-#	health_int = max_health
+func _ready():
+	health_int = max_health
 	
 	
 func _physics_process(_delta: float) -> void:
 	
 	
-	
-	if atack_spawn.ready_for_animation==true:
+	if atack_spawn.ready_for_animation and can_anim:
 		attack()
+	
 		
 
 	var direction = movement_vector()
 	
 	if direction != Vector2.ZERO:
 		velocity = direction * max_speed
-		
+		update_direction(direction)
 		if can_anim:
-			update_direction(direction)
 			play_walk_animation()
 	else:
 		velocity = velocity.move_toward(Vector2.ZERO, max_speed) #
@@ -74,18 +74,25 @@ func attack():
 	can_anim = true
 	
 func take_damage(amount: int):
-	health_int = max(0, health_int - amount)
-	health_changed.emit(health_int, max_health)
-	if health_int == 0:
+	health_int = health_int - amount
+	if health_int <= 0:
 		die() 
+	health_changed.emit(health_int, max_health)
+	can_anim = false
+	match current_dir:
+		Dir.UP: anim.play("hurt_up")
+		Dir.DOWN: anim.play("hurt_down")
+		Dir.LEFT: anim.play("hurt_left")
+		Dir.RIGHT: anim.play("hurt_right")
+	await anim.animation_finished
+	can_anim = true
+	
 		
 func heal(amount: int):
 	health_int = min(max_health, health_int + amount)
 	health_changed.emit(health_int, max_health)
 	
-func _on_attack_placed(attack_instance: Node2D):
 
-	attack()
 	
 	
 func die():
