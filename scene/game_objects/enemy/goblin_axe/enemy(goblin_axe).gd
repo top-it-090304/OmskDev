@@ -76,10 +76,10 @@ func attack():
 	can_anim = false
 	
 	
-	max_speed=max_speed*1.7
+	max_speed=max_speed*1.9
 	
 	await animP.animation_finished
-	max_speed=max_speed/1.7
+	max_speed=max_speed/1.9
 	can_anim = true	
 
 
