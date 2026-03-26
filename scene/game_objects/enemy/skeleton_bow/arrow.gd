@@ -1,5 +1,5 @@
 extends Area2D
-@export var speed = 200
+@export var speed = 20
 var damage = 20
 var direction = Vector2.ZERO
 func _ready() -> void:

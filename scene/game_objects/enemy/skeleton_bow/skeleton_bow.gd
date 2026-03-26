@@ -81,7 +81,6 @@ func attack():
 		Dir.RIGHT: anim.play("attack_right")
 	
 	await anim.animation_finished
-	print("2. Анимация ЗАКОНЧИЛАСЬ")
 	shoot()
 	
 	can_move = true
@@ -95,8 +94,9 @@ func shoot():
 	var target_dir = (player.global_position - global_position).normalized()
 	arrow_instance.direction = target_dir
 	arrow_instance.rotation = target_dir.angle()
-	
-	get_tree().current_scene.add_child(arrow_instance)
+	arrow_instance.z_index = 1
+	get_parent().add_child(arrow_instance)
+	print("Стрела создана в: ", arrow_instance.global_position)
 
 	
 
@@ -116,7 +116,6 @@ func _on_hitbox_area_entered(_area: Area2D) -> void:
 
 func _on_detector_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):
-		print("Игрок вошел в зону!")
 		player_in_range = true
 		get_closer = false 
 		if can_attack:

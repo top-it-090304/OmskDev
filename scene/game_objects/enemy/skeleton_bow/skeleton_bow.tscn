@@ -1,4 +1,4 @@
-[gd_scene load_steps=114 format=3 uid="uid://ot1bjrnddml7"]
+[gd_scene load_steps=110 format=3 uid="uid://ot1bjrnddml7"]
 
 [ext_resource type="Script" uid="uid://k6oppqmu6kll" path="res://scene/game_objects/enemy/skeleton_bow/skeleton_bow.gd" id="1_h3w2k"]
 [ext_resource type="Texture2D" uid="uid://c1xid83v6ajlw" path="res://sprites/enemys/skeletonBow/Down/Png/SkeletonWithBowDownAttack01.png" id="1_n57qw"]
@@ -13,6 +13,12 @@
 [ext_resource type="Texture2D" uid="uid://ddk3fdik1uhdb" path="res://sprites/enemys/skeletonBow/Left/Png/SkeletonWithBowLefttRun.png" id="10_u6jxd"]
 [ext_resource type="Texture2D" uid="uid://jvhan5j1untb" path="res://sprites/enemys/skeletonBow/Right/Png/SkeletonWithBowRightRun.png" id="11_33hjt"]
 [ext_resource type="Texture2D" uid="uid://cvgjd1mbxxlfl" path="res://sprites/enemys/skeletonBow/Up/Png/SkeletonWithSBowUpWalk.png" id="12_i5q24"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_dfcc5"]
+radius = 269.119
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_h3w2k"]
+radius = 16.0312
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_uml27"]
 atlas = ExtResource("1_n57qw")
@@ -53,10 +59,6 @@ region = Rect2(384, 0, 48, 48)
 [sub_resource type="AtlasTexture" id="AtlasTexture_xot5m"]
 atlas = ExtResource("1_n57qw")
 region = Rect2(432, 0, 48, 48)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_t4n7u"]
-atlas = ExtResource("1_n57qw")
-region = Rect2(480, 0, 48, 48)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ajkl6"]
 atlas = ExtResource("1_n57qw")
@@ -106,10 +108,6 @@ region = Rect2(432, 0, 48, 48)
 atlas = ExtResource("2_h3w2k")
 region = Rect2(480, 0, 48, 48)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_r258f"]
-atlas = ExtResource("2_h3w2k")
-region = Rect2(528, 0, 48, 48)
-
 [sub_resource type="AtlasTexture" id="AtlasTexture_d8he5"]
 atlas = ExtResource("3_dfcc5")
 region = Rect2(0, 0, 48, 48)
@@ -154,10 +152,6 @@ region = Rect2(432, 0, 48, 48)
 atlas = ExtResource("3_dfcc5")
 region = Rect2(480, 0, 48, 48)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_v3qcb"]
-atlas = ExtResource("3_dfcc5")
-region = Rect2(528, 0, 48, 48)
-
 [sub_resource type="AtlasTexture" id="AtlasTexture_87btd"]
 atlas = ExtResource("4_pying")
 region = Rect2(0, 0, 48, 48)
@@ -201,10 +195,6 @@ region = Rect2(432, 0, 48, 48)
 [sub_resource type="AtlasTexture" id="AtlasTexture_8nbg3"]
 atlas = ExtResource("4_pying")
 region = Rect2(480, 0, 48, 48)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_bhsfk"]
-atlas = ExtResource("4_pying")
-region = Rect2(528, 0, 48, 48)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_4n3dk"]
 atlas = ExtResource("5_3a67d")
@@ -432,14 +422,11 @@ animations = [{
 "texture": SubResource("AtlasTexture_xot5m")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_t4n7u")
-}, {
-"duration": 1.0,
 "texture": SubResource("AtlasTexture_ajkl6")
 }],
 "loop": false,
 "name": &"attack_down",
-"speed": 5.0
+"speed": 15.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -474,13 +461,10 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_cwy1o")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_r258f")
 }],
 "loop": false,
 "name": &"attack_left",
-"speed": 5.0
+"speed": 15.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -515,13 +499,10 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_01ywe")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_v3qcb")
 }],
 "loop": false,
 "name": &"attack_right",
-"speed": 5.0
+"speed": 15.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -556,13 +537,10 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_8nbg3")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_bhsfk")
 }],
 "loop": false,
 "name": &"attack_up",
-"speed": 5.0
+"speed": 15.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -585,7 +563,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"idle_down",
-"speed": 5.0
+"speed": 15.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -608,7 +586,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"idle_left",
-"speed": 5.0
+"speed": 15.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -631,7 +609,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"idle_right",
-"speed": 5.0
+"speed": 15.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -654,7 +632,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"idle_up",
-"speed": 5.0
+"speed": 15.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -677,7 +655,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"run_down",
-"speed": 5.0
+"speed": 15.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -700,7 +678,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"run_left",
-"speed": 5.0
+"speed": 15.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -723,7 +701,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"run_right",
-"speed": 5.0
+"speed": 15.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -746,14 +724,8 @@ animations = [{
 }],
 "loop": false,
 "name": &"run_up",
-"speed": 5.0
+"speed": 15.0
 }]
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_h3w2k"]
-radius = 16.0312
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_dfcc5"]
-radius = 119.017
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_h3w2k"]
 height = 36.0
@@ -763,9 +735,13 @@ collision_layer = 5
 collision_mask = 7
 script = ExtResource("1_h3w2k")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
-sprite_frames = SubResource("SpriteFrames_nlar7")
-animation = &"attack_down"
+[node name="detector" type="Area2D" parent="."]
+collision_layer = 5
+collision_mask = 7
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="detector"]
+shape = SubResource("CircleShape2D_dfcc5")
+debug_color = Color(1, 1, 1, 0.121569)
 
 [node name="hitbox" type="Area2D" parent="."]
 collision_layer = 0
@@ -775,19 +751,14 @@ collision_mask = 4
 shape = SubResource("CircleShape2D_h3w2k")
 debug_color = Color(1, 0.148545, 0.269002, 0.42)
 
-[node name="detector" type="Area2D" parent="."]
-collision_layer = 5
-collision_mask = 7
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="detector"]
-shape = SubResource("CircleShape2D_dfcc5")
-debug_color = Color(1, 1, 1, 0.121569)
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_nlar7")
+animation = &"run_up"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CapsuleShape2D_h3w2k")
 
 [node name="attack_timer" type="Timer" parent="." groups=["enemys"]]
-wait_time = 2.0
 one_shot = true
 
 [connection signal="body_entered" from="detector" to="." method="_on_detector_body_entered"]
