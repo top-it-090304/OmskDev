@@ -2,7 +2,7 @@ extends CharacterBody2D
 var hp = 20
 @onready var anim = $AnimatedSprite2D
 @onready var animP = $AnimationPlayer
-var max_speed = randf_range(70,160)
+var max_speed = randf_range(100,130)
 var damage = 10
 var player: Node2D = null
 var parent_node: Node = null
@@ -76,10 +76,10 @@ func attack():
 	can_anim = false
 	
 	
-	max_speed=max_speed*1.6
+	max_speed=max_speed*1.7
 	
 	await animP.animation_finished
-	max_speed=max_speed/1.6
+	max_speed=max_speed/1.7
 	can_anim = true	
 
 
