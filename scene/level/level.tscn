@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=4 uid="uid://v7rf2etmhsrr"]
+[gd_scene load_steps=28 format=4 uid="uid://v7rf2etmhsrr"]
 
 [ext_resource type="PackedScene" uid="uid://xawnnltchw47" path="res://scene/game_objects/player/player.tscn" id="2_5lpb7"]
 [ext_resource type="Texture2D" uid="uid://dwdbmqji2ppp1" path="res://assets/Platformer Asset All F.png" id="2_s8ale"]
@@ -12,6 +12,7 @@
 [ext_resource type="PackedScene" uid="uid://3yn6kdsrhf3j" path="res://scene/pick_up/Heal potion/heal_potion.tscn" id="10_cqsgc"]
 [ext_resource type="Script" uid="uid://cr6mv2r4o37d7" path="res://scene/level/enemys.gd" id="11_bgstj"]
 [ext_resource type="Script" uid="uid://bfmesc6rve018" path="res://scene/level/room_shape.gd" id="11_gavly"]
+[ext_resource type="PackedScene" uid="uid://ot1bjrnddml7" path="res://scene/game_objects/enemy/skeleton_bow/skeleton_bow.tscn" id="11_nngl3"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_bgstj"]
 
@@ -13278,6 +13279,9 @@ position = Vector2(662, -90)
 
 [node name="enemy(goblin_axe)9" parent="Enemys" instance=ExtResource("5_plauu")]
 position = Vector2(-89, -112)
+
+[node name="skeleton_bow" parent="Enemys" instance=ExtResource("11_nngl3")]
+position = Vector2(263, 202)
 
 [connection signal="tree_entered" from="." to="Enemys/enemy(goblin_axe)" method="_on_level_tree_entered"]
 [connection signal="area_entered" from="room_shape" to="Enemys" method="_on_room_shape_area_entered"]
