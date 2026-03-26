@@ -1,4 +1,4 @@
-[gd_scene load_steps=116 format=3 uid="uid://djme8hqe5u87s"]
+[gd_scene load_steps=117 format=3 uid="uid://djme8hqe5u87s"]
 
 [ext_resource type="Script" uid="uid://d2kkculxvdxu5" path="res://scene/game_objects/enemy/goblin_axe/enemy(goblin_axe).gd" id="1_2xi4h"]
 [ext_resource type="Texture2D" uid="uid://3iftfbt86hrh" path="res://sprites/enemys/axeGoblin/Down/Png/GoblinDownAttack01.png" id="2_jcyvn"]
@@ -14,6 +14,7 @@
 [ext_resource type="Texture2D" uid="uid://dr7k514ntdrba" path="res://sprites/enemys/axeGoblin/Left/Png/GoblinLeftHurt.png" id="7_upxj5"]
 [ext_resource type="Texture2D" uid="uid://c1ipatc7jwtuk" path="res://sprites/enemys/axeGoblin/Right/Png/GoblinRightHurt.png" id="8_7neug"]
 [ext_resource type="Texture2D" uid="uid://d1rgulso2vqkk" path="res://sprites/enemys/axeGoblin/Up/Png/GoblinUpHurt.png" id="9_ld14w"]
+[ext_resource type="Script" uid="uid://d0rsjn1v4kmxq" path="res://scene/game_objects/enemy/goblin_axe/attack_timer.gd" id="15_upxj5"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_0e6ua"]
 atlas = ExtResource("2_jcyvn")
@@ -464,7 +465,7 @@ animations = [{
 "speed": 15.0
 }, {
 "frames": [{
-"duration": 0.5,
+"duration": 0.4,
 "texture": SubResource("AtlasTexture_6o67e")
 }, {
 "duration": 0.5,
@@ -1124,8 +1125,11 @@ libraries = {
 speed_scale = 3.0
 
 [node name="attack_timer" type="Timer" parent="."]
-wait_time = 2.0
+wait_time = 1.5
+one_shot = true
+script = ExtResource("15_upxj5")
 
 [connection signal="body_entered" from="attack" to="." method="_on_attack_body_entered"]
 [connection signal="area_entered" from="hitbox" to="." method="_on_hitbox_area_entered"]
 [connection signal="body_entered" from="detector" to="." method="_on_detector_body_entered"]
+[connection signal="timeout" from="attack_timer" to="." method="_on_attack_timer_timeout"]
