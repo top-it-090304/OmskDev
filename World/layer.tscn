@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://bq40uiaugbfjq"]
+[gd_scene load_steps=7 format=3 uid="uid://bq40uiaugbfjq"]
 
 [ext_resource type="PackedScene" uid="uid://cgje67yvb7u35" path="res://scene/room_variants/3/3_ways(down).tscn" id="2_rkxxr"]
 [ext_resource type="PackedScene" uid="uid://bs2iab0sb7f52" path="res://scene/room_variants/3/3_ways(right).tscn" id="3_ovy2a"]
 [ext_resource type="PackedScene" uid="uid://v7rf2etmhsrr" path="res://scene/level/level.tscn" id="4_gxdan"]
 [ext_resource type="PackedScene" uid="uid://muctk0wtldey" path="res://scene/room_variants/3/3_ways(top).tscn" id="4_ovy2a"]
 [ext_resource type="PackedScene" uid="uid://bpeeg7f2iy0bg" path="res://scene/room_variants/3/3_ways(left).tscn" id="5_sasxm"]
+[ext_resource type="PackedScene" uid="uid://dvjcijvverjm4" path="res://scene/room_variants/artefact_room.tscn" id="6_ovy2a"]
 
 [node name="Layer" type="Node"]
 
@@ -21,3 +22,6 @@ position = Vector2(1096, 0)
 
 [node name="3ways(left)" parent="." instance=ExtResource("5_sasxm")]
 position = Vector2(-1096, 0)
+
+[node name="artefact_room" parent="." instance=ExtResource("6_ovy2a")]
+position = Vector2(813, 424)
