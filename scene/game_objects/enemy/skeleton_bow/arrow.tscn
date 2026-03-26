@@ -1,3 +1,21 @@
-[gd_scene format=3 uid="uid://dyq0khf8igmwx"]
+[gd_scene load_steps=4 format=3 uid="uid://dyq0khf8igmwx"]
 
-[node name="arrow" type="Node2D"]
+[ext_resource type="Texture2D" uid="uid://djh7bolflnkxw" path="res://sprites/enemys/skeletonBow/arrow.png" id="1_1cch6"]
+[ext_resource type="Script" uid="uid://bdq0qtlq7fnnu" path="res://scene/game_objects/enemy/skeleton_bow/arrow.gd" id="1_uset8"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6s48d"]
+size = Vector2(10, 5)
+
+[node name="hitbox" type="Area2D"]
+collision_layer = 0
+collision_mask = 7
+script = ExtResource("1_uset8")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -0.5)
+shape = SubResource("RectangleShape2D_6s48d")
+
+[node name="arrow" type="Sprite2D" parent="."]
+texture = ExtResource("1_1cch6")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]

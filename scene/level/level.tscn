@@ -1,4 +1,4 @@
-[gd_scene load_steps=28 format=4 uid="uid://v7rf2etmhsrr"]
+[gd_scene load_steps=27 format=4 uid="uid://v7rf2etmhsrr"]
 
 [ext_resource type="PackedScene" uid="uid://xawnnltchw47" path="res://scene/game_objects/player/player.tscn" id="2_5lpb7"]
 [ext_resource type="Texture2D" uid="uid://dwdbmqji2ppp1" path="res://assets/Platformer Asset All F.png" id="2_s8ale"]
@@ -7,7 +7,6 @@
 [ext_resource type="Texture2D" uid="uid://bwj28l4f7rtt1" path="res://assets/Dungeon_FloorsWallsA5.png" id="3_xfrsa"]
 [ext_resource type="Texture2D" uid="uid://ds2ivjotu3usb" path="res://assets/Dungeon_FurnitureB.png" id="4_yrl12"]
 [ext_resource type="PackedScene" uid="uid://bkg2dkeugttp8" path="res://scene/game_objects/player/cooldown.tscn" id="5_dcgxc"]
-[ext_resource type="PackedScene" uid="uid://djme8hqe5u87s" path="res://scene/game_objects/enemy/goblin_axe/enemy(goblin_axe).tscn" id="5_plauu"]
 [ext_resource type="Texture2D" uid="uid://c6koxi2pp32bu" path="res://assets/Dungeon_DecorationsC.png" id="9_yrl12"]
 [ext_resource type="PackedScene" uid="uid://3yn6kdsrhf3j" path="res://scene/pick_up/Heal potion/heal_potion.tscn" id="10_cqsgc"]
 [ext_resource type="Script" uid="uid://cr6mv2r4o37d7" path="res://scene/level/enemys.gd" id="11_bgstj"]
@@ -13253,36 +13252,8 @@ debug_color = Color(0.564706, 0.411765, 0, 0.333333)
 [node name="Enemys" type="Node" parent="."]
 script = ExtResource("11_bgstj")
 
-[node name="enemy(goblin_axe)4" parent="Enemys" instance=ExtResource("5_plauu")]
-position = Vector2(-21, 317)
-
-[node name="enemy(goblin_axe)2" parent="Enemys" instance=ExtResource("5_plauu")]
-position = Vector2(-171, 113)
-
-[node name="enemy(goblin_axe)3" parent="Enemys" instance=ExtResource("5_plauu")]
-position = Vector2(588, 386)
-
-[node name="enemy(goblin_axe)" parent="Enemys" instance=ExtResource("5_plauu")]
-position = Vector2(-134, 262)
-
-[node name="enemy(goblin_axe)5" parent="Enemys" instance=ExtResource("5_plauu")]
-position = Vector2(679, 309)
-
-[node name="enemy(goblin_axe)6" parent="Enemys" instance=ExtResource("5_plauu")]
-position = Vector2(-123, -57)
-
-[node name="enemy(goblin_axe)7" parent="Enemys" instance=ExtResource("5_plauu")]
-position = Vector2(568, -140)
-
-[node name="enemy(goblin_axe)8" parent="Enemys" instance=ExtResource("5_plauu")]
-position = Vector2(662, -90)
-
-[node name="enemy(goblin_axe)9" parent="Enemys" instance=ExtResource("5_plauu")]
-position = Vector2(-89, -112)
-
 [node name="skeleton_bow" parent="Enemys" instance=ExtResource("11_nngl3")]
-position = Vector2(263, 202)
+position = Vector2(232, 137)
 
-[connection signal="tree_entered" from="." to="Enemys/enemy(goblin_axe)" method="_on_level_tree_entered"]
 [connection signal="area_entered" from="room_shape" to="Enemys" method="_on_room_shape_area_entered"]
 [connection signal="area_exited" from="room_shape" to="Enemys" method="_on_room_shape_area_exited"]
