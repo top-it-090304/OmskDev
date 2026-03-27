@@ -4,7 +4,7 @@ const ARROW = preload("res://scene/game_objects/enemy/skeleton_bow/arrow.tscn")
 
 @export var hp = 20
 @export var damage = 20
-
+@onready var animP = $AnimationPlayer
 @onready var attack_timer = $attack_timer
 @onready var anim = $AnimatedSprite2D
 
@@ -75,13 +75,12 @@ func attack():
 	can_attack = false
 	anim.stop()
 	match current_dir:
-		Dir.UP: anim.play("attack_up")
-		Dir.DOWN: anim.play("attack_down")
-		Dir.LEFT: anim.play("attack_left")
-		Dir.RIGHT: anim.play("attack_right")
+		Dir.UP: animP.play("attack_up")
+		Dir.DOWN: animP.play("attack_down")
+		Dir.LEFT: animP.play("attack_left")
+		Dir.RIGHT: animP.play("attack_right")
 	
-	await anim.animation_finished
-	shoot()
+	await animP.animation_finished
 	
 	can_move = true
 	attack_timer.start()
@@ -96,7 +95,6 @@ func shoot():
 	arrow_instance.rotation = target_dir.angle()
 	arrow_instance.z_index = 1
 	get_parent().add_child(arrow_instance)
-	print("Стрела создана в: ", arrow_instance.global_position)
 
 	
 
