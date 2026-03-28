@@ -7,7 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://dwdbmqji2ppp1" path="res://assets/Platformer Asset All F.png" id="5_ohn6h"]
 [ext_resource type="Texture2D" uid="uid://c6koxi2pp32bu" path="res://assets/Dungeon_DecorationsC.png" id="6_p5438"]
 [ext_resource type="Script" uid="uid://cr6mv2r4o37d7" path="res://scene/level/enemys.gd" id="7_oy3hb"]
-[ext_resource type="PackedScene" uid="uid://djme8hqe5u87s" path="res://scene/game_objects/enemy/goblin_axe/enemy(goblin_axe).tscn" id="8_rvu75"]
+[ext_resource type="PackedScene" uid="uid://cjc2ra0hmm4sh" path="res://scene/game_objects/enemy/goblin_axe/enemy(goblin_axe).tscn" id="8_rvu75"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_bf3ya"]
 texture = ExtResource("4_lxor5")
