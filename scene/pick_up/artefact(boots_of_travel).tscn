@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3 uid="uid://bbelva8io0yft"]
+
+[ext_resource type="Script" uid="uid://oxc4igssguei" path="res://artefact(boots_of_travel).gd" id="1_j1jlf"]
+[ext_resource type="Texture2D" uid="uid://bep5nol468n43" path="res://assets/boty trevels0001.png" id="2_5yc3u"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_5fg28"]
+radius = 17.8885
+
+[node name="artefact(Boots_Of_Travel)" type="Node2D"]
+script = ExtResource("1_j1jlf")
+
+[node name="Area2D" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 8
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("CircleShape2D_5fg28")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.763043, 0.75)
+texture = ExtResource("2_5yc3u")
+
+[connection signal="area_entered" from="Area2D" to="." method="_on_area_2d_area_entered"]

@@ -1,4 +1,4 @@
-[gd_scene load_steps=117 format=3 uid="uid://djme8hqe5u87s"]
+[gd_scene load_steps=117 format=3 uid="uid://cjc2ra0hmm4sh"]
 
 [ext_resource type="Script" uid="uid://d2kkculxvdxu5" path="res://scene/game_objects/enemy/goblin_axe/enemy(goblin_axe).gd" id="1_2xi4h"]
 [ext_resource type="Texture2D" uid="uid://3iftfbt86hrh" path="res://sprites/enemys/axeGoblin/Down/Png/GoblinDownAttack01.png" id="2_jcyvn"]

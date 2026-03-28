@@ -1,6 +1,6 @@
 [gd_scene load_steps=15 format=3 uid="uid://3yn6kdsrhf3j"]
 
-[ext_resource type="Script" path="res://scene/pick_up/Heal potion/heal_potion.gd" id="1_8l4gx"]
+[ext_resource type="Script" uid="uid://78m78t24ejc0" path="res://scene/pick_up/Heal potion/heal_potion.gd" id="1_8l4gx"]
 [ext_resource type="Texture2D" uid="uid://k2vr2eysjoun" path="res://scene/pick_up/Heal potion/SmallHealthPotion.png" id="2_jtfqk"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_tmvn1"]
