@@ -1,4 +1,4 @@
-[gd_scene load_steps=58 format=3 uid="uid://btc3fcnovye8d"]
+[gd_scene load_steps=60 format=3 uid="uid://btc3fcnovye8d"]
 
 [ext_resource type="Texture2D" uid="uid://4oxwsurkv5fc" path="res://assets/Button/GenericButton.png" id="1_fiq8v"]
 [ext_resource type="Texture2D" uid="uid://b70s4hl2nftxd" path="res://assets/Button/GenericPanel.png" id="1_kiqlh"]
@@ -7,8 +7,10 @@
 [ext_resource type="Texture2D" uid="uid://cps6u35whwrv3" path="res://assets/Main Menu animated background .png" id="4_aqj1r"]
 [ext_resource type="Script" uid="uid://cc6m1ybqsmyrp" path="res://World/texture_button_2.gd" id="6_g0kwj"]
 [ext_resource type="FontFile" uid="uid://wbjr6hf3uxdc" path="res://Font/PixelRpgFont-Regular.ttf" id="6_wtcg7"]
+[ext_resource type="Script" uid="uid://dffurlehwvm3c" path="res://World/texture_button_3.gd" id="7_6s5qj"]
 [ext_resource type="Texture2D" uid="uid://bkfs33021bm81" path="res://sprites/player/Down/Png/WarriorDownIdle.png" id="7_g0kwj"]
 [ext_resource type="Script" uid="uid://dmg7kcv4u43lj" path="res://World/texture_button_4.gd" id="7_yliwy"]
+[ext_resource type="PackedScene" uid="uid://uhqcuwji758" path="res://World/settings.tscn" id="8_mhsod"]
 [ext_resource type="Texture2D" uid="uid://dff2giud0k1da" path="res://assets/Button/GenericArrow.png" id="8_yliwy"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_kiqlh"]
@@ -360,7 +362,6 @@ anchor_right = 0.68125
 anchor_bottom = 0.980556
 grow_horizontal = 2
 grow_vertical = 2
-metadata/_edit_use_anchors_ = true
 
 [node name="GenericPanel" type="Sprite2D" parent="VBoxContainer"]
 position = Vector2(115, 84.75)
@@ -430,6 +431,8 @@ texture_normal = ExtResource("1_fiq8v")
 texture_pressed = ExtResource("2_4lrdm")
 texture_hover = ExtResource("3_aqj1r")
 stretch_mode = 0
+script = ExtResource("7_6s5qj")
+scene_to_open = ExtResource("8_mhsod")
 metadata/_edit_use_anchors_ = true
 metadata/_edit_lock_ = true
 
@@ -496,7 +499,6 @@ theme_override_font_sizes/font_size = 40
 text = "Dungeon"
 horizontal_alignment = 1
 vertical_alignment = 1
-metadata/_edit_use_anchors_ = true
 
 [node name="AnimatedSprite2D2" type="AnimatedSprite2D" parent="."]
 position = Vector2(321, 120)
@@ -525,4 +527,5 @@ texture_normal = ExtResource("8_yliwy")
 stretch_mode = 0
 
 [connection signal="pressed" from="VBoxContainer/TextureButton2" to="VBoxContainer/TextureButton2" method="_on_pressed"]
+[connection signal="pressed" from="VBoxContainer/TextureButton3" to="VBoxContainer/TextureButton3" method="_on_pressed"]
 [connection signal="pressed" from="VBoxContainer/TextureButton4" to="VBoxContainer/TextureButton4" method="_on_pressed"]
