@@ -2,9 +2,9 @@
 
 [ext_resource type="Texture2D" uid="uid://b70s4hl2nftxd" path="res://assets/Button/GenericPanel.png" id="1_p77nn"]
 [ext_resource type="Texture2D" uid="uid://lgt42mdbxna2" path="res://assets/Button/GenericTextField.png" id="2_083ek"]
-[ext_resource type="Texture2D" uid="uid://5smbg5ptkuwn" path="res://assets/Button/SettingsButtonNormal.png" id="4_6u7o5"]
-[ext_resource type="Texture2D" uid="uid://bpq2iwihrypm8" path="res://assets/Button/SettingsButtonPressed.png" id="5_4nr6m"]
+[ext_resource type="Texture2D" uid="uid://xe6tj0s7vbb1" path="res://assets/Button/SettingsButtonClose.png" id="4_4nr6m"]
 [ext_resource type="FontFile" uid="uid://wbjr6hf3uxdc" path="res://Font/PixelRpgFont-Regular.ttf" id="5_o0o4q"]
+[ext_resource type="Texture2D" uid="uid://bhpxurfxn5xvb" path="res://assets/Button/SettingsButtonCloase.png" id="5_vsxdg"]
 [ext_resource type="Script" uid="uid://cakdcb7ool7l2" path="res://World/texture_button.gd" id="6_4nr6m"]
 
 [node name="settings" type="Control"]
@@ -27,6 +27,7 @@ anchor_bottom = 1.01111
 grow_horizontal = 2
 grow_vertical = 2
 metadata/_edit_use_anchors_ = true
+metadata/_edit_lock_ = true
 
 [node name="GenericPanel" type="Sprite2D" parent="VBoxContainer"]
 position = Vector2(115, 111)
@@ -124,6 +125,8 @@ theme_override_font_sizes/font_size = 40
 text = "Dungeon"
 horizontal_alignment = 1
 vertical_alignment = 1
+metadata/_edit_lock_ = true
+metadata/_edit_use_anchors_ = true
 
 [node name="TextureButton" type="TextureButton" parent="."]
 layout_mode = 1
@@ -132,10 +135,11 @@ anchor_left = 0.6625
 anchor_top = 0.0666667
 anchor_right = 0.725
 anchor_bottom = 0.177778
-texture_normal = ExtResource("4_6u7o5")
-texture_pressed = ExtResource("5_4nr6m")
+texture_normal = ExtResource("4_4nr6m")
+texture_pressed = ExtResource("5_vsxdg")
 stretch_mode = 0
 script = ExtResource("6_4nr6m")
 metadata/_edit_use_anchors_ = true
+metadata/_edit_lock_ = true
 
 [connection signal="pressed" from="TextureButton" to="TextureButton" method="_on_pressed"]

@@ -7,7 +7,6 @@
 size = Vector2(10, 5)
 
 [node name="hitbox" type="Area2D"]
-collision_layer = 0
 collision_mask = 2
 priority = 1
 script = ExtResource("1_uset8")

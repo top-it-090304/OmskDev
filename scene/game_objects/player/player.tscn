@@ -1,4 +1,4 @@
-[gd_scene load_steps=119 format=3 uid="uid://xawnnltchw47"]
+[gd_scene load_steps=123 format=3 uid="uid://xawnnltchw47"]
 
 [ext_resource type="Script" uid="uid://b4d56hcuiwhmy" path="res://scene/game_objects/player/player.gd" id="1_e68h0"]
 [ext_resource type="PackedScene" uid="uid://5f3o7tew7oun" path="res://scene/button/mobile_controller.tscn" id="2_1tyhs"]
@@ -20,9 +20,13 @@
 [ext_resource type="Script" uid="uid://bxelbrdtxv7u6" path="res://scene/game_objects/player/health.gd" id="17_amje0"]
 [ext_resource type="PackedScene" uid="uid://ciaqb58qc8irp" path="res://scene/abilities/atack_ability/atack_ability.tscn" id="18_lfjyr"]
 [ext_resource type="Texture2D" uid="uid://c34drne3uy81k" path="res://sprites/player/Down/Png/WarriorDownHurt.png" id="23_jpk7t"]
+[ext_resource type="Texture2D" uid="uid://5smbg5ptkuwn" path="res://assets/Button/SettingsButtonNormal.png" id="24_vedbf"]
 [ext_resource type="Texture2D" uid="uid://cd0d2r0umnoru" path="res://sprites/player/Left/Png/WarriorLeftHurt.png" id="24_y1s0g"]
 [ext_resource type="Texture2D" uid="uid://c8f8at134juve" path="res://sprites/player/Right/Png/WarriorRightHurt.png" id="25_fg7ry"]
+[ext_resource type="Texture2D" uid="uid://bpq2iwihrypm8" path="res://assets/Button/SettingsButtonPressed.png" id="25_siiro"]
 [ext_resource type="Texture2D" uid="uid://cyywjoe23ni6a" path="res://sprites/player/Up/Png/WarriorUpHurt.png" id="26_4l7a2"]
+[ext_resource type="Script" uid="uid://br0543vshmkp4" path="res://scene/game_objects/player/texture_button.gd" id="26_siiro"]
+[ext_resource type="PackedScene" uid="uid://cgrlwgdgbo186" path="res://World/paused.tscn" id="27_rlg5u"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_lfjyr"]
 height = 26.0
@@ -759,16 +763,18 @@ animations = [{
 
 [node name="player" type="CharacterBody2D" node_paths=PackedStringArray("atack_spawn") groups=["player"]]
 z_index = 2
+position = Vector2(320, 184)
 collision_layer = 3
 script = ExtResource("1_e68h0")
 atack_spawn = NodePath("ability_manager/atack_spawn")
 
 [node name="TextureProgressBar" type="TextureProgressBar" parent="." node_paths=PackedStringArray("player")]
 z_index = 10
-offset_left = -230.0
-offset_top = -127.0
-offset_right = -151.0
-offset_bottom = -115.0
+offset_left = -304.0
+offset_top = -167.0
+offset_right = -225.0
+offset_bottom = -155.0
+scale = Vector2(1.6, 1.6)
 size_flags_horizontal = 0
 size_flags_vertical = 4
 step = 10.0
@@ -790,7 +796,7 @@ debug_color = Color(0.290712, 0.629766, 0, 0.42)
 
 [node name="MobileController" parent="." instance=ExtResource("2_1tyhs")]
 
-[node name="ability_manager" type="Node" parent="."]
+[node name="ability_manager" type="Node2D" parent="."]
 
 [node name="atack_spawn" parent="ability_manager" node_paths=PackedStringArray("ability") instance=ExtResource("2_lrjex")]
 ability = NodePath("../../Atack_ability")
@@ -806,8 +812,21 @@ animation = &"hurt_down"
 autoplay = "idle_down"
 
 [node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(1.3, 1.3)
 
 [node name="Atack_ability" parent="." instance=ExtResource("18_lfjyr")]
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+
+[node name="TextureButton" type="TextureButton" parent="."]
+offset_left = 263.0
+offset_top = -164.0
+offset_right = 303.0
+offset_bottom = -124.0
+texture_normal = ExtResource("24_vedbf")
+texture_pressed = ExtResource("25_siiro")
+stretch_mode = 0
+script = ExtResource("26_siiro")
+scene_to_open = ExtResource("27_rlg5u")
+
+[connection signal="child_exiting_tree" from="." to="TextureButton" method="_on_player_child_exiting_tree"]
+[connection signal="pressed" from="TextureButton" to="TextureButton" method="_on_pressed"]
