@@ -1191,7 +1191,6 @@ _data = {
 
 [node name="enemy(goblin_axe)" type="CharacterBody2D"]
 collision_layer = 5
-collision_mask = 6
 script = ExtResource("1_2xi4h")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
@@ -1202,6 +1201,8 @@ animation = &"attack_down"
 autoplay = "idle_down"
 
 [node name="attack" type="Area2D" parent="."]
+collision_layer = 2
+collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="attack"]
 position = Vector2(16, 24)
@@ -1219,7 +1220,8 @@ shape = SubResource("CircleShape2D_q3hyu")
 debug_color = Color(1, 0.148545, 0.269002, 0.42)
 
 [node name="detector" type="Area2D" parent="."]
-collision_mask = 7
+collision_layer = 0
+collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="detector"]
 position = Vector2(16, 5)

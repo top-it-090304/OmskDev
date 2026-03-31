@@ -9,7 +9,7 @@ var current_dir = Dir.DOWN
 var can_move = true
 var can_anim = true
 signal health_changed(new_health, max_health)
-var health_int = 50
+var health_int = max_health
 
 func _ready():
 	health_int = max_health

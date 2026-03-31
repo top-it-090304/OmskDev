@@ -26,6 +26,10 @@ window/stretch/mode="viewport"
 
 enabled=PackedStringArray("res://addons/AS2P/plugin.cfg")
 
+[gui]
+
+theme/custom_font="uid://wbjr6hf3uxdc"
+
 [input]
 
 move_up={

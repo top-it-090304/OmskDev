@@ -16,7 +16,7 @@ position = Vector2(-59, -839)
 position = Vector2(-91, 839)
 
 [node name="3ways(right)" parent="." instance=ExtResource("3_ovy2a")]
-position = Vector2(993, 1)
+position = Vector2(983, 1)
 
 [node name="Level" parent="." instance=ExtResource("4_gxdan")]
 
@@ -24,4 +24,4 @@ position = Vector2(993, 1)
 position = Vector2(-1096, 0)
 
 [node name="artefact_room" parent="." instance=ExtResource("6_ovy2a")]
-position = Vector2(712, 426)
+position = Vector2(697, 422)

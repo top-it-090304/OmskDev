@@ -730,6 +730,21 @@ animations = [{
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_h3w2k"]
 height = 36.0
 
+[sub_resource type="Animation" id="Animation_5u4vk"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D:animation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [&"attack_down"]
+}
+
 [sub_resource type="Animation" id="Animation_h3w2k"]
 length = 0.733333
 tracks/0/type = "value"
@@ -1113,21 +1128,6 @@ tracks/1/keys = {
 "values": ["run_up"]
 }
 
-[sub_resource type="Animation" id="Animation_5u4vk"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("AnimatedSprite2D:animation")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [&"attack_down"]
-}
-
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_5u4vk"]
 _data = {
 &"RESET": SubResource("Animation_5u4vk"),
@@ -1147,12 +1147,10 @@ _data = {
 
 [node name="skeleton_bow" type="CharacterBody2D"]
 collision_layer = 5
-collision_mask = 7
 script = ExtResource("1_h3w2k")
 
 [node name="detector" type="Area2D" parent="."]
-collision_layer = 5
-collision_mask = 7
+collision_layer = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="detector"]
 shape = SubResource("CircleShape2D_dfcc5")
@@ -1183,4 +1181,5 @@ libraries = {
 
 [connection signal="body_entered" from="detector" to="." method="_on_detector_body_entered"]
 [connection signal="body_exited" from="detector" to="." method="_on_detector_body_exited"]
+[connection signal="area_entered" from="hitbox" to="." method="_on_hitbox_area_entered"]
 [connection signal="timeout" from="attack_timer" to="." method="_on_attack_timer_timeout"]
