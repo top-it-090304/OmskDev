@@ -92,8 +92,8 @@ func take_damage(amount: int):
 	
 		
 func heal(amount: int):
-	health_int = min(max_health, health_int + amount)
-	health_changed.emit(health_int, max_health)
+	health = min(max_health, health + amount)
+	health_changed.emit(health, max_health)
 	
 
 	

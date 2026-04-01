@@ -93,6 +93,10 @@ func _on_attack_body_entered(body: Node2D) -> void:
 		player = get_tree().get_first_node_in_group("player") as Node2D
 		player.take_damage(damage)
 
+func _on_attack_body_entered(body: Node2D) -> void:
+	if body.name == "Player":
+		player = get_tree().get_first_node_in_group("player") as Node2D
+		player.take_damage(damage)
 
 #func _on_hitbox_body_entered(body: Node2D) -> void:
 	#if body.name == "Player":
