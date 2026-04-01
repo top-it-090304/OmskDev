@@ -1147,12 +1147,10 @@ _data = {
 
 [node name="skeleton_bow" type="CharacterBody2D"]
 collision_layer = 5
-collision_mask = 7
 script = ExtResource("1_h3w2k")
 
 [node name="detector" type="Area2D" parent="."]
-collision_layer = 5
-collision_mask = 7
+collision_layer = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="detector"]
 shape = SubResource("CircleShape2D_dfcc5")
@@ -1183,4 +1181,5 @@ libraries = {
 
 [connection signal="body_entered" from="detector" to="." method="_on_detector_body_entered"]
 [connection signal="body_exited" from="detector" to="." method="_on_detector_body_exited"]
+[connection signal="area_entered" from="hitbox" to="." method="_on_hitbox_area_entered"]
 [connection signal="timeout" from="attack_timer" to="." method="_on_attack_timer_timeout"]

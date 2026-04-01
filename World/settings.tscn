@@ -1,0 +1,145 @@
+[gd_scene load_steps=7 format=3 uid="uid://uhqcuwji758"]
+
+[ext_resource type="Texture2D" uid="uid://b70s4hl2nftxd" path="res://assets/Button/GenericPanel.png" id="1_p77nn"]
+[ext_resource type="Texture2D" uid="uid://lgt42mdbxna2" path="res://assets/Button/GenericTextField.png" id="2_083ek"]
+[ext_resource type="Texture2D" uid="uid://xe6tj0s7vbb1" path="res://assets/Button/SettingsButtonClose.png" id="4_4nr6m"]
+[ext_resource type="FontFile" uid="uid://wbjr6hf3uxdc" path="res://Font/PixelRpgFont-Regular.ttf" id="5_o0o4q"]
+[ext_resource type="Texture2D" uid="uid://bhpxurfxn5xvb" path="res://assets/Button/SettingsButtonCloase.png" id="5_vsxdg"]
+[ext_resource type="Script" uid="uid://cakdcb7ool7l2" path="res://World/texture_button.gd" id="6_4nr6m"]
+
+[node name="settings" type="Control"]
+z_index = 4096
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+custom_minimum_size = Vector2(220, 180)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.321875
+anchor_top = 0.252778
+anchor_right = 0.68125
+anchor_bottom = 1.01111
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_use_anchors_ = true
+metadata/_edit_lock_ = true
+
+[node name="GenericPanel" type="Sprite2D" parent="VBoxContainer"]
+position = Vector2(115, 111)
+scale = Vector2(5.375, 6.66667)
+texture = ExtResource("1_p77nn")
+
+[node name="TextureButton" type="TextureButton" parent="VBoxContainer"]
+custom_minimum_size = Vector2(200, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+disabled = true
+texture_normal = ExtResource("2_083ek")
+stretch_mode = 0
+metadata/_edit_use_anchors_ = true
+metadata/_edit_lock_ = true
+
+[node name="Label" type="Label" parent="VBoxContainer/TextureButton"]
+modulate = Color(1, 1, 1, 0.886275)
+self_modulate = Color(1, 1, 1, 0.929412)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("5_o0o4q")
+text = "Управление"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextureButton2" type="TextureButton" parent="VBoxContainer"]
+custom_minimum_size = Vector2(200, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+disabled = true
+texture_normal = ExtResource("2_083ek")
+stretch_mode = 0
+metadata/_edit_use_anchors_ = true
+metadata/_edit_lock_ = true
+
+[node name="Label" type="Label" parent="VBoxContainer/TextureButton2"]
+modulate = Color(1, 1, 1, 0.886275)
+self_modulate = Color(1, 1, 1, 0.929412)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("5_o0o4q")
+text = "Звук"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextureButton3" type="TextureButton" parent="VBoxContainer"]
+custom_minimum_size = Vector2(200, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 8
+disabled = true
+texture_normal = ExtResource("2_083ek")
+stretch_mode = 0
+metadata/_edit_use_anchors_ = true
+metadata/_edit_lock_ = true
+
+[node name="Label" type="Label" parent="VBoxContainer/TextureButton3"]
+modulate = Color(1, 1, 1, 0.886275)
+self_modulate = Color(1, 1, 1, 0.929412)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("5_o0o4q")
+text = "Музыка"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.321875
+anchor_top = 0.025
+anchor_right = 0.68125
+anchor_bottom = 0.144444
+theme_override_colors/font_color = Color(0.975388, 0.745875, 0, 1)
+theme_override_colors/font_shadow_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.821911, 2.62313e-06, 7.70092e-07, 1)
+theme_override_fonts/font = ExtResource("5_o0o4q")
+theme_override_font_sizes/font_size = 40
+text = "Dungeon"
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_lock_ = true
+metadata/_edit_use_anchors_ = true
+
+[node name="TextureButton" type="TextureButton" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.6625
+anchor_top = 0.0666667
+anchor_right = 0.725
+anchor_bottom = 0.177778
+texture_normal = ExtResource("4_4nr6m")
+texture_pressed = ExtResource("5_vsxdg")
+stretch_mode = 0
+script = ExtResource("6_4nr6m")
+metadata/_edit_use_anchors_ = true
+metadata/_edit_lock_ = true
+
+[connection signal="pressed" from="TextureButton" to="TextureButton" method="_on_pressed"]

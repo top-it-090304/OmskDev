@@ -38,21 +38,35 @@ func _physics_process(delta: float) -> void:
 				
 			if abs(direction.x) > abs(direction.y):
 				if direction.x > 0:
-					anim.play("run_right")
-					current_dir = Dir.RIGHT
+					if can_anim:
+						anim.play("run_right")
+					else:
+						animP.play("attack_right")
+					
 				else:
-					anim.play("run_left")
-					current_dir = Dir.LEFT
+					if can_anim:
+						anim.play("run_left")
+					else:
+						animP.play("attack_left")
+					
 			else:
 				if direction.y > 0:
-					anim.play("run_down")
-					current_dir = Dir.DOWN
+					if can_anim:
+						anim.play("run_down")
+					else:
+						animP.play("attack_down")
+					
 				else:
-					anim.play("run_up")
-					current_dir = Dir.UP
+					if can_anim:
+						anim.play("run_up")
+					else:
+						animP.play("attack_up")
+					
 		else:
+			
 			velocity = Vector2.ZERO
 			anim.play("idle_down")
+			
 	else:
 		velocity = Vector2.ZERO
 		anim.play("idle_down")

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dwdbmqji2ppp1"
-path="res://.godot/imported/Platformer Asset All F.png-480c24c706897d9d39c7955f355f9c9e.ctex"
+uid="uid://xe6tj0s7vbb1"
+path="res://.godot/imported/SettingsButtonClose.png-ccbe210ff6c846f501a9faeac9c7bcb8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/Platformer Asset All F.png"
-dest_files=["res://.godot/imported/Platformer Asset All F.png-480c24c706897d9d39c7955f355f9c9e.ctex"]
+source_file="res://assets/Button/SettingsButtonClose.png"
+dest_files=["res://.godot/imported/SettingsButtonClose.png-ccbe210ff6c846f501a9faeac9c7bcb8.ctex"]
 
 [params]
 

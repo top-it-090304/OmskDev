@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dcwxg2dsm28ql"
-path="res://.godot/imported/Platformer Asset All G.png-869672ef3f5ec09ba5cfa1b2b59c4dcf.ctex"
+uid="uid://lgt42mdbxna2"
+path="res://.godot/imported/GenericTextField.png-e874b8f9d154d03ae2e00bf6e6f4ceef.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/Platformer Asset All G.png"
-dest_files=["res://.godot/imported/Platformer Asset All G.png-869672ef3f5ec09ba5cfa1b2b59c4dcf.ctex"]
+source_file="res://assets/Button/GenericTextField.png"
+dest_files=["res://.godot/imported/GenericTextField.png-e874b8f9d154d03ae2e00bf6e6f4ceef.ctex"]
 
 [params]
 
