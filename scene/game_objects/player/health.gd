@@ -5,8 +5,7 @@ extends TextureProgressBar
 
 func _ready():
 	player.connect("health_changed", _on_health_changed)  
-	value = player.health 
-	max_value = player.max_health 
+
 
 
 
