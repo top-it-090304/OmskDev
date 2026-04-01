@@ -519,6 +519,7 @@ flip_h = true
 
 [node name="TextureButton2" type="TextureButton" parent="."]
 custom_minimum_size = Vector2(20, 20)
+layout_mode = 0
 offset_left = 352.0
 offset_top = 110.0
 offset_right = 392.0

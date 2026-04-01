@@ -4,13 +4,7 @@ extends TextureProgressBar
 @export var player: CharacterBody2D
 
 func _ready():
-   
-	
 	player.connect("health_changed", _on_health_changed)
-	
-   
-	value = player.health_int 
-	max_value = player.max_health 
 
 
 
