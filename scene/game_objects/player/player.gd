@@ -4,6 +4,9 @@ var max_speed = 170
 @onready var anim = $AnimatedSprite2D
 var max_health = 100
 
+
+
+
 enum Dir { DOWN, UP, LEFT, RIGHT }
 var current_dir = Dir.DOWN
 var can_move = true
