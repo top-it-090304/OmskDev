@@ -817,6 +817,7 @@ autoplay = "idle_down"
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 
 [node name="TextureButton" type="TextureButton" parent="."]
+z_index = 4096
 offset_left = 263.0
 offset_top = -164.0
 offset_right = 303.0
