@@ -89,6 +89,7 @@ func draw_map():
 				var room_pos = Vector2(offset_x + x * cell_size_x, offset_y + y * cell_size_y)
 				var room_instance = room_scene.instantiate()
 				room_instance.position = room_pos
+				
 				add_child(room_instance)
 				
 				# Сохраняем только саму ноду комнаты (координаты нам больше не нужны!)
@@ -152,31 +153,39 @@ func _spawn_single_enemy(space_state, room_node):
 	var max_attempts = 30 
 	
 	for _attempt in range(max_attempts):
-		# 1. Генерируем ТОЧНО ЛОКАЛЬНУЮ координату внутри комнаты 
-		# (0,0 это левый верхний угол самой ноды комнаты)
+		# 1. Генерируем локальную точку для проверки
 		var local_x = randf_range(64, ROOM_SIZE_X - 64)
 		var local_y = randf_range(64, ROOM_SIZE_Y - 64)
 		var local_point = Vector2(local_x, local_y)
 
-		# 2. Переводим локальную точку в ГЛОБАЛЬНУЮ, чтобы спросить физику
+		# 2. Переводим в ГЛОБАЛЬНУЮ для проверки физики
 		var global_point = room_node.to_global(local_point)
 
-		# 3. Настройка запроса к физике (ИЩЕТ В ГЛОБАЛЬНЫХ КООРДИНАТАХ)
 		var query = PhysicsPointQueryParameters2D.new()
 		query.position = global_point 
 		query.collide_with_bodies = true  
 		query.collide_with_areas = false  
-		query.collision_mask = 1 # ВАЖНО!
+		
+		# ВАЖНО: Убедись, что здесь указан слой СТЕН, а не пола!
+		# Если пол и стены на 1 слое, intersect_point будет бить в пол.
+		query.collision_mask = 1 
 
-		# 4. Спрашиваем физику: "Тут есть стена?"
 		var intersection = space_state.intersect_point(query)
 
-		# 5. Если пусто - стена не найдена
+		# 3. Если точка свободна от стен
 		if intersection.is_empty():
 			var enemy = enemy_scene.instantiate()
 			
-			# 6. Ставим врага по ЛОКАЛЬНЫМ координатам внутри комнаты
-			enemy.position = local_point 
+			var area_enemys = room_node.find_child("Enemys")
+			if area_enemys == null:
+				return
 			
-			room_node.add_child(enemy)
-			return # !
+			# 4. СНАЧАЛА делаем врага ребенком Enemys
+			area_enemys.add_child(enemy)
+			
+			# 5. ПОСЛЕ добавления задаем ему ГЛОБАЛЬНУЮ позицию.
+			# Godot сам поймет, куда его поставить внутри area_enemys, 
+			# чтобы он оказался ровно там, где мы проверяли физику!
+			enemy.global_position = global_point
+			
+			return # Враг успешно поставлен, выходим из цикла

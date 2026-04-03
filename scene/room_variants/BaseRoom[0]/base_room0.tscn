@@ -33,6 +33,7 @@ shape = SubResource("RectangleShape2D_kafmw")
 debug_color = Color(0.564706, 0.411765, 0, 0.333333)
 
 [node name="Enemys" type="Node" parent="."]
+unique_name_in_owner = true
 script = ExtResource("3_rgse5")
 
 [connection signal="area_entered" from="room_shape" to="Enemys" method="_on_room_shape_area_entered"]
