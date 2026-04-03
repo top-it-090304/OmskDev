@@ -7,7 +7,7 @@ extends Node2D
 
 # Размер комнаты и КОРидОРА в пикселях
 const ROOM_SIZE_X = 864 # Твой размер
-const ROOM_SIZE_Y = 608 # Твой размер
+const ROOM_SIZE_Y = 608+32 # Твой размер
 const CORRIDOR_LENGTH = 64 # ВНИМАНИЕ: должно делиться на размер тайла!
 
 const GRID_SIZE = 9
