@@ -1,8 +1,12 @@
-[gd_scene load_steps=3 format=3 uid="uid://n6dhykg53x0b"]
+[gd_scene load_steps=5 format=3 uid="uid://n6dhykg53x0b"]
 
 [ext_resource type="Script" uid="uid://c71xmlpvgo7v2" path="res://World/map_manager.gd" id="1_l755g"]
+[ext_resource type="PackedScene" uid="uid://dkch1f7o4dp5j" path="res://scene/room_variants/corridorH.tscn" id="2_hkb3w"]
 [ext_resource type="PackedScene" uid="uid://nbarru04xcx" path="res://scene/room_variants/room[0]_StartRoom.tscn" id="2_r4imn"]
+[ext_resource type="PackedScene" uid="uid://r0v8453yqewl" path="res://scene/room_variants/corridorV.tscn" id="3_ati1j"]
 
 [node name="MapManager" type="Node2D"]
 script = ExtResource("1_l755g")
+corridor_h_scene = ExtResource("3_ati1j")
+corridor_v_scene = ExtResource("2_hkb3w")
 room_scene = ExtResource("2_r4imn")

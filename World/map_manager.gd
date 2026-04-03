@@ -1,11 +1,12 @@
 extends Node2D
 
-
+@export var corridor_h_scene: PackedScene # Перетащи CorridorH сюда
+@export var corridor_v_scene: PackedScene
 @export var room_scene: PackedScene 
 
-const ROOM_SIZE_X = 848+50 
-const ROOM_SIZE_Y = 672+50
-
+const ROOM_SIZE_X = 848
+const ROOM_SIZE_Y = 672
+const CORRIDOR_LENGTH = 64
 # Размер сетки карты 
 const GRID_SIZE = 9
 
@@ -74,35 +75,59 @@ func get_random_room_of_type(type):
 #ОТРИСОВКА КОМНАТ В МИРЕ
 
 func draw_map():
-	# Считаем смещение, чтобы карта была по центру экрана
-	var offset_x = -(GRID_SIZE * ROOM_SIZE_X) / 2
-	var offset_y = -(GRID_SIZE * ROOM_SIZE_Y) / 2
+	# Считаем общую ширину ячейки (Комната + Коридор)
+	var cell_size_x = ROOM_SIZE_X + CORRIDOR_LENGTH
+	var cell_size_y = ROOM_SIZE_Y + CORRIDOR_LENGTH
+	
+	# Центрируем карту
+	var offset_x = -(GRID_SIZE * cell_size_x) / 2
+	var offset_y = -(GRID_SIZE * cell_size_y) / 2
 
-	# Проходимся по всему скелету
 	for x in GRID_SIZE:
 		for y in GRID_SIZE:
-			# Если там не пусто
 			if layout[x][y] != RoomType.EMPTY:
 				
-				# Создаем копию твоей комнаты
+				# Позиция самой комнаты
+				var room_pos = Vector2(offset_x + x * cell_size_x, offset_y + y * cell_size_y)
 				var room_instance = room_scene.instantiate()
-				
-				# Вычисляем позицию: координаты сетки * размер комнаты + смещение
-				var target_pos = Vector2(
-					offset_x + x * ROOM_SIZE_X, 
-					offset_y + y * ROOM_SIZE_Y
-				)
-				
-				# Ставим комнату на нужное место
-				room_instance.position = target_pos
-				
-				# Добавляем комнату в игру (в дерево узлов)
+				room_instance.position = room_pos
 				add_child(room_instance)
+				
+				# Проверяем соседей
+				var has_left = check_neighbor(x - 1, y)
+				var has_right = check_neighbor(x + 1, y)
+				var has_top = check_neighbor(x, y - 1)
+				var has_bottom = check_neighbor(x, y + 1)
+				
+				# Настройка дверей в комнате
+				room_instance.setup_room(has_left, has_right, has_top, has_bottom)
+				
+				# --- СПАВН КОРИДОРОВ ---
+				
+				# Если есть сосед справа -> рисуем горизонтальный коридор
+				if has_right:
+					var corr = corridor_h_scene.instantiate()
+					# Коридор начинается сразу после правого края комнаты
+					corr.position.x = room_pos.x + ROOM_SIZE_X
+					# По высоте коридор должен быть на уровне проема двери (обычно центр)
+					corr.position.y = room_pos.y + (ROOM_SIZE_Y / 2) - (CORRIDOR_LENGTH / 2) 
+					add_child(corr)
+				
+				# Если есть сосед снизу -> рисуем вертикальный коридор
+				if has_bottom:
+					var corr = corridor_v_scene.instantiate()
+					# Коридор начинается сразу после нижнего края комнаты
+					corr.position.x = room_pos.x + (ROOM_SIZE_X / 2) - (CORRIDOR_LENGTH / 2)
+					corr.position.y = room_pos.y + ROOM_SIZE_Y
+					add_child(corr)
 				
 				# Если это стартовая комната, можно сразу спавнить туда игрока
 				if layout[x][y] == RoomType.START:
 					spawn_player(room_instance)
-
+func check_neighbor(nx, ny):
+	if is_valid_pos(Vector2i(nx, ny)):
+		return layout[nx][ny] != RoomType.EMPTY
+	return false
 func spawn_player(room):
 	# Ищем внутри комнаты узел с именем PlayerSpawn
 	var spawn_marker = room.find_child("PlayerSpawn", true, false)
