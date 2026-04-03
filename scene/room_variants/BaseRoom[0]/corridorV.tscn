@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=4 uid="uid://r0v8453yqewl"]
+
+[ext_resource type="TileSet" uid="uid://c7u54yp1yckk1" path="res://scene/room_variants/tileset_for_rooms.tres" id="1_r4rki"]
+
+[node name="corridorV" type="Node2D"]
+
+[node name="TileMapLayer" type="TileMapLayer" parent="."]
+position = Vector2(32, 32)
+tile_map_data = PackedByteArray("AAD//wAAAAADAB0AAgAAAAAAAAADAB0AAwABAAAAAAADABwAARABAAEAAAADABwAARD//wEAAAADABwAAQD+/wEAAAADABwAAQAAAAEAAAADAB0AAAD+/wAAAAADABwAAQD+/wIAAAADABwAAQD//wIAAAADAB0AAgAAAAIAAAADAB0AAwABAAIAAAADABwAARD+////AAADABwAAQD/////AAADABwAAQAAAP//AAADAB0AAAABAP//AAADABwAARA=")
+tile_set = ExtResource("1_r4rki")
+
+[node name="TileMapLayer" type="TileMapLayer" parent="TileMapLayer"]
+tile_map_data = PackedByteArray("AAD+////AgAGAAMAAFD+/wAAAgAHAAMAAFD+/wEAAgAIAAMAAFD+/wIAAgAJAAMAAFABAAIAAgAJAAMAAEABAAEAAgAIAAMAAEABAAAAAgAHAAMAAEABAP//AgAGAAMAAEACAP//AgAAAAMAAAACAAAAAgAAAAMAAAACAAEAAgAAAAMAAAACAAIAAgAAAAMAAAD9////AgAAAAMAAAD9/wAAAgAAAAMAAAD9/wEAAgAAAAMAAAD9/wIAAgAAAAMAAAA=")
+tile_set = ExtResource("1_r4rki")

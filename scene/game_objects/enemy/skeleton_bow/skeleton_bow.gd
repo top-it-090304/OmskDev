@@ -105,7 +105,7 @@ func _on_detector_body_exited(body: Node2D) -> void:
 
 func _on_attack_timer_timeout():
 	can_attack = true
-	if player_in_range:
+	if player_in_range and parent_node.aggression:
 		attack()
 
 func _on_hitbox_area_entered(_area: Area2D) -> void:
