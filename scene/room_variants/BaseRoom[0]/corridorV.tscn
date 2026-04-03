@@ -5,7 +5,7 @@
 [node name="corridorV" type="Node2D"]
 
 [node name="TileMapLayer" type="TileMapLayer" parent="."]
-position = Vector2(-400, -336)
+position = Vector2(32, 32)
 tile_map_data = PackedByteArray("AAD//wAAAAADAB0AAgAAAAAAAAADAB0AAwABAAAAAAADABwAARABAAEAAAADABwAARD//wEAAAADABwAAQD+/wEAAAADABwAAQAAAAEAAAADAB0AAAD+/wAAAAADABwAAQD+/wIAAAADABwAAQD//wIAAAADAB0AAgAAAAIAAAADAB0AAwABAAIAAAADABwAARD+////AAADABwAAQD/////AAADABwAAQAAAP//AAADAB0AAAABAP//AAADABwAARA=")
 tile_set = ExtResource("1_r4rki")
 

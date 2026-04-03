@@ -12,6 +12,6 @@ script = ExtResource("1_l755g")
 room_scene = ExtResource("2_r4imn")
 corridor_h_scene = ExtResource("2_hkb3w")
 corridor_v_scene = ExtResource("3_ati1j")
-enemy_goblin_axe_scene = ExtResource("5_ati1j")
+enemy_scene = ExtResource("5_ati1j")
 
 [node name="player" parent="." instance=ExtResource("6_xsmnk")]
