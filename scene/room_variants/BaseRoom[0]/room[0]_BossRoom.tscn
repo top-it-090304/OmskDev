@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=4 uid="uid://nbarru04xcx"]
 
-[ext_resource type="PackedScene" uid="uid://m1ir1mum4qac" path="res://scene/room_variants/base_room[0].tscn" id="1_hv78h"]
-[ext_resource type="Script" uid="uid://comkchjo8i6kj" path="res://scene/room_variants/room[0]_start_room.gd" id="1_xli05"]
+[ext_resource type="PackedScene" uid="uid://m1ir1mum4qac" path="res://scene/room_variants/BaseRoom[0]/base_room0.tscn" id="1_hv78h"]
+[ext_resource type="Script" uid="uid://comkchjo8i6kj" path="res://scene/room_variants/BaseRoom[0]/room[0]_BossRoom.gd" id="1_xli05"]
 [ext_resource type="TileSet" uid="uid://c7u54yp1yckk1" path="res://scene/room_variants/tileset_for_rooms.tres" id="2_xli05"]
 
 [node name="room[0]_1" type="Node2D"]

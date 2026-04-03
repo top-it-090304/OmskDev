@@ -15,6 +15,7 @@ var can_walk = true
 var direction = Vector2.ZERO
 var can_attack = true
 var player_in_range = false
+var z=false
 
 func _ready() -> void:
 	player = get_tree().get_first_node_in_group("player") as Node2D
@@ -26,7 +27,7 @@ func _physics_process(delta: float) -> void:
 	if player and is_instance_valid(player):
 		var to_player: Vector2 = player.global_position - global_position
 
-		if parent_node.aggression:
+		if z: #parent_node.aggression
 			if can_walk:
 				direction = to_player.normalized()
 
