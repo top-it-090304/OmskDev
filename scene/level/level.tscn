@@ -1473,10 +1473,10 @@ position = Vector2(252, -49)
 position = Vector2(397, -122)
 
 [node name="skeleton_bow" parent="Enemys" instance=ExtResource("13_nngl3")]
-position = Vector2(169, 189)
+position = Vector2(-490, 182)
 
 [node name="skeleton_bow4" parent="Enemys" instance=ExtResource("13_nngl3")]
-position = Vector2(158, 2)
+position = Vector2(-501, -5)
 
 [connection signal="area_entered" from="room_shape" to="Enemys" method="_on_room_shape_area_entered"]
 [connection signal="area_exited" from="room_shape" to="Enemys" method="_on_room_shape_area_exited"]

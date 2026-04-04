@@ -23,17 +23,30 @@ custom_minimum_size = Vector2(220, 100)
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.321875
-anchor_top = 0.586111
+anchor_top = 0.472222
 anchor_right = 0.68125
-anchor_bottom = 0.944444
+anchor_bottom = 0.947222
 grow_horizontal = 2
 grow_vertical = 2
+metadata/_edit_use_anchors_ = true
 
 [node name="GenericPanel" type="Sprite2D" parent="VBoxContainer"]
 modulate = Color(1, 1, 1, 0.941176)
-position = Vector2(115, 59)
+position = Vector2(115, 104)
 scale = Vector2(5.375, 3.5)
 texture = ExtResource("2_wujia")
+
+[node name="Label" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.976471, 0.745098, 0, 0.941176)
+theme_override_colors/font_shadow_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.821911, 2.62313e-06, 7.70092e-07, 1)
+theme_override_fonts/font = ExtResource("4_s5ror")
+theme_override_font_sizes/font_size = 40
+text = "Dungeon"
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
 
 [node name="TextureButton" type="TextureButton" parent="VBoxContainer"]
 modulate = Color(1, 1, 1, 0.941176)
@@ -108,22 +121,6 @@ theme_override_fonts/font = ExtResource("4_s5ror")
 text = "В главное меню"
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="Label" type="Label" parent="."]
-layout_mode = 2
-anchor_left = 0.371875
-anchor_top = 0.458333
-anchor_right = 0.635938
-anchor_bottom = 0.566667
-theme_override_colors/font_color = Color(0.976471, 0.745098, 0, 0.941176)
-theme_override_colors/font_shadow_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.821911, 2.62313e-06, 7.70092e-07, 1)
-theme_override_fonts/font = ExtResource("4_s5ror")
-theme_override_font_sizes/font_size = 40
-text = "Dungeon"
-horizontal_alignment = 1
-vertical_alignment = 1
-metadata/_edit_use_anchors_ = true
 
 [connection signal="pressed" from="VBoxContainer/TextureButton" to="." method="_on_texture_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/TextureButton2" to="." method="_on_texture_button_2_pressed"]

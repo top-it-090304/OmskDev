@@ -29,6 +29,7 @@ func _ready() -> void:
 func _physics_process(_delta: float) -> void:
 	if not player or not is_instance_valid(player) or not can_move:
 		velocity = Vector2.ZERO
+		play_idle_animation()
 		return
 
 	var to_player: Vector2 = player.global_position - global_position
@@ -68,7 +69,7 @@ func play_idle_animation():
 		Dir.RIGHT: anim.play("idle_right")
 
 func attack():
-	if not can_attack or not player_in_range:
+	if not can_attack or not player_in_range or not parent_node.aggression:
 		return
 		
 	can_move = false

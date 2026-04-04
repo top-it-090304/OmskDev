@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3 uid="uid://dyq0khf8igmwx"]
+
+[ext_resource type="Script" uid="uid://bdq0qtlq7fnnu" path="res://scene/game_objects/enemy/goblin_axe/smite.gd" id="1_d3hm0"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_w86s1"]
+
+[node name="hitbox" type="Area2D"]
+collision_mask = 2
+priority = 1
+script = ExtResource("1_d3hm0")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_w86s1")
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
