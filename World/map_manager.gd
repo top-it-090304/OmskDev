@@ -16,12 +16,20 @@ enum RoomType { EMPTY, START, NORMAL, BOSS, TREASURE }
 var layout = []
 var spawned_rooms = []
 
+#minimap
+var current_room_grid_pos = Vector2i(GRID_SIZE / 2, GRID_SIZE / 2)
+signal room_changed(new_grid_pos)
+var visited_rooms = []
+var seen_rooms = []
+var onlyfirst=true
+
 func _ready():
 	generate_layout()
 	draw_map()
+	await get_tree().create_timer(0).timeout
 	# Ждем ОБЯЗАТЕЛЬНО один кадр физики, чтобы стены из TileMap стали твердыми
 	_spawn_enemies_after_physics()
-
+	change_current_room(current_room_grid_pos.x, current_room_grid_pos.y)
 # --- Генерация скелета ---
 func generate_layout():
 	layout = []
@@ -189,3 +197,26 @@ func _spawn_single_enemy(space_state, room_node):
 			enemy.global_position = global_point
 			
 			return # Враг успешно поставлен, выходим из цикла
+func change_current_room(new_x, new_y):
+	var new_pos = Vector2i(new_x, new_y)
+	
+	if new_pos == current_room_grid_pos and onlyfirst==false:
+		return
+	else:
+		onlyfirst=false
+	# 1. Добавляем текущую комнату в список ПОСЕЩЕННЫХ
+	if not visited_rooms.has(new_pos):
+		visited_rooms.append(new_pos)
+		
+	# 2. Ищем соседей и добавляем их в список ВИДИМЫХ
+	var directions = [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]
+	for dir in directions:
+		var neighbor_pos = new_pos + dir
+		# Если сосед существует на карте и это не пустота
+		if is_valid_pos(neighbor_pos) and layout[neighbor_pos.x][neighbor_pos.y] != RoomType.EMPTY:
+			if not seen_rooms.has(neighbor_pos):
+				seen_rooms.append(neighbor_pos)
+				
+	# 3. Обновляем текущую позицию и КРИЧИМ миникарте, что всё изменилось
+	current_room_grid_pos = new_pos
+	room_changed.emit(current_room_grid_pos)

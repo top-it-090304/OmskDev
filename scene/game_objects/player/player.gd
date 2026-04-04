@@ -1,6 +1,6 @@
 extends CharacterBody2D
 @export var atack_spawn:Node
-var max_speed = 500
+var max_speed = 170
 @onready var anim = $AnimatedSprite2D
 var max_health = 100
 var health_int=100
