@@ -1,65 +1,73 @@
 extends Control
 
-@onready var grid_container = $GridContainer
-
-# Эта строка создаст слот в Инспекторе справа!
+@onready var grid_container = $MarginContainer/GridContainer
+@onready var Margin_Container = $MarginContainer
 @export var map_manager: Node2D 
 
-# Массивы для хранения состояния карточек
-var room_cells = [] # 2D массив UI элементов (ColorRect)
-var visited_rooms = [] # Комнаты, где игрок БЫЛ
-var seen_rooms = [] # Комнаты, которые ВИДНЫ как соседи
+var room_cells = []
+var visited_rooms = []
+var seen_rooms = []
 
-var show_full_map = false # Режим показа всей карты
-
-# Цвета для разных типов комнат (можешь поменять на свои)
-const COLOR_EMPTY = Color.TRANSPARENT
-const COLOR_NORMAL = Color.WHITE
-const COLOR_BOSS = Color.RED
-const COLOR_TREASURE = Color.GOLD
-const COLOR_START = Color.GREEN
-const COLOR_CURRENT = Color.CYAN # Цвет текущей комнаты (свечение)
-const COLOR_SEEN = Color.GRAY # Цвет соседних, но не посещенных комнат
-const COLOR_FULL_MAP_SEEN = Color.DARK_GRAY # Цвет непосещенных при включенной полной карте
+var show_full_map = false
+var cell_step = 0.0
 
 func _ready():
-	# Ждем создания MapManager и его карты
 	await get_tree().process_frame
 	
-	
 	if not map_manager:
-		push_error("Minimap не может найти MapManager!")
+		push_error("MapManager не найден!")
 		return
 		
 	build_grid()
 	
-	# Подключаемся к сигналу смены комнаты
+	if grid_container.get_child_count() > 0:
+		var separation = grid_container.get_theme_constant("separation")
+		cell_step = grid_container.get_child(0).size.x + separation
+		
 	map_manager.room_changed.connect(_on_room_changed)
-	
-	# Изначально открываем стартовую комнату и её соседей
 	_on_room_changed(map_manager.current_room_grid_pos)
+
 func build_grid():
-	# СНАЧАЛА цикл по Y (строки), ПОТОМ по X (столбцы)
 	for y in range(map_manager.GRID_SIZE):
 		room_cells.append([])
 		for x in range(map_manager.GRID_SIZE):
 			var rect = ColorRect.new()
 			rect.color = Color.TRANSPARENT
-			rect.custom_minimum_size = Vector2(10, 10) 
+			rect.custom_minimum_size = Vector2(12, 12) 
 			grid_container.add_child(rect)
-			room_cells[y].append(rect) # ВАЖНО: сначала Y, потом X
+			room_cells[y].append(rect)
 
+func center_map_on_room(grid_pos: Vector2i):
+	if cell_step == 0: return
+	
+	# ИЗМЕНЕНИЕ ТУТ: берем размер РОДИТЕЛЯ (нашего окна миникарты), а не самой сетки
+	var viewport_center = Margin_Container.size / 2.0
+	print(viewport_center.x,grid_pos.x,cell_step)
+	var target_x = viewport_center.x - (grid_pos.x * cell_step) - (cell_step / 2.0)-10
+	var target_y = viewport_center.y - (grid_pos.y * cell_step) - (cell_step / 2.0)-10
+	
+	# Сдвигаем сетку внутри окна
+	grid_container.position = Vector2(target_x, target_y)
 
-# Эта функция вызывается каждый раз, когда игрок переходит в новую комнату
 func _on_room_changed(grid_pos: Vector2i):
-	# Больше никаких вычислений! Просто говорим обновить цвета.
+	if not map_manager.visited_rooms.has(grid_pos):
+		map_manager.visited_rooms.append(grid_pos)
+		
+	var directions = [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]
+	for dir in directions:
+		var neighbor_pos = grid_pos + dir
+		if map_manager.is_valid_pos(neighbor_pos) and map_manager.layout[neighbor_pos.x][neighbor_pos.y] != map_manager.RoomType.EMPTY:
+			if not map_manager.seen_rooms.has(neighbor_pos):
+				map_manager.seen_rooms.append(neighbor_pos)
+
 	update_minimap_visuals()
+	center_map_on_room(grid_pos)
+
 func update_minimap_visuals():
-	# СНАЧАЛА Y, ПОТОМ X
 	for y in range(map_manager.GRID_SIZE):
 		for x in range(map_manager.GRID_SIZE):
-			var cell = room_cells[y][x] # ВАЖНО: [y][x]
-			var room_type = map_manager.layout[x][y] # А вот тут оставляем [x][y], потому что в MapManager массив другой
+			var cell = room_cells[y][x]
+			var room_type = map_manager.layout[x][y]
 			var pos = Vector2i(x, y)
 			
 			if room_type == map_manager.RoomType.EMPTY:
@@ -80,34 +88,24 @@ func update_minimap_visuals():
 					cell.color = Color.GRAY
 				else:
 					cell.color = Color.TRANSPARENT
-# Вспомогательная функция для получения цвета по типу комнаты
+
 func get_room_color(type, pos):
 	match type:
-		map_manager.RoomType.START: return COLOR_START
-		map_manager.RoomType.BOSS: return COLOR_BOSS
-		map_manager.RoomType.TREASURE: return COLOR_TREASURE
-		map_manager.RoomType.NORMAL: return COLOR_NORMAL
-		_: return COLOR_NORMAL
+		map_manager.RoomType.START: return Color.GREEN
+		map_manager.RoomType.BOSS: return Color.RED
+		map_manager.RoomType.TREASURE: return Color.GOLD
+		map_manager.RoomType.NORMAL: return Color.WHITE
+		_: return Color.WHITE
 
-# Переключение режима карты (привяжи это к кнопке в Input Map, например 'M')
 func _input(event):
-	# --- ТЕСТОВЫЙ РЕЖИМ ---
-	# Нажми стрелку "Вправо", чтобы сымитировать переход в комнату справа
-	if event.is_action_pressed("ui_right"): # "ui_right" - это стандартная кнопка стрелки вправо в Godot
-		var new_x = map_manager.current_room_grid_pos.x + 1
-		var new_y = map_manager.current_room_grid_pos.y
-		# Проверяем, не выходим ли мы за край карты
-		if map_manager.is_valid_pos(Vector2i(new_x, new_y)):
-			map_manager.change_current_room(new_x, new_y)
-			
-	# Нажми стрелку "Влево" для теста возврата
-	if event.is_action_pressed("ui_left"):
-		var new_x = map_manager.current_room_grid_pos.x - 1
-		var new_y = map_manager.current_room_grid_pos.y
-		if map_manager.is_valid_pos(Vector2i(new_x, new_y)):
-			map_manager.change_current_room(new_x, new_y)
-
-	# --- КНОПКА ПОЛНОЙ КАРТЫ ---
 	if event.is_action_pressed("toggle_map"):
 		show_full_map = !show_full_map
+		
+		if show_full_map:
+			# При показе полной карты сдвигаем сетку так, чтобы показать начало (0,0)
+			# Или можно просто оставить сдвиг на текущей комнате, как вам удобнее
+			grid_container.position = Vector2.ZERO 
+		else:
+			center_map_on_room(map_manager.current_room_grid_pos)
+			
 		update_minimap_visuals()
