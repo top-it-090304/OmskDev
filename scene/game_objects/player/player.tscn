@@ -764,6 +764,7 @@ animations = [{
 [node name="player" type="CharacterBody2D" node_paths=PackedStringArray("atack_spawn") groups=["player"]]
 z_index = 2
 collision_layer = 3
+safe_margin = 1.0
 script = ExtResource("1_e68h0")
 atack_spawn = NodePath("ability_manager/atack_spawn")
 
