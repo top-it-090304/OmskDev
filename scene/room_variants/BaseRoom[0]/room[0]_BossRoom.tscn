@@ -28,7 +28,6 @@ position = Vector2(432, 64)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("4_llucg")
-direction_y = -1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DoorTop"]
 position = Vector2(0, 12)
@@ -39,7 +38,6 @@ position = Vector2(432, 664)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("4_llucg")
-direction_y = 1
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="DoorBottom"]
 position = Vector2(0, -4)
@@ -50,7 +48,6 @@ position = Vector2(8, 368)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("4_llucg")
-direction_x = -1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DoorLeft"]
 position = Vector2(4, 0)
@@ -62,7 +59,6 @@ position = Vector2(856, 368)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("4_llucg")
-direction_x = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DoorRight"]
 position = Vector2(-4, 0)

@@ -3,6 +3,7 @@
 [ext_resource type="TileSet" uid="uid://c7u54yp1yckk1" path="res://scene/room_variants/tileset_for_rooms.tres" id="1_pceob"]
 
 [node name="Corridor" type="Node2D"]
+position = Vector2(0, -8)
 
 [node name="TileMapLayer" type="TileMapLayer" parent="."]
 position = Vector2(48, 88)

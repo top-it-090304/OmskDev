@@ -1,6 +1,6 @@
 extends Control
 
-@onready var grid_container = $CenterContainer/PanelContainer/GridContainer
+@onready var grid_container = $GridContainer
 
 # Эта строка создаст слот в Инспекторе справа!
 @export var map_manager: Node2D 
@@ -45,7 +45,7 @@ func build_grid():
 		for x in range(map_manager.GRID_SIZE):
 			var rect = ColorRect.new()
 			rect.color = Color.TRANSPARENT
-			rect.custom_minimum_size = Vector2(14, 14) 
+			rect.custom_minimum_size = Vector2(10, 10) 
 			grid_container.add_child(rect)
 			room_cells[y].append(rect) # ВАЖНО: сначала Y, потом X
 

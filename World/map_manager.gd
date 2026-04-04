@@ -98,6 +98,9 @@ func draw_map():
 				var room_instance = room_scene.instantiate()
 				room_instance.position = room_pos
 				
+				room_instance.grid_x = x
+				room_instance.grid_y = y
+
 				add_child(room_instance)
 				
 				# Сохраняем только саму ноду комнаты (координаты нам больше не нужны!)
