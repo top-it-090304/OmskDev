@@ -1,4 +1,4 @@
-[gd_scene load_steps=117 format=3 uid="uid://djme8hqe5u87s"]
+[gd_scene load_steps=116 format=3 uid="uid://djme8hqe5u87s"]
 
 [ext_resource type="Script" uid="uid://d2kkculxvdxu5" path="res://scene/game_objects/enemy/goblin_axe/enemy(goblin_axe).gd" id="1_2xi4h"]
 [ext_resource type="Texture2D" uid="uid://3iftfbt86hrh" path="res://sprites/enemys/axeGoblin/Down/Png/GoblinDownAttack01.png" id="2_jcyvn"]
@@ -680,9 +680,6 @@ animations = [{
 "speed": 5.0
 }]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_la3hr"]
-radius = 12.0
-
 [sub_resource type="CircleShape2D" id="CircleShape2D_q3hyu"]
 radius = 16.0312
 
@@ -695,30 +692,6 @@ height = 34.0
 
 [sub_resource type="Animation" id="Animation_1yedg"]
 length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("attack/CollisionShape2D:disabled")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("attack/CollisionShape2D:position")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector2(16, 24)]
-}
 
 [sub_resource type="Animation" id="Animation_tvrmf"]
 length = 2.0
@@ -746,29 +719,22 @@ tracks/1/keys = {
 "update": 0,
 "values": ["attack_down"]
 }
-tracks/2/type = "value"
+tracks/2/type = "method"
 tracks/2/imported = false
 tracks/2/enabled = true
-tracks/2/path = NodePath("attack/CollisionShape2D:disabled")
+tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0, 0.133333, 1.4, 2),
-"transitions": PackedFloat32Array(1, 1, 1, 1),
-"update": 1,
-"values": [true, true, false, true]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath("attack/CollisionShape2D:position")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0, 2),
+"times": PackedFloat32Array(0, 1.4),
 "transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Vector2(16, 24), Vector2(16, 24)]
+"values": [{
+"args": [],
+"method": &"swing"
+}, {
+"args": [],
+"method": &"activate_smite"
+}]
 }
 
 [sub_resource type="Animation" id="Animation_t1mgu"]
@@ -797,29 +763,22 @@ tracks/1/keys = {
 "update": 0,
 "values": ["attack_left"]
 }
-tracks/2/type = "value"
+tracks/2/type = "method"
 tracks/2/imported = false
 tracks/2/enabled = true
-tracks/2/path = NodePath("attack/CollisionShape2D:disabled")
+tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0, 0.133333, 1.4, 1.83333),
-"transitions": PackedFloat32Array(1, 1, 1, 1),
-"update": 1,
-"values": [true, true, false, true]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath("attack/CollisionShape2D:position")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0, 1.83333),
+"times": PackedFloat32Array(0, 1.4),
 "transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Vector2(-1, 4), Vector2(-1, 4)]
+"values": [{
+"args": [],
+"method": &"swing"
+}, {
+"args": [],
+"method": &"activate_smite"
+}]
 }
 
 [sub_resource type="Animation" id="Animation_vspbj"]
@@ -848,29 +807,22 @@ tracks/1/keys = {
 "update": 0,
 "values": ["attack_right"]
 }
-tracks/2/type = "value"
+tracks/2/type = "method"
 tracks/2/imported = false
 tracks/2/enabled = true
-tracks/2/path = NodePath("attack/CollisionShape2D:position")
+tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0, 1.86667),
+"times": PackedFloat32Array(0, 1.4),
 "transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Vector2(33, 5), Vector2(33, 5)]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath("attack/CollisionShape2D:disabled")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0, 0.133333, 1.4, 1.9),
-"transitions": PackedFloat32Array(1, 1, 1, 1),
-"update": 1,
-"values": [true, true, false, true]
+"values": [{
+"args": [],
+"method": &"swing"
+}, {
+"args": [],
+"method": &"activate_smite"
+}]
 }
 
 [sub_resource type="Animation" id="Animation_3ra07"]
@@ -899,29 +851,22 @@ tracks/1/keys = {
 "update": 0,
 "values": ["attack_up"]
 }
-tracks/2/type = "value"
+tracks/2/type = "method"
 tracks/2/imported = false
 tracks/2/enabled = true
-tracks/2/path = NodePath("attack/CollisionShape2D:position")
+tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0, 2.03333),
+"times": PackedFloat32Array(0, 1.2),
 "transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Vector2(16, -11), Vector2(16, -11)]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath("attack/CollisionShape2D:disabled")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0, 0.133333, 1.2, 1.93333),
-"transitions": PackedFloat32Array(1, 1, 1, 1),
-"update": 1,
-"values": [true, true, false, true]
+"values": [{
+"args": [],
+"method": &"swing"
+}, {
+"args": [],
+"method": &"activate_smite"
+}]
 }
 
 [sub_resource type="Animation" id="Animation_ykhtq"]
@@ -1086,15 +1031,8 @@ script = ExtResource("1_2xi4h")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 z_index = 1
 sprite_frames = SubResource("SpriteFrames_yl1a4")
-animation = &"attack_up"
+animation = &"attack_down"
 autoplay = "idle_down"
-
-[node name="attack" type="Area2D" parent="."]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="attack"]
-position = Vector2(16, 24)
-shape = SubResource("CircleShape2D_la3hr")
-disabled = true
 
 [node name="hitbox" type="Area2D" parent="."]
 collision_layer = 0
@@ -1125,7 +1063,6 @@ wait_time = 1.5
 one_shot = true
 script = ExtResource("15_upxj5")
 
-[connection signal="body_entered" from="attack" to="." method="_on_attack_body_entered"]
 [connection signal="area_entered" from="hitbox" to="." method="_on_hitbox_area_entered"]
 [connection signal="body_entered" from="detector" to="." method="_on_detector_body_entered"]
 [connection signal="timeout" from="attack_timer" to="." method="_on_attack_timer_timeout"]
