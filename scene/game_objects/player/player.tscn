@@ -771,10 +771,10 @@ atack_spawn = NodePath("ability_manager/atack_spawn")
 [node name="TextureProgressBar" type="TextureProgressBar" parent="." node_paths=PackedStringArray("player")]
 z_index = 10
 offset_left = -304.0
-offset_top = -167.0
-offset_right = -225.0
-offset_bottom = -155.0
-scale = Vector2(1.6, 1.6)
+offset_top = -176.0
+offset_right = -224.0
+offset_bottom = -164.0
+scale = Vector2(2, 2)
 size_flags_horizontal = 0
 size_flags_vertical = 4
 step = 10.0
@@ -783,6 +783,7 @@ texture_under = ExtResource("2_dopbw")
 texture_progress = ExtResource("3_ktjk3")
 script = ExtResource("4_gvguk")
 player = NodePath("..")
+metadata/_edit_use_anchors_ = true
 
 [node name="Area2D" type="Area2D" parent="."]
 position = Vector2(0, -11)
@@ -819,10 +820,10 @@ autoplay = "idle_down"
 
 [node name="TextureButton" type="TextureButton" parent="."]
 z_index = 4096
-offset_left = 263.0
-offset_top = -164.0
-offset_right = 303.0
-offset_bottom = -124.0
+offset_left = 128.0
+offset_top = -168.0
+offset_right = 168.0
+offset_bottom = -128.0
 texture_normal = ExtResource("24_qphrr")
 texture_pressed = ExtResource("25_uy6b8")
 stretch_mode = 0

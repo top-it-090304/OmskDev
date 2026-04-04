@@ -64,22 +64,26 @@ func _process(delta):
 		queue_free()
 
 func attack():
-	if not can_attack or not player_in_range:
-		return
-	can_walk = false
-	can_attack = false
-	attack_timer.start()
-	var old_speed = max_speed
-	max_speed *= 1.3
-	anim.stop()
-	match current_dir:
-		Dir.UP: animP.play("attack_up")
-		Dir.DOWN: animP.play("attack_down")
-		Dir.LEFT: animP.play("attack_left")
-		Dir.RIGHT: animP.play("attack_right")
-	await animP.animation_finished
-	max_speed = old_speed
-	can_walk = true
+  if not can_attack or not player_in_range:
+	return
+  can_walk = false
+  can_attack = false
+  
+  var old_speed = max_speed
+  max_speed *= 1.3
+  anim.stop()
+  match current_dir:
+	Dir.UP: animP.play("attack_up")
+	Dir.DOWN: animP.play("attack_down")
+	Dir.LEFT: animP.play("attack_left")
+	Dir.RIGHT: animP.play("attack_right")
+  await animP.animation_finished
+  if smite_instance and is_instance_valid(smite_instance):
+	smite_instance.queue_free()
+  smite_instance = null
+  max_speed = old_speed
+  can_walk = true
+  attack_timer.start()
 
 func _on_detector_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player") :
