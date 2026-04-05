@@ -6,6 +6,17 @@ extends Node2D
 @export var corridor_v_scene: PackedScene
 @export var enemy_scene: PackedScene 
 
+# НОВОЕ: Гибкий массив препятствий. Укажи сцену и её физический размер!
+@export var obstacle_data: Array[Dictionary] = [
+	# Пример (раскомментируй и укажи свои сцены):
+	{"scene": preload("res://sprites/Rocks/rock_1.tscn"), "size": Vector2(32, 32)},
+	{"scene": preload("res://sprites/Rocks/rock_2.tscn"), "size": Vector2(32, 32)},
+	{"scene": preload("res://sprites/Rocks/rock_3.tscn"), "size": Vector2(32, 32)},
+	{"scene": preload("res://sprites/Rocks/rock_4.tscn"), "size": Vector2(32, 32)},
+	{"scene": preload("res://sprites/Rocks/rock_5.tscn"), "size": Vector2(32, 32)},
+	{"scene": preload("res://sprites/Rocks/rock_6.tscn"), "size": Vector2(48, 32)}
+]
+
 # Размер комнаты и КОРидОРА в пикселях
 const ROOM_SIZE_X = 864 
 const ROOM_SIZE_Y = 608 + 32 
@@ -24,12 +35,19 @@ var seen_rooms = []
 
 
 func _ready():
+	
 	generate_layout()
 	draw_map()
 	await get_tree().create_timer(0).timeout
-	# Ждем ОБЯЗАТЕЛЬНО один кадр физики, чтобы стены из TileMap стали твердыми
-	_spawn_enemies_after_physics()
+	
+	# 1. Ждем кадр, чтобы физика увидела СТЕНЫ и РУЧНЫЕ ПРЕДМЕТЫ, затем спавним камни
+	await _spawn_obstacles_after_physics()
+	
+	# 2. Ждем еще кадр, чтобы физика увидела КАМНИ, затем спавним врагов
+	await _spawn_enemies_after_physics()
+	
 	change_current_room(current_room_grid_pos.x, current_room_grid_pos.y)
+
 # --- Генерация скелета ---
 func generate_layout():
 	layout = []
@@ -103,7 +121,6 @@ func draw_map():
 
 				add_child(room_instance)
 				
-				# Сохраняем только саму ноду комнаты (координаты нам больше не нужны!)
 				spawned_rooms.append({
 					"node": room_instance,
 					"type": layout[x][y]
@@ -115,6 +132,9 @@ func draw_map():
 				var has_bottom = check_neighbor(x, y + 1)
 				
 				room_instance.setup_room(has_left, has_right, has_top, has_bottom)
+				
+				# НОВОЕ: Спавним препятствия СРАЗУ после создания комнаты
+				
 				
 				if has_right:
 					var corr = corridor_h_scene.instantiate()
@@ -134,12 +154,102 @@ func check_neighbor(nx, ny):
 	return false
 
 # =====================================================================
-# НОВЫЙ, БЕЗОШИБОЧНЫЙ СПАВН ВРАГОВ
+# НОВЫЙ БЛОК: ГИБКИЙ СПАВН ПРЕПЯТСТВИЙ
+# =====================================================================
+
+func _spawn_obstacles_in_room(room_node: Node2D, room_type: RoomType):
+	# В стартовой комнате препятствий не будет
+	if room_type == RoomType.START or room_type == RoomType.EMPTY:
+		return
+		
+	# Проверяем, добавил ли разработчик препятствия в инспектор
+	if obstacle_data.is_empty():
+		return
+
+	var container = room_node.find_child("Obstacles")
+	if container == null:
+		push_warning("В сцене комнаты нет ноды 'Obstacles'! Препятствия не заспавнены.")
+		return
+
+	# Сколько камней генерировать
+	var obstacle_count = 0
+	match randi_range(1, 3):
+		1: obstacle_count = randi_range(10, 15)
+		2: obstacle_count = randi_range(3, 8)
+		3: obstacle_count = randi_range(0, 5)
+	var space_state = get_world_2d().direct_space_state
+	var spawned_rects: Array[Rect2] = [] # Храним тут прямоугольники поставленных камней
+	var padding = 8.0 # Отступ между камнями, чтобы они не прилипали вплотную
+
+	for _i in range(obstacle_count):
+		# Выбираем случайный камень из доступных в инспекторе
+		var data = obstacle_data.pick_random()
+		var scene: PackedScene = data["scene"]
+		var size: Vector2 = data["size"]
+		
+		if scene == null: continue
+		
+		var shape = RectangleShape2D.new()
+		shape.size = size
+		
+		var params = PhysicsShapeQueryParameters2D.new()
+		params.shape = shape
+		params.collide_with_bodies = true
+		params.collision_mask = 1 # Проверяем только стены (Layer 1)
+		
+		var half_size = size / 2.0
+		var max_attempts = 30
+		var placed = false
+
+		for _attempt in range(max_attempts):
+			# Отступаем от краев комнаты (32 пикселя), чтобы не перекрыть двери
+			var local_x = randf_range(half_size.x + 64, ROOM_SIZE_X - half_size.x - 64)
+			var local_y = randf_range(half_size.y + 64, ROOM_SIZE_Y - half_size.y - 64)
+			var local_pos = Vector2(local_x, local_y)
+			
+			# Переводим в глобальные координаты для физики
+			var global_pos = room_node.to_global(local_pos)
+			
+			params.transform = Transform2D(0, global_pos) # 0 = без вращения
+			
+			# 1. Проверяем, не врезается ли в стены
+			var wall_hits = space_state.intersect_shape(params)
+			if not wall_hits.is_empty():
+				continue # Место занято стеной, ищем дальше
+				
+			# 2. Проверяем, не пересекается ли с уже поставленными камнями
+			var new_rect = Rect2(global_pos - half_size, size).grow(padding)
+			var overlaps_obstacle = false
+			for existing_rect in spawned_rects:
+				if new_rect.intersects(existing_rect):
+					overlaps_obstacle = true
+					break
+			
+			if overlaps_obstacle:
+				continue # Место занято другим камнем, ищем дальше
+			
+			# 3. Место свободно! Спавним камень
+			var obstacle = scene.instantiate()
+			container.add_child(obstacle)
+			obstacle.global_position = global_pos
+			
+			# Запоминаем, чтобы следующие камни в него не влезли
+			spawned_rects.append(new_rect)
+			placed = true
+			break
+func _spawn_obstacles_after_physics():
+	# Ждем ОБЯЗАТЕЛЬНО один кадр физики
+	await get_tree().physics_frame 
+	
+	for room_data in spawned_rooms:
+		var room_type = room_data["type"]
+		var room_node = room_data["node"]
+		_spawn_obstacles_in_room(room_node, room_type)
+# =====================================================================
+# СПАВН ВРАГОВ (Без изменений, но теперь враги не будут попадать в камни!)
 # =====================================================================
 
 func _spawn_enemies_after_physics():
-	# await приостанавливает функцию до следующего кадра физики.
-	# Без этого TileMap стены еще "невидимы" для raycast/point запросов!
 	await get_tree().physics_frame 
 	
 	var space_state = get_world_2d().direct_space_state
@@ -164,26 +274,19 @@ func _spawn_single_enemy(space_state, room_node):
 	var max_attempts = 30 
 	
 	for _attempt in range(max_attempts):
-		# 1. Генерируем локальную точку для проверки
 		var local_x = randf_range(64, ROOM_SIZE_X - 64)
 		var local_y = randf_range(64, ROOM_SIZE_Y - 64)
 		var local_point = Vector2(local_x, local_y)
-
-		# 2. Переводим в ГЛОБАЛЬНУЮ для проверки физики
 		var global_point = room_node.to_global(local_point)
 
 		var query = PhysicsPointQueryParameters2D.new()
 		query.position = global_point 
 		query.collide_with_bodies = true  
 		query.collide_with_areas = false  
-		
-		# ВАЖНО: Убедись, что здесь указан слой СТЕН, а не пола!
-		# Если пол и стены на 1 слое, intersect_point будет бить в пол.
-		query.collision_mask = 1 
+		query.collision_mask = 1 # Проверяет и стены, и камни (если у камень Layer 1)
 
 		var intersection = space_state.intersect_point(query)
 
-		# 3. Если точка свободна от стен
 		if intersection.is_empty():
 			var enemy = enemy_scene.instantiate()
 			
@@ -191,32 +294,22 @@ func _spawn_single_enemy(space_state, room_node):
 			if area_enemys == null:
 				return
 			
-			# 4. СНАЧАЛА делаем врага ребенком Enemys
 			area_enemys.add_child(enemy)
-			
-			# 5. ПОСЛЕ добавления задаем ему ГЛОБАЛЬНУЮ позицию.
-			# Godot сам поймет, куда его поставить внутри area_enemys, 
-			# чтобы он оказался ровно там, где мы проверяли физику!
 			enemy.global_position = global_point
-			
-			return # Враг успешно поставлен, выходим из цикла
+			return 
+
 func change_current_room(new_x, new_y):
 	var new_pos = Vector2i(new_x, new_y)
 	
-	
-	# 1. Добавляем текущую комнату в список ПОСЕЩЕННЫХ
 	if not visited_rooms.has(new_pos):
 		visited_rooms.append(new_pos)
 		
-	# 2. Ищем соседей и добавляем их в список ВИДИМЫХ
 	var directions = [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]
 	for dir in directions:
 		var neighbor_pos = new_pos + dir
-		# Если сосед существует на карте и это не пустота
 		if is_valid_pos(neighbor_pos) and layout[neighbor_pos.x][neighbor_pos.y] != RoomType.EMPTY:
 			if not seen_rooms.has(neighbor_pos):
 				seen_rooms.append(neighbor_pos)
 				
-	# 3. Обновляем текущую позицию и КРИЧИМ миникарте, что всё изменилось
 	current_room_grid_pos = new_pos
 	room_changed.emit(current_room_grid_pos)
