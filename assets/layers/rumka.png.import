@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://db7l6i5brwbm"
-path="res://.godot/imported/GenericTextField.png-2ceb18a30de44c121ad6406ec555fe8f.ctex"
+uid="uid://c7kt6p2mtwjr8"
+path="res://.godot/imported/rumka.png-e09d54e0102ae832382ca6aca3aae7ec.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://World/GenericTextField.png"
-dest_files=["res://.godot/imported/GenericTextField.png-2ceb18a30de44c121ad6406ec555fe8f.ctex"]
+source_file="res://assets/layers/rumka.png"
+dest_files=["res://.godot/imported/rumka.png-e09d54e0102ae832382ca6aca3aae7ec.ctex"]
 
 [params]
 

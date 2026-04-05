@@ -5,7 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://xe6tj0s7vbb1" path="res://assets/Button/SettingsButtonClose.png" id="4_4nr6m"]
 [ext_resource type="FontFile" uid="uid://wbjr6hf3uxdc" path="res://Font/PixelRpgFont-Regular.ttf" id="5_o0o4q"]
 [ext_resource type="Texture2D" uid="uid://bhpxurfxn5xvb" path="res://assets/Button/SettingsButtonCloase.png" id="5_vsxdg"]
-[ext_resource type="Script" uid="uid://cakdcb7ool7l2" path="res://World/texture_button.gd" id="6_4nr6m"]
+[ext_resource type="Script" uid="uid://cakdcb7ool7l2" path="res://World/UI/texture_button.gd" id="6_4nr6m"]
 
 [node name="settings" type="Control"]
 z_index = 4096

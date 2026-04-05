@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://vx44y41o4caa"
-path="res://.godot/imported/Dungeon_WaterAnimation.png-b95ffbd5fe28b9bdf0a89eccc8be45d7.ctex"
+uid="uid://boaltom1loron"
+path="res://.godot/imported/BackgroundRumka.png-c1521afea3a287574e2921feb5128f1d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/Dungeon_WaterAnimation.png"
-dest_files=["res://.godot/imported/Dungeon_WaterAnimation.png-b95ffbd5fe28b9bdf0a89eccc8be45d7.ctex"]
+source_file="res://assets/layers/BackgroundRumka.png"
+dest_files=["res://.godot/imported/BackgroundRumka.png-c1521afea3a287574e2921feb5128f1d.ctex"]
 
 [params]
 

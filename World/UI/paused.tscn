@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://cgrlwgdgbo186"]
 
-[ext_resource type="Script" uid="uid://bokfq43jcthms" path="res://World/paused.gd" id="1_wujia"]
-[ext_resource type="PackedScene" uid="uid://uhqcuwji758" path="res://World/settings.tscn" id="2_khkt4"]
+[ext_resource type="Script" uid="uid://bokfq43jcthms" path="res://World/UI/paused.gd" id="1_wujia"]
+[ext_resource type="PackedScene" uid="uid://uhqcuwji758" path="res://World/UI/settings.tscn" id="2_khkt4"]
 [ext_resource type="Texture2D" uid="uid://b70s4hl2nftxd" path="res://assets/Button/GenericPanel.png" id="2_wujia"]
 [ext_resource type="Texture2D" uid="uid://lgt42mdbxna2" path="res://assets/Button/GenericTextField.png" id="3_khkt4"]
 [ext_resource type="FontFile" uid="uid://wbjr6hf3uxdc" path="res://Font/PixelRpgFont-Regular.ttf" id="4_s5ror"]

@@ -26,7 +26,7 @@
 [ext_resource type="Texture2D" uid="uid://5smbg5ptkuwn" path="res://assets/Button/SettingsButtonNormal.png" id="24_qphrr"]
 [ext_resource type="Texture2D" uid="uid://bpq2iwihrypm8" path="res://assets/Button/SettingsButtonPressed.png" id="25_uy6b8"]
 [ext_resource type="Script" uid="uid://br0543vshmkp4" path="res://scene/game_objects/player/texture_button.gd" id="26_tp45h"]
-[ext_resource type="PackedScene" uid="uid://cgrlwgdgbo186" path="res://World/paused.tscn" id="27_sadj6"]
+[ext_resource type="PackedScene" uid="uid://cgrlwgdgbo186" path="res://World/UI/paused.tscn" id="27_sadj6"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_lfjyr"]
 height = 26.0
