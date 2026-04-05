@@ -1,14 +1,20 @@
 extends Node2D
 
 # --- НАСТРОЙКИ ---
-@export var room_scene: PackedScene 
+@export var start_room_variations: Array[PackedScene] = [] 
+@export var normal_room_variations: Array[PackedScene] = [] 
+@export var boss_room_variations: Array[PackedScene] = [] 
+@export var treasure_room_variations: Array[PackedScene] = [] 
+
 @export var corridor_h_scene: PackedScene 
 @export var corridor_v_scene: PackedScene
-@export var enemy_scene: PackedScene 
+@export var enemy_variations: Array[PackedScene] = [] 
 
-# НОВОЕ: Гибкий массив препятствий. Укажи сцену и её физический размер!
+# НОВОЕ: Массив всех возможных предметов для Treasure Room
+@export var treasure_items: Array[PackedScene] = []
+
+# Гибкий массив препятствий
 @export var obstacle_data: Array[Dictionary] = [
-	# Пример (раскомментируй и укажи свои сцены):
 	{"scene": preload("res://sprites/Rocks/rock_1.tscn"), "size": Vector2(32, 32)},
 	{"scene": preload("res://sprites/Rocks/rock_2.tscn"), "size": Vector2(32, 32)},
 	{"scene": preload("res://sprites/Rocks/rock_3.tscn"), "size": Vector2(32, 32)},
@@ -27,6 +33,9 @@ enum RoomType { EMPTY, START, NORMAL, BOSS, TREASURE }
 var layout = []
 var spawned_rooms = []
 
+# НОВОЕ: "Текущая колода" предметов для выдачи
+var item_draw_pile: Array[PackedScene] = []
+
 #minimap
 var current_room_grid_pos = Vector2i(GRID_SIZE / 2, GRID_SIZE / 2)
 signal room_changed(new_grid_pos)
@@ -35,18 +44,56 @@ var seen_rooms = []
 
 
 func _ready():
-	
+	if start_room_variations.is_empty() or normal_room_variations.is_empty() or boss_room_variations.is_empty():
+		push_error("ОШИБКА: Добавь хотя бы по одной сцене для Start, Normal и Boss комнат!")
+		return
+		
 	generate_layout()
 	draw_map()
 	await get_tree().create_timer(0).timeout
 	
-	# 1. Ждем кадр, чтобы физика увидела СТЕНЫ и РУЧНЫЕ ПРЕДМЕТЫ, затем спавним камни
 	await _spawn_obstacles_after_physics()
-	
-	# 2. Ждем еще кадр, чтобы физика увидела КАМНИ, затем спавним врагов
 	await _spawn_enemies_after_physics()
 	
+	# НОВОЕ: Спавним предметы в комнатах сокровищ (делаем это последним)
+	_spawn_treasure_items()
+	
 	change_current_room(current_room_grid_pos.x, current_room_grid_pos.y)
+
+# =====================================================================
+# НОВОЕ: ЛОГИКА "КОЛОДЫ КАРТ" ДЛЯ ПРЕДМЕТОВ
+# =====================================================================
+
+func _get_next_treasure_item() -> PackedScene:
+	if treasure_items.is_empty():
+		return null
+		
+	# Если колода пуста, берем все предметы из инспектора, копируем их и перемешиваем
+	if item_draw_pile.is_empty():
+		item_draw_pile = treasure_items.duplicate()
+		item_draw_pile.shuffle()
+		
+	# Достаем верхнюю карту из колоды (pop_back() быстрее, чем pop_front())
+	return item_draw_pile.pop_back()
+
+func _spawn_treasure_items():
+	for room_data in spawned_rooms:
+		if room_data["type"] == RoomType.TREASURE:
+			var item_scene = _get_next_treasure_item()
+			
+			if item_scene == null:
+				push_warning("Массив treasure_items пуст, предмет не заспавнен.")
+				continue
+				
+			var room_node = room_data["node"]
+			var item_instance = item_scene.instantiate()
+			
+			# Добавляем предмет напрямую в корень комнаты
+			room_node.add_child(item_instance)
+			
+			# Строго по центру комнаты
+			var local_center = Vector2(ROOM_SIZE_X / 2.0, ROOM_SIZE_Y / 2.0)
+			item_instance.global_position = room_node.to_global(local_center)
 
 # --- Генерация скелета ---
 func generate_layout():
@@ -89,6 +136,17 @@ func generate_layout():
 		if is_valid_pos(new_pos) and layout[new_pos.x][new_pos.y] == RoomType.EMPTY:
 			layout[new_pos.x][new_pos.y] = RoomType.NORMAL
 
+	var treasure_count = randi_range(1, 2)
+	for _i in range(treasure_count):
+		var rand_room = get_random_room_of_type(RoomType.NORMAL)
+		if rand_room == Vector2i(-1, -1): break 
+		
+		var dir = [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)].pick_random()
+		var new_pos = rand_room + dir
+		
+		if is_valid_pos(new_pos) and layout[new_pos.x][new_pos.y] == RoomType.EMPTY:
+			layout[new_pos.x][new_pos.y] = RoomType.TREASURE
+
 func is_valid_pos(pos):
 	return pos.x >= 0 and pos.x < GRID_SIZE and pos.y >= 0 and pos.y < GRID_SIZE
 
@@ -113,9 +171,27 @@ func draw_map():
 			if layout[x][y] != RoomType.EMPTY:
 				
 				var room_pos = Vector2(offset_x + x * cell_size_x, offset_y + y * cell_size_y)
-				var room_instance = room_scene.instantiate()
-				room_instance.position = room_pos
+				var selected_room_scene: PackedScene = null
 				
+				match layout[x][y]:
+					RoomType.START:
+						if not start_room_variations.is_empty():
+							selected_room_scene = start_room_variations.pick_random()
+					RoomType.NORMAL:
+						if not normal_room_variations.is_empty():
+							selected_room_scene = normal_room_variations.pick_random()
+					RoomType.BOSS:
+						if not boss_room_variations.is_empty():
+							selected_room_scene = boss_room_variations.pick_random()
+					RoomType.TREASURE:
+						if not treasure_room_variations.is_empty():
+							selected_room_scene = treasure_room_variations.pick_random()
+				
+				if selected_room_scene == null:
+					continue
+					
+				var room_instance = selected_room_scene.instantiate()
+				room_instance.position = room_pos
 				room_instance.grid_x = x
 				room_instance.grid_y = y
 
@@ -132,8 +208,6 @@ func draw_map():
 				var has_bottom = check_neighbor(x, y + 1)
 				
 				room_instance.setup_room(has_left, has_right, has_top, has_bottom)
-				
-				# НОВОЕ: Спавним препятствия СРАЗУ после создания комнаты
 				
 				
 				if has_right:
@@ -154,48 +228,45 @@ func check_neighbor(nx, ny):
 	return false
 
 # =====================================================================
-# НОВЫЙ БЛОК: ГИБКИЙ СПАВН ПРЕПЯТСТВИЙ
+# СПАВН ПРЕПЯТСТВИЙ
 # =====================================================================
 
 func _spawn_obstacles_in_room(room_node: Node2D, room_type: RoomType):
-	# В стартовой комнате препятствий не будет
-	if room_type == RoomType.START or room_type == RoomType.EMPTY:
+	if room_type == RoomType.START or room_type == RoomType.TREASURE or room_type == RoomType.EMPTY:
 		return
 		
-	# Проверяем, добавил ли разработчик препятствия в инспектор
 	if obstacle_data.is_empty():
 		return
 
 	var container = room_node.find_child("Obstacles")
 	if container == null:
-		push_warning("В сцене комнаты нет ноды 'Obstacles'! Препятствия не заспавнены.")
 		return
 
-	# Сколько камней генерировать
 	var obstacle_count = 0
-	var type_of_room=randi_range(1, 3)
+	var type_of_room = randi_range(1, 3)
 	match type_of_room:
 		1: obstacle_count = randi_range(0, 5)
 		2: obstacle_count = randi_range(3, 8)
 		3: obstacle_count = randi_range(10, 15)
+		
 	var space_state = get_world_2d().direct_space_state
-	var spawned_rects: Array[Rect2] = [] # Храним тут прямоугольники поставленных камней
-	var padding = 8.0 # Отступ между камнями, чтобы они не прилипали вплотную
+	var spawned_rects: Array[Rect2] = []
+	var padding = 8.0 
 
 	for _i in range(obstacle_count):
-		# Выбираем случайный камень из доступных в инспекторе
 		var data 
 		match type_of_room:
-			1:data = obstacle_data[0]
+			1: data = obstacle_data[0]
 			2: 
 				if randi_range(0, 1): data = obstacle_data[1] 
-				else:data = obstacle_data[2]
+				else: data = obstacle_data[2]
 			
 			3:
-				var r=randi_range(0, 2)
-				if r==0: data = obstacle_data[3] 
-				elif r==1:data =obstacle_data[4]
-				else:data = obstacle_data[5]
+				var r = randi_range(0, 2)
+				if r == 0: data = obstacle_data[3] 
+				elif r == 1: data = obstacle_data[4]
+				else: data = obstacle_data[5]
+				
 		var scene: PackedScene = data["scene"]
 		var size: Vector2 = data["size"]
 		
@@ -207,29 +278,23 @@ func _spawn_obstacles_in_room(room_node: Node2D, room_type: RoomType):
 		var params = PhysicsShapeQueryParameters2D.new()
 		params.shape = shape
 		params.collide_with_bodies = true
-		params.collision_mask = 1 # Проверяем только стены (Layer 1)
+		params.collision_mask = 1 
 		
 		var half_size = size / 2.0
 		var max_attempts = 30
-		var placed = false
 
 		for _attempt in range(max_attempts):
-			# Отступаем от краев комнаты (32 пикселя), чтобы не перекрыть двери
 			var local_x = randf_range(half_size.x + 64, ROOM_SIZE_X - half_size.x - 64)
 			var local_y = randf_range(half_size.y + 64, ROOM_SIZE_Y - half_size.y - 64)
 			var local_pos = Vector2(local_x, local_y)
-			
-			# Переводим в глобальные координаты для физики
 			var global_pos = room_node.to_global(local_pos)
 			
-			params.transform = Transform2D(0, global_pos) # 0 = без вращения
+			params.transform = Transform2D(0, global_pos) 
 			
-			# 1. Проверяем, не врезается ли в стены
 			var wall_hits = space_state.intersect_shape(params)
 			if not wall_hits.is_empty():
-				continue # Место занято стеной, ищем дальше
+				continue
 				
-			# 2. Проверяем, не пересекается ли с уже поставленными камнями
 			var new_rect = Rect2(global_pos - half_size, size).grow(padding)
 			var overlaps_obstacle = false
 			for existing_rect in spawned_rects:
@@ -238,45 +303,41 @@ func _spawn_obstacles_in_room(room_node: Node2D, room_type: RoomType):
 					break
 			
 			if overlaps_obstacle:
-				continue # Место занято другим камнем, ищем дальше
+				continue
 			
-			# 3. Место свободно! Спавним камень
 			var obstacle = scene.instantiate()
 			container.add_child(obstacle)
 			obstacle.global_position = global_pos
-			
-			# Запоминаем, чтобы следующие камни в него не влезли
 			spawned_rects.append(new_rect)
-			placed = true
 			break
+
 func _spawn_obstacles_after_physics():
-	# Ждем ОБЯЗАТЕЛЬНО один кадр физики
 	await get_tree().physics_frame 
-	
 	for room_data in spawned_rooms:
-		var room_type = room_data["type"]
-		var room_node = room_data["node"]
-		_spawn_obstacles_in_room(room_node, room_type)
+		_spawn_obstacles_in_room(room_data["node"], room_data["type"])
+
 # =====================================================================
-# СПАВН ВРАГОВ (Без изменений, но теперь враги не будут попадать в камни!)
+# СПАВН ВРАГОВ
 # =====================================================================
 
 func _spawn_enemies_after_physics():
 	await get_tree().physics_frame 
 	
+	if enemy_variations.is_empty():
+		return
+		
 	var space_state = get_world_2d().direct_space_state
 	
 	for room_data in spawned_rooms:
 		var room_type = room_data["type"]
 		var room_node = room_data["node"]
 		
-		if room_type == RoomType.START or room_type == RoomType.EMPTY:
+		if room_type == RoomType.START or room_type == RoomType.TREASURE or room_type == RoomType.EMPTY:
 			continue
 			
 		var enemy_count = 0
 		match room_type:
 			RoomType.NORMAL: enemy_count = randi_range(2, 5)
-			RoomType.TREASURE: enemy_count = randi_range(1, 2)
 			RoomType.BOSS: enemy_count = 1
 			
 		for _i in range(enemy_count):
@@ -295,12 +356,13 @@ func _spawn_single_enemy(space_state, room_node):
 		query.position = global_point 
 		query.collide_with_bodies = true  
 		query.collide_with_areas = false  
-		query.collision_mask = 1 # Проверяет и стены, и камни (если у камень Layer 1)
+		query.collision_mask = 1 
 
 		var intersection = space_state.intersect_point(query)
 
 		if intersection.is_empty():
-			var enemy = enemy_scene.instantiate()
+			var selected_enemy_scene = enemy_variations.pick_random()
+			var enemy = selected_enemy_scene.instantiate()
 			
 			var area_enemys = room_node.find_child("Enemys")
 			if area_enemys == null:
