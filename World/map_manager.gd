@@ -190,7 +190,13 @@ func draw_map():
 				if selected_room_scene == null:
 					continue
 					
-				var room_instance = selected_room_scene.instantiate()
+				# ВОТ ЗДЕСЬ ИЗМЕНЕНИЕ: as RoomBase
+				var room_instance = selected_room_scene.instantiate() as RoomBase
+				
+				# Если somehow сцена оказалась не той, пропускаем (защита от вылета)
+				if room_instance == null:
+					continue
+				
 				room_instance.position = room_pos
 				room_instance.grid_x = x
 				room_instance.grid_y = y
@@ -336,9 +342,9 @@ func _spawn_enemies_after_physics():
 			continue
 			
 		var enemy_count = 0
-		match room_type:
-			RoomType.NORMAL: enemy_count = randi_range(2, 5)
-			RoomType.BOSS: enemy_count = 1
+		
+		if room_type==RoomType.NORMAL: enemy_count = randi_range(2, 5)
+			
 			
 		for _i in range(enemy_count):
 			_spawn_single_enemy(space_state, room_node)
