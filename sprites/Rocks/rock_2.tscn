@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://sctobx2y6ddw"]
+
+[ext_resource type="TileSet" uid="uid://bypnx5lkfanma" path="res://sprites/Rocks/rock_1.tres" id="1_eokp7"]
+
+[node name="Rock2" type="Node2D"]
+
+[node name="TileMapLayer" type="TileMapLayer" parent="."]
+z_index = 2
+position = Vector2(-16, -16)
+tile_map_data = PackedByteArray(0, 0, 0, 0, 0, 0, 4, 0, 16, 0, 2, 0, 0, 0, 0, 0, 1, 0, 4, 0, 16, 0, 3, 0, 0, 0, 1, 0, 0, 0, 4, 0, 17, 0, 2, 0, 0, 0, 1, 0, 1, 0, 4, 0, 17, 0, 3, 0, 0, 0)
+tile_set = ExtResource("1_eokp7")

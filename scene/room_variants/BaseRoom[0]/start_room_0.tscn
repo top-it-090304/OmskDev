@@ -1,0 +1,21 @@
+[gd_scene load_steps=3 format=3 uid="uid://c823kc80seg18"]
+
+[ext_resource type="PackedScene" uid="uid://m1ir1mum4qac" path="res://scene/room_variants/BaseRoom[0]/base_room0.tscn" id="1_bg17h"]
+[ext_resource type="FontFile" uid="uid://wbjr6hf3uxdc" path="res://Font/PixelRpgFont-Regular.ttf" id="2_bm2ig"]
+
+[node name="start_room0" instance=ExtResource("1_bg17h")]
+
+[node name="Label" type="Label" parent="." index="9"]
+offset_left = 232.0
+offset_top = 24.0
+offset_right = 364.0
+offset_bottom = 61.0
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_bm2ig")
+text = "Welcome to 
+Aurora Dungeon"
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true

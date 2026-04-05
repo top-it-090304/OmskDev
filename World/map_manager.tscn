@@ -1,17 +1,23 @@
-[gd_scene load_steps=7 format=3 uid="uid://n6dhykg53x0b"]
+[gd_scene load_steps=11 format=3 uid="uid://n6dhykg53x0b"]
 
 [ext_resource type="Script" uid="uid://c71xmlpvgo7v2" path="res://World/map_manager.gd" id="1_l755g"]
 [ext_resource type="PackedScene" uid="uid://dkch1f7o4dp5j" path="res://scene/room_variants/BaseRoom[0]/corridorH.tscn" id="2_hkb3w"]
-[ext_resource type="PackedScene" uid="uid://nbarru04xcx" path="res://scene/room_variants/BaseRoom[0]/room[0]_BossRoom.tscn" id="2_r4imn"]
+[ext_resource type="PackedScene" uid="uid://c823kc80seg18" path="res://scene/room_variants/BaseRoom[0]/start_room_0.tscn" id="2_ygotc"]
 [ext_resource type="PackedScene" uid="uid://r0v8453yqewl" path="res://scene/room_variants/BaseRoom[0]/corridorV.tscn" id="3_ati1j"]
+[ext_resource type="PackedScene" uid="uid://m1ir1mum4qac" path="res://scene/room_variants/BaseRoom[0]/base_room0.tscn" id="3_lcle7"]
+[ext_resource type="PackedScene" uid="uid://bto3swn3i5217" path="res://scene/room_variants/BaseRoom[0]/boss_room_0.tscn" id="4_ubomv"]
+[ext_resource type="PackedScene" uid="uid://800whowwu1y0" path="res://scene/room_variants/BaseRoom[0]/treasure_room_0.tscn" id="5_4r2i8"]
 [ext_resource type="PackedScene" uid="uid://djme8hqe5u87s" path="res://scene/game_objects/enemy/goblin_axe/enemy(goblin_axe).tscn" id="5_ati1j"]
-[ext_resource type="PackedScene" uid="uid://xawnnltchw47" path="res://scene/game_objects/player/player.tscn" id="6_xsmnk"]
+[ext_resource type="PackedScene" uid="uid://ot1bjrnddml7" path="res://scene/game_objects/enemy/skeleton_bow/skeleton_bow.tscn" id="5_xsmnk"]
+[ext_resource type="PackedScene" uid="uid://bbelva8io0yft" path="res://scene/pick_up/artefact(boots_of_travel).tscn" id="10_ygotc"]
 
 [node name="MapManager" type="Node2D"]
 script = ExtResource("1_l755g")
-room_scene = ExtResource("2_r4imn")
+start_room_variations = Array[PackedScene]([ExtResource("2_ygotc")])
+normal_room_variations = Array[PackedScene]([ExtResource("3_lcle7")])
+boss_room_variations = Array[PackedScene]([ExtResource("4_ubomv")])
+treasure_room_variations = Array[PackedScene]([ExtResource("5_4r2i8")])
 corridor_h_scene = ExtResource("2_hkb3w")
 corridor_v_scene = ExtResource("3_ati1j")
-enemy_scene = ExtResource("5_ati1j")
-
-[node name="player" parent="." instance=ExtResource("6_xsmnk")]
+enemy_variations = Array[PackedScene]([ExtResource("5_ati1j"), ExtResource("5_xsmnk")])
+treasure_items = Array[PackedScene]([ExtResource("10_ygotc")])
