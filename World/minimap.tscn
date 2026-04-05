@@ -4,7 +4,6 @@
 [ext_resource type="Texture2D" uid="uid://dx3gldpc6cqrj" path="res://assets/Button/ChatBackground.png" id="2_kks6m"]
 
 [node name="minimap" type="Control"]
-clip_contents = true
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -15,22 +14,26 @@ size_flags_horizontal = 8
 size_flags_vertical = 0
 script = ExtResource("1_vdnj7")
 
+[node name="ChatBackground" type="Sprite2D" parent="."]
+z_index = 10
+position = Vector2(570, 66)
+scale = Vector2(2.75, 2.75)
+texture = ExtResource("2_kks6m")
+
 [node name="MarginContainer" type="MarginContainer" parent="."]
-clip_contents = true
+z_index = 15
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.7875
-anchor_top = 0.0888889
-anchor_right = 0.95625
-anchor_bottom = 0.388889
-grow_horizontal = 2
-grow_vertical = 2
-metadata/_edit_use_anchors_ = true
+anchor_left = 0.80625
+anchor_top = 0.0333333
+anchor_right = 0.975
+anchor_bottom = 0.333333
+mouse_filter = 2
 
 [node name="GridContainer" type="GridContainer" parent="MarginContainer"]
-modulate = Color(1, 1, 1, 0.521569)
-self_modulate = Color(1, 1, 1, 0)
-clip_contents = true
+modulate = Color(1, 1, 1, 0.909804)
+clip_children = 1
+z_index = 15
 custom_minimum_size = Vector2(108, 108)
 layout_mode = 2
 size_flags_horizontal = 0
@@ -38,9 +41,3 @@ size_flags_vertical = 0
 mouse_filter = 2
 theme_override_constants/h_separation = 2
 theme_override_constants/v_separation = 2
-columns = 9
-
-[node name="ChatBackground" type="Sprite2D" parent="."]
-position = Vector2(558, 86)
-scale = Vector2(2.75, 2.75)
-texture = ExtResource("2_kks6m")

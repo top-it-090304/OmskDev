@@ -11,7 +11,7 @@ const ROOM_SIZE_X = 864
 const ROOM_SIZE_Y = 608 + 32 
 const CORRIDOR_LENGTH = 64 
 
-const GRID_SIZE = 9
+const GRID_SIZE = 15
 enum RoomType { EMPTY, START, NORMAL, BOSS, TREASURE }
 var layout = []
 var spawned_rooms = []
@@ -21,7 +21,7 @@ var current_room_grid_pos = Vector2i(GRID_SIZE / 2, GRID_SIZE / 2)
 signal room_changed(new_grid_pos)
 var visited_rooms = []
 var seen_rooms = []
-var onlyfirst=true
+
 
 func _ready():
 	generate_layout()
@@ -203,10 +203,7 @@ func _spawn_single_enemy(space_state, room_node):
 func change_current_room(new_x, new_y):
 	var new_pos = Vector2i(new_x, new_y)
 	
-	if new_pos == current_room_grid_pos and onlyfirst==false:
-		return
-	else:
-		onlyfirst=false
+	
 	# 1. Добавляем текущую комнату в список ПОСЕЩЕННЫХ
 	if not visited_rooms.has(new_pos):
 		visited_rooms.append(new_pos)

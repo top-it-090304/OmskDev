@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://bq40uiaugbfjq"]
 
 [ext_resource type="PackedScene" uid="uid://n6dhykg53x0b" path="res://World/map_manager.tscn" id="1_mln5v"]
-[ext_resource type="PackedScene" uid="uid://xawnnltchw47" path="res://scene/game_objects/player/Player.tscn" id="2_jn37s"]
+[ext_resource type="PackedScene" uid="uid://xawnnltchw47" path="res://scene/game_objects/player/player.tscn" id="2_jn37s"]
 [ext_resource type="PackedScene" uid="uid://capqga0p285u0" path="res://World/minimap.tscn" id="3_o2u7n"]
 
 [node name="Layer" type="Node"]

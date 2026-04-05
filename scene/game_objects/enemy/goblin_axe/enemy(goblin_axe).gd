@@ -16,7 +16,7 @@ var can_walk = true
 var direction = Vector2.ZERO
 var can_attack = true
 var player_in_range = false
-var z = false
+
 var smite_instance: Node2D = null
 
 func _ready() -> void:
