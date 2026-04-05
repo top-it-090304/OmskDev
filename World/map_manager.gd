@@ -137,15 +137,31 @@ func generate_layout():
 			layout[new_pos.x][new_pos.y] = RoomType.NORMAL
 
 	var treasure_count = randi_range(1, 2)
-	for _i in range(treasure_count):
+	var treasures_placed = 0
+	
+	# Даем 15 попыток (вместо 2), чтобы точно найти свободное место на карте
+	for _i in range(15):
+		if treasures_placed >= treasure_count:
+			break # Уже поставили нужное количество, выходим из цикла
+			
 		var rand_room = get_random_room_of_type(RoomType.NORMAL)
-		if rand_room == Vector2i(-1, -1): break 
+		if rand_room == Vector2i(-1, -1): break
 		
-		var dir = [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)].pick_random()
-		var new_pos = rand_room + dir
+		# Перемешиваем направления, чтобы не всегда лепить сокровищницу только вправо или вниз
+		var directions = [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]
+		directions.shuffle()
 		
-		if is_valid_pos(new_pos) and layout[new_pos.x][new_pos.y] == RoomType.EMPTY:
-			layout[new_pos.x][new_pos.y] = RoomType.TREASURE
+		var placed = false
+		# Проверяем все 4 стороны случайно выбранной комнаты
+		for dir in directions:
+			var new_pos = rand_room + dir
+			
+			# Если нашли пустое место — ставим сокровищницу
+			if is_valid_pos(new_pos) and layout[new_pos.x][new_pos.y] == RoomType.EMPTY:
+				layout[new_pos.x][new_pos.y] = RoomType.TREASURE
+				treasures_placed += 1
+				placed = true
+				break # Место нашли, дальше эту комнату не проверяем
 
 func is_valid_pos(pos):
 	return pos.x >= 0 and pos.x < GRID_SIZE and pos.y >= 0 and pos.y < GRID_SIZE

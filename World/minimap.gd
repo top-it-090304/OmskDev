@@ -92,7 +92,7 @@ func update_minimap_visuals():
 						Color.DARK_GRAY: cell.color = Color.ANTIQUE_WHITE
 						Color.LIGHT_GREEN: cell.color = Color.LAWN_GREEN
 						Color.INDIAN_RED: cell.color = Color.ORANGE_RED
-						Color.SANDY_BROWN: cell.color = Color.YELLOW
+						Color.YELLOW+Color.ANTIQUE_WHITE/1.5: cell.color = Color.YELLOW
 						_: cell.color = Color.ANTIQUE_WHITE
 				elif map_manager.visited_rooms.has(pos):
 					cell.color = get_room_color(room_type, pos)
@@ -105,7 +105,7 @@ func get_room_color(type, pos):
 	match type:
 		map_manager.RoomType.START: return Color.LIGHT_GREEN
 		map_manager.RoomType.BOSS: return Color.INDIAN_RED
-		map_manager.RoomType.TREASURE: return Color.SANDY_BROWN
+		map_manager.RoomType.TREASURE: return Color.YELLOW+Color.ANTIQUE_WHITE/1.5
 		map_manager.RoomType.NORMAL: return Color.DARK_GRAY
 		_: return Color.CORAL
 
