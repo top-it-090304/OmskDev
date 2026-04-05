@@ -173,17 +173,29 @@ func _spawn_obstacles_in_room(room_node: Node2D, room_type: RoomType):
 
 	# Сколько камней генерировать
 	var obstacle_count = 0
-	match randi_range(1, 3):
-		1: obstacle_count = randi_range(10, 15)
+	var type_of_room=randi_range(1, 3)
+	match type_of_room:
+		1: obstacle_count = randi_range(0, 5)
 		2: obstacle_count = randi_range(3, 8)
-		3: obstacle_count = randi_range(0, 5)
+		3: obstacle_count = randi_range(10, 15)
 	var space_state = get_world_2d().direct_space_state
 	var spawned_rects: Array[Rect2] = [] # Храним тут прямоугольники поставленных камней
 	var padding = 8.0 # Отступ между камнями, чтобы они не прилипали вплотную
 
 	for _i in range(obstacle_count):
 		# Выбираем случайный камень из доступных в инспекторе
-		var data = obstacle_data.pick_random()
+		var data 
+		match type_of_room:
+			1:data = obstacle_data[0]
+			2: 
+				if randi_range(0, 1): data = obstacle_data[1] 
+				else:data = obstacle_data[2]
+			
+			3:
+				var r=randi_range(0, 2)
+				if r==0: data = obstacle_data[3] 
+				elif r==1:data =obstacle_data[4]
+				else:data = obstacle_data[5]
 		var scene: PackedScene = data["scene"]
 		var size: Vector2 = data["size"]
 		
