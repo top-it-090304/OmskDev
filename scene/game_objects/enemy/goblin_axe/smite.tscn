@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://bdq0qtlq7fnnu" path="res://scene/game_objects/enemy/goblin_axe/smite.gd" id="1_d3hm0"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_w86s1"]
+radius = 14.0
 
 [node name="hitbox" type="Area2D"]
 collision_mask = 2

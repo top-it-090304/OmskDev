@@ -17,4 +17,4 @@ func _on_texture_button_2_pressed() -> void:
 
 func _on_texture_button_3_pressed() -> void:
 	get_tree().paused=false
-	get_tree().change_scene_to_file("res://world/menu.tscn")
+	get_tree().change_scene_to_file("res://world/UI/menu.tscn")
