@@ -94,6 +94,7 @@ func _on_detector_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player") :
 		player_in_range = true
 		if can_attack:
+			print("detector")
 			attack()
 			
 func play_idle_animation():
@@ -112,8 +113,7 @@ func _on_attack_body_entered(body: Node2D) -> void:
 		body.take_damage(damage)
 
 func _on_attack_timer_timeout():
-	if player_in_range:
-		attack()
+	can_attack = true
 		
 func swing():
 	if not player: return

@@ -15,7 +15,7 @@
 [ext_resource type="Texture2D" uid="uid://cvgjd1mbxxlfl" path="res://sprites/enemys/skeletonBow/Up/Png/SkeletonWithSBowUpWalk.png" id="12_i5q24"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_dfcc5"]
-radius = 269.119
+radius = 150.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_h3w2k"]
 radius = 16.0312
@@ -1172,6 +1172,7 @@ animation = &"attack_down"
 shape = SubResource("CapsuleShape2D_h3w2k")
 
 [node name="attack_timer" type="Timer" parent="." groups=["enemys"]]
+wait_time = 0.5
 one_shot = true
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]

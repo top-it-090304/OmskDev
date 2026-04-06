@@ -1,6 +1,6 @@
 [gd_scene load_steps=116 format=3 uid="uid://djme8hqe5u87s"]
 
-[ext_resource type="Script" uid="uid://d2kkculxvdxu5" path="res://scene/game_objects/enemy/goblin_axe/enemy(goblin_axe).gd" id="1_2xi4h"]
+[ext_resource type="Script" uid="uid://d2kkculxvdxu5" path="res://scene/game_objects/enemy/enemy(goblin_axe).gd" id="1_2xi4h"]
 [ext_resource type="Texture2D" uid="uid://3iftfbt86hrh" path="res://sprites/enemys/axeGoblin/Down/Png/GoblinDownAttack01.png" id="2_jcyvn"]
 [ext_resource type="Texture2D" uid="uid://boe6dr20sokut" path="res://sprites/enemys/axeGoblin/Down/Png/GoblinDownIdle.png" id="2_kuux4"]
 [ext_resource type="Texture2D" uid="uid://c055jfr0pxifl" path="res://sprites/enemys/axeGoblin/Down/Png/GoblinDownRun.png" id="3_ic4mc"]
