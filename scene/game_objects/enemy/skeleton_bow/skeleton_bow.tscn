@@ -17,8 +17,9 @@
 [sub_resource type="CircleShape2D" id="CircleShape2D_dfcc5"]
 radius = 150.0
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_h3w2k"]
-radius = 16.0312
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_dfcc5"]
+radius = 15.0
+height = 40.0
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_uml27"]
 atlas = ExtResource("1_n57qw")
@@ -561,7 +562,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_ordv4")
 }],
-"loop": false,
+"loop": true,
 "name": &"idle_down",
 "speed": 15.0
 }, {
@@ -1156,17 +1157,18 @@ collision_layer = 0
 shape = SubResource("CircleShape2D_dfcc5")
 debug_color = Color(1, 1, 1, 0.121569)
 
-[node name="hitbox" type="Area2D" parent="."]
+[node name="hitbox" type="Area2D" parent="." groups=["enemys"]]
 collision_layer = 0
 collision_mask = 4
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="hitbox"]
-shape = SubResource("CircleShape2D_h3w2k")
+shape = SubResource("CapsuleShape2D_dfcc5")
 debug_color = Color(1, 0.148545, 0.269002, 0.42)
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_nlar7")
 animation = &"attack_down"
+autoplay = "idle_down"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CapsuleShape2D_h3w2k")
@@ -1183,4 +1185,5 @@ libraries = {
 [connection signal="body_entered" from="detector" to="." method="_on_detector_body_entered"]
 [connection signal="body_exited" from="detector" to="." method="_on_detector_body_exited"]
 [connection signal="area_entered" from="hitbox" to="." method="_on_hitbox_area_entered"]
+[connection signal="body_entered" from="hitbox" to="." method="_on_hitbox_body_entered"]
 [connection signal="timeout" from="attack_timer" to="." method="_on_attack_timer_timeout"]

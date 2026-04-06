@@ -680,8 +680,9 @@ animations = [{
 "speed": 5.0
 }]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_q3hyu"]
-radius = 16.0312
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_upxj5"]
+radius = 15.0
+height = 40.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_gg0d6"]
 radius = 28.0179
@@ -1034,12 +1035,12 @@ sprite_frames = SubResource("SpriteFrames_yl1a4")
 animation = &"attack_down"
 autoplay = "idle_down"
 
-[node name="hitbox" type="Area2D" parent="."]
+[node name="hitbox" type="Area2D" parent="." groups=["enemys"]]
 collision_layer = 0
 collision_mask = 4
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="hitbox"]
-shape = SubResource("CircleShape2D_q3hyu")
+shape = SubResource("CapsuleShape2D_upxj5")
 debug_color = Color(1, 0.148545, 0.269002, 0.42)
 
 [node name="detector" type="Area2D" parent="."]
@@ -1064,5 +1065,6 @@ one_shot = true
 script = ExtResource("15_upxj5")
 
 [connection signal="area_entered" from="hitbox" to="." method="_on_hitbox_area_entered"]
+[connection signal="body_entered" from="hitbox" to="." method="_on_hitbox_body_entered"]
 [connection signal="body_entered" from="detector" to="." method="_on_detector_body_entered"]
 [connection signal="timeout" from="attack_timer" to="." method="_on_attack_timer_timeout"]

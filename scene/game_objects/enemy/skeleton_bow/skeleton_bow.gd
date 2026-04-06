@@ -24,12 +24,18 @@ var get_closer = true
 func _ready() -> void:
 	player = get_tree().get_first_node_in_group("player") as Node2D
 	parent_node = get_parent()
-	room_node = parent_node.get_parent()
+	# Безопасное получение комнаты
+	if parent_node:
+		room_node = parent_node.get_parent()
 
 func _physics_process(_delta: float) -> void:
-	if not player or not is_instance_valid(player) or not can_move:
+	# Если нельзя двигаться, нет игрока или мы уже в зоне стрельбы — стоим
+	if not player or not is_instance_valid(player) or not can_move or not get_closer:
 		velocity = Vector2.ZERO
-		play_idle_animation()
+		# Если мы не атакуем в данный момент, играем idle
+		if not animP.is_playing():
+			play_idle_animation()
+		move_and_slide() # Нужно для применения zero velocity
 		return
 
 	var to_player: Vector2 = player.global_position - global_position
@@ -37,12 +43,14 @@ func _physics_process(_delta: float) -> void:
 	
 	update_direction(direction)
 
-	if parent_node.aggression and get_closer:
+	# Проверка агрессии (через родительский узел, как в твоем коде)
+	if parent_node and parent_node.get("aggression") and get_closer:
 		velocity = direction * max_speed
 		play_run_animation()
 		move_and_slide()
 	else:
 		velocity = Vector2.ZERO
+		play_idle_animation()
 
 func _process(_delta):
 	if hp <= 0:
@@ -62,19 +70,22 @@ func play_run_animation():
 		Dir.RIGHT: anim.play("run_right")
 
 func play_idle_animation():
-	match current_dir:
-		Dir.UP: anim.play("idle_up")
-		Dir.DOWN: anim.play("idle_down")
-		Dir.LEFT: anim.play("idle_left")
-		Dir.RIGHT: anim.play("idle_right")
+	# По твоему запросу: только idle_down
+	if anim.animation != "idle_down":
+		anim.play("idle_down")
 
 func attack():
-	if not can_attack or not player_in_range or not parent_node.aggression:
+	if not can_attack or not player_in_range:
+		return
+	
+	# Проверка агрессии перед атакой
+	if parent_node and not parent_node.get("aggression"):
 		return
 		
 	can_move = false
 	can_attack = false
-	anim.stop()
+	
+	# Анимация атаки через AnimationPlayer (управляет вызовом shoot())
 	match current_dir:
 		Dir.UP: animP.play("attack_up")
 		Dir.DOWN: animP.play("attack_down")
@@ -87,35 +98,40 @@ func attack():
 	attack_timer.start()
 
 func shoot():
-	if not player: return
+	# Этот метод должен вызываться ключом (Call Method Track) в AnimationPlayer
+	if not player or not is_instance_valid(player): return
+	
 	var arrow_instance = ARROW.instantiate()
+	# Стреляем из позиции скелета
 	arrow_instance.global_position = global_position 
 	
 	var target_dir = (player.global_position - global_position).normalized()
 	arrow_instance.direction = target_dir
 	arrow_instance.rotation = target_dir.angle()
-	arrow_instance.z_index = 1
-	get_parent().add_child(arrow_instance)
-
 	
+	# Добавляем стрелу в сцену (лучше в room_node или parent, чтобы она не удалилась вместе со скелетом)
+	get_tree().current_scene.add_child(arrow_instance)
+
+func _on_detector_body_entered(body: Node2D) -> void:
+	if body.is_in_group("player"):
+		player_in_range = true
+		get_closer = false # Останавливаемся, чтобы начать стрелять
+		if can_attack:
+			attack()
 
 func _on_detector_body_exited(body: Node2D) -> void:
 	if body.is_in_group("player"):
 		player_in_range = false
-		get_closer = true 
+		get_closer = true # Игрок ушел далеко — снова идем за ним
 
 func _on_attack_timer_timeout():
 	can_attack = true
-	if player_in_range and parent_node.aggression:
+	if player_in_range:
 		attack()
 
 func _on_hitbox_area_entered(_area: Area2D) -> void:
 	hp -= 10
 
-
-func _on_detector_body_entered(body: Node2D) -> void:
-	if body.is_in_group("player"):
-		player_in_range = true
-		get_closer = false 
-		if can_attack:
-			attack()
+func _on_hitbox_body_entered(body: Node2D) -> void:
+	if body.is_in_group("player") and body.has_method("take_damage"):
+		body.take_damage(10)

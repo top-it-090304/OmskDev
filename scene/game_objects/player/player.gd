@@ -99,3 +99,10 @@ func heal(amount: int):
 	
 func die():
 	queue_free()
+
+
+func _on_hitbox_body_entered(body: Node2D) -> void:
+	print(" Hitbox entered by: ", body.name)
+	print(" Is enemy? ", body.is_in_group("enemies"))
+	if body.is_in_group("enemys") :
+		take_damage(10)
