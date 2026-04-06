@@ -1172,7 +1172,7 @@ animation = &"attack_down"
 shape = SubResource("CapsuleShape2D_h3w2k")
 
 [node name="attack_timer" type="Timer" parent="." groups=["enemys"]]
-wait_time = 0.5
+wait_time = 2.0
 one_shot = true
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
