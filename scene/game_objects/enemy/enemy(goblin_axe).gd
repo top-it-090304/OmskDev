@@ -69,7 +69,8 @@ func update_run_animation(direction: Vector2):
 
 func _process(_delta):
 	if hp <= 0:
-		queue_free()
+		death()
+		
 
 func attack():
 	if not can_attack or not player_in_range:
@@ -139,7 +140,19 @@ func _on_attack_timer_timeout():
 
 func _on_hitbox_area_entered(_area: Area2D) -> void:
 	hp -= 10
-
+	
+func death():
+	anim.stop()
+	
+	match current_dir:
+		Dir.UP: anim.play("death_up")
+		Dir.DOWN: anim.play("death_down")
+		Dir.LEFT: anim.play("death_left")
+		Dir.RIGHT: anim.play("death_right")
+		
+	await anim.animation_finished
+	queue_free()
+	
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player") and body.has_method("take_damage"):
 		body.take_damage(10)
