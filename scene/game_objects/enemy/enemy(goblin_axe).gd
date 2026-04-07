@@ -21,6 +21,7 @@ var can_walk = true
 var can_attack = true
 var player_in_range = false
 var smite_instance: Node2D = null
+var is_dead = false # Добавляем флаг смерти
 
 func _ready() -> void:
 	player = get_tree().get_first_node_in_group("player") as Node2D
@@ -29,6 +30,8 @@ func _ready() -> void:
 		room_node = parent_node.get_parent()
 
 func _physics_process(_delta: float) -> void:
+	if is_dead: return # Мертвый гоблин не двигается
+	
 	if not can_walk:
 		velocity = Vector2.ZERO
 		move_and_slide()
@@ -68,12 +71,11 @@ func update_run_animation(direction: Vector2):
 			current_dir = Dir.UP
 
 func _process(_delta):
-	if hp <= 0:
+	if hp <= 0 and not is_dead: # Проверяем, что еще не начали умирать
 		death()
-		
 
 func attack():
-	if not can_attack or not player_in_range:
+	if not can_attack or not player_in_range or is_dead:
 		return
 		
 	can_walk = false
@@ -93,16 +95,18 @@ func attack():
 		smite_instance.queue_free()
 		smite_instance = null
 		
-	can_walk = true
-	attack_timer.start()
+	if not is_dead: # Возвращаем возможность ходить, только если жив
+		can_walk = true
+		attack_timer.start()
 
 func play_idle_animation():
+	if is_dead: return
 	var target_idle = "idle_down"
 	if anim.animation != target_idle:
 		anim.play(target_idle)
 
 func swing():
-	if not is_instance_valid(player): return
+	if not is_instance_valid(player) or is_dead: return
 	
 	smite_instance = SMITE.instantiate()
 	add_child(smite_instance)
@@ -118,11 +122,12 @@ func swing():
 	smite_instance.rotation = target_dir.angle()
 
 func activate_smite():
-	if is_instance_valid(smite_instance):
+	if is_instance_valid(smite_instance) and not is_dead:
 		smite_instance.visible = true
 		smite_instance.monitoring = true
 
 func _on_detector_body_entered(body: Node2D) -> void:
+	if is_dead: return
 	if body.is_in_group("player"):
 		player_in_range = true
 		if can_attack:
@@ -133,17 +138,30 @@ func _on_detector_body_exited(body: Node2D) -> void:
 		player_in_range = false
 
 func _on_attack_timer_timeout():
+	if is_dead: return
 	can_attack = true
 	var is_aggressive = parent_node and parent_node.get("aggression")
 	if player_in_range and is_aggressive:
 		attack()
 
 func _on_hitbox_area_entered(_area: Area2D) -> void:
+	if is_dead: return
 	hp -= 10
 	
 func death():
-	anim.stop()
+	is_dead = true
+	can_walk = false
+	can_attack = false
+	velocity = Vector2.ZERO # Полная остановка
 	
+	# Останавливаем все текущие анимации (и спрайта, и плеера)
+	anim.stop()
+	animP.stop()
+	
+	# Отключаем коллизии, чтобы труп не мешал игроку и не получал урон
+	set_collision_layer_value(1, false)
+	set_collision_mask_value(1, false)
+
 	match current_dir:
 		Dir.UP: anim.play("death_up")
 		Dir.DOWN: anim.play("death_down")
@@ -154,5 +172,6 @@ func death():
 	queue_free()
 	
 func _on_hitbox_body_entered(body: Node2D) -> void:
+	if is_dead: return
 	if body.is_in_group("player") and body.has_method("take_damage"):
 		body.take_damage(10)
