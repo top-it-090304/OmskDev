@@ -18,8 +18,8 @@
 radius = 150.0
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_dfcc5"]
-radius = 15.0
-height = 40.0
+radius = 11.0
+height = 38.0
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_uml27"]
 atlas = ExtResource("1_n57qw")
@@ -564,7 +564,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"idle_down",
-"speed": 15.0
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,
