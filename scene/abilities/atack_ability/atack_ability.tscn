@@ -1,8 +1,7 @@
 [gd_scene load_steps=2 format=3 uid="uid://ciaqb58qc8irp"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_2ej8v"]
-radius = 1.0
-height = 28.0
+radius = 5.0
 
 [node name="Atack_ability" type="Node2D"]
 

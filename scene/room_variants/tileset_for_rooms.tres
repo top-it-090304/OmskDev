@@ -1332,7 +1332,7 @@ texture = ExtResource("2_8asjx")
 0:3/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
 
 [resource]
-physics_layer_0/collision_layer = 1
+physics_layer_0/collision_layer = 129
 physics_layer_0/physics_material = SubResource("PhysicsMaterial_b07qy")
 terrain_set_0/mode = 0
 terrain_set_0/terrain_0/name = "Terrain 0"

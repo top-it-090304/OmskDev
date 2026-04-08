@@ -82,7 +82,7 @@ texture = ExtResource("2_w3dr1")
 26:9/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
 
 [resource]
-physics_layer_0/collision_layer = 1
+physics_layer_0/collision_layer = 129
 physics_layer_0/collision_mask = 0
 physics_layer_0/physics_material = SubResource("PhysicsMaterial_v2ekl")
 sources/3 = SubResource("TileSetAtlasSource_bvoif")
