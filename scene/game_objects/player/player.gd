@@ -6,22 +6,22 @@ extends CharacterBody2D
 var health_int = 0
 var can_take_damage = true
 @onready var damage_timer = $can_take_damage
-
+@onready var attack_timer = $can_attack
+@onready var animP = $AnimationPlayer
 enum Dir { DOWN, UP, LEFT, RIGHT }
 var current_dir = Dir.DOWN
 var can_move = true
 var can_anim = true
+var can_attack = true
 var is_dead = false 
 var last_known_max_health = 0
+var damage = 20
 
 signal health_changed(new_health, max_health)
 
 func _physics_process(_delta: float) -> void:
 	if is_dead: return
 	
-	# Проверяем, не зависла ли логика атаки
-	if atack_spawn.ready_for_animation and can_anim:
-		attack()
 
 func _process(delta: float) -> void:
 	if is_dead: return
@@ -29,7 +29,8 @@ func _process(delta: float) -> void:
 	if health_int <= 0:
 		die()
 		return
-
+	if Input.is_action_just_pressed("attack"):
+		attack()
 	var direction = movement_vector()
 	
 	if direction != Vector2.ZERO:
@@ -68,31 +69,33 @@ func play_idle_animation():
 		Dir.RIGHT: anim.play("idle_right")
 
 func attack():
-	can_anim = false
-	match current_dir:
-		Dir.UP: anim.play("attack_up")
-		Dir.DOWN: anim.play("attack_down")
-		Dir.LEFT: anim.play("attack_left")
-		Dir.RIGHT: anim.play("attack_right")
-	
-	# Ждем завершения
-	await anim.animation_finished
-	
-	# ПРОВЕРКА: Если текущая анимация НЕ содержит слово "attack", 
-	# значит она была прервана уроном. Выходим из функции.
-	if not anim.animation.begins_with("attack"):
+	if not can_attack or is_dead:
 		return
+	
+	can_anim = false
+	can_attack = false
+	
+	# Запускаем анимацию через AnimationPlayer
+	match current_dir:
+		Dir.UP: animP.play("attack_up")
+		Dir.DOWN: animP.play("attack_down")
+		Dir.LEFT: animP.play("attack_left")
+		Dir.RIGHT: animP.play("attack_right")
+	
+	# Ждем завершения анимации именно в AnimationPlayer!
+	await animP.animation_finished
+	
 
-	atack_spawn.ready_for_animation = false
+
 	can_anim = true
+	attack_timer.start()
 	
 func take_damage(amount: int):
 	if not can_take_damage or is_dead:
 		return
 	
 	# Сразу сбрасываем всё, чтобы персонаж не "завис"
-	atack_spawn.ready_for_animation = false
-	can_anim = false # Запрещаем другие анимации (ходьбу/атаку)
+	can_anim = false 
 	
 	can_take_damage = false
 	health_int -= amount
@@ -155,3 +158,14 @@ func _on_constants_changed() -> void:
 		health_int = new_max
 	last_known_max_health = new_max
 	health_changed.emit(health_int, new_max)
+
+
+func _on_can_attack_timeout() -> void:
+	can_attack = true
+
+
+func _on_hitbox_attack_body_entered(body: Node2D) -> void:
+	print("Удар по объекту: ", body.name)
+	if is_dead: return
+	if body.is_in_group("enemies"):
+		body.take_damage(damage)

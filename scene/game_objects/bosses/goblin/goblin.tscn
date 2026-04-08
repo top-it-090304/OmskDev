@@ -1305,7 +1305,7 @@ animations = [{
 radius = 12.0
 height = 45.0
 
-[node name="BossGoblin" type="CharacterBody2D"]
+[node name="BossGoblin" type="CharacterBody2D" groups=["enemies"]]
 scale = Vector2(1.1, 1.1)
 script = ExtResource("1_opac5")
 

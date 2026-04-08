@@ -95,7 +95,27 @@ func attack():
 	if not is_dead:
 		can_move = true
 		attack_timer.start()
+		
+func take_damage(amount: int):
+	if  is_dead:
+		return
+	hp -= amount
+	can_attack = false
+	if hp <= 0:
+		death()
+		return
 
+	# Анимация получения урона ПЕРЕБИВАЕТ атаку
+	match current_dir:
+		Dir.UP: anim.play("hurt_up")
+		Dir.DOWN: anim.play("hurt_down")
+		Dir.LEFT: anim.play("hurt_left")
+		Dir.RIGHT: anim.play("hurt_right")
+	
+	await anim.animation_finished
+
+	can_attack = true
+	
 func shoot():
 	# Эта функция вызывается из AnimationPlayer
 	if not player or not is_instance_valid(player) or is_dead: return

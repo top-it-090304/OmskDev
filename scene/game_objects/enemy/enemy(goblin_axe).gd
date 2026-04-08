@@ -170,6 +170,27 @@ func death():
 	GameConstants.register_enemy_kill()
 	queue_free()
 	
+func take_damage(amount: int):
+	if  is_dead:
+		return
+	hp -= amount
+	can_walk = false
+	can_attack = false
+	if hp <= 0:
+		death()
+		return
+
+	# Анимация получения урона ПЕРЕБИВАЕТ атаку
+	match current_dir:
+		Dir.UP: anim.play("hurt_up")
+		Dir.DOWN: anim.play("hurt_down")
+		Dir.LEFT: anim.play("hurt_left")
+		Dir.RIGHT: anim.play("hurt_right")
+	
+	await anim.animation_finished
+	can_walk = true
+	can_attack = true
+			
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player") and body.has_method("take_damage"):

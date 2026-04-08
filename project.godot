@@ -14,6 +14,10 @@ config/name="Dungeon"
 run/main_scene="uid://bq40uiaugbfjq"
 config/features=PackedStringArray("4.4", "Mobile")
 
+[autoload]
+
+GameConstants="*res://globals/game_constants.gd"
+
 [display]
 
 window/size/viewport_width=640
@@ -26,9 +30,9 @@ window/stretch/mode="viewport"
 
 enabled=PackedStringArray("res://addons/AS2P/plugin.cfg")
 
-[autoload]
+[global_group]
 
-GameConstants="*res://globals/game_constants.gd"
+enemies=""
 
 [input]
 
