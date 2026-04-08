@@ -18,7 +18,7 @@ func setup_player_connection():
 		player.health_changed.connect(_on_health_changed)
 		
 		# Синхронизируем значения сразу
-		max_value = player.max_health
+		max_value = GameConstants.PLAYER_MAX_HEALTH
 		value = player.health_int
 	else:
 		print("Полоска здоровья: Игрок не найден в группе 'player'")

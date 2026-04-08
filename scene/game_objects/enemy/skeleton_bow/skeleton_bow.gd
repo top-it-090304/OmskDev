@@ -1,14 +1,11 @@
 extends CharacterBody2D
 
-const ARROW = preload("res://scene/game_objects/enemy/skeleton_bow/arrow.tscn")
-
-@export var hp = 20
-@export var damage = 20
+var hp = 0
 @onready var animP = $AnimationPlayer
 @onready var attack_timer = $attack_timer
 @onready var anim = $AnimatedSprite2D
 
-var max_speed = randf_range(70, 160)
+var max_speed = 0.0
 var player: Node2D = null
 var parent_node: Node = null
 var room_node: Node2D = null
@@ -23,6 +20,8 @@ var get_closer = true
 var is_dead = false # Добавляем флаг смерти
 
 func _ready() -> void:
+	hp = GameConstants.SKELETON_BOW_HP
+	max_speed = randf_range(GameConstants.SKELETON_BOW_SPEED_MIN, GameConstants.SKELETON_BOW_SPEED_MAX)
 	player = get_tree().get_first_node_in_group("player") as Node2D
 	parent_node = get_parent()
 
@@ -101,7 +100,7 @@ func shoot():
 	# Эта функция вызывается из AnimationPlayer
 	if not player or not is_instance_valid(player) or is_dead: return
 	
-	var arrow_instance = ARROW.instantiate()
+	var arrow_instance = GameConstants.SKELETON_BOW_ARROW.instantiate()
 	arrow_instance.global_position = global_position
 	
 	var target_dir = (player.global_position - global_position).normalized()
@@ -131,12 +130,12 @@ func _on_attack_timer_timeout():
 
 func _on_hitbox_area_entered(_area: Area2D) -> void:
 	if is_dead: return
-	hp -= 10
+	hp -= GameConstants.SKELETON_BOW_TAKE_DAMAGE
 
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player") and body.has_method("take_damage"):
-		body.take_damage(10)
+		body.take_damage(GameConstants.SKELETON_BOW_BODY_DAMAGE)
 
 func death():
 	is_dead = true
@@ -160,4 +159,5 @@ func death():
 		Dir.RIGHT: anim.play("death_right")
 		
 	await anim.animation_finished
+	GameConstants.register_enemy_kill()
 	queue_free()

@@ -2,10 +2,8 @@ extends CharacterBody2D
 
 @export var atack_spawn: Node
 
-var max_speed = 500
 @onready var anim = $AnimatedSprite2D
-var max_health = 100
-var health_int = 100
+var health_int = 0
 var can_take_damage = true
 @onready var damage_timer = $can_take_damage
 
@@ -14,6 +12,7 @@ var current_dir = Dir.DOWN
 var can_move = true
 var can_anim = true
 var is_dead = false 
+var last_known_max_health = 0
 
 signal health_changed(new_health, max_health)
 
@@ -34,12 +33,12 @@ func _process(delta: float) -> void:
 	var direction = movement_vector()
 	
 	if direction != Vector2.ZERO:
-		velocity = direction * max_speed
+		velocity = direction * GameConstants.PLAYER_MAX_SPEED
 		update_direction(direction)
 		if can_anim:
 			play_walk_animation()
 	else:
-		velocity = velocity.move_toward(Vector2.ZERO, max_speed)
+		velocity = velocity.move_toward(Vector2.ZERO, GameConstants.PLAYER_MAX_SPEED)
 		if can_anim:
 			play_idle_animation()
 
@@ -97,7 +96,7 @@ func take_damage(amount: int):
 	
 	can_take_damage = false
 	health_int -= amount
-	health_changed.emit(health_int, max_health)
+	health_changed.emit(health_int, GameConstants.PLAYER_MAX_HEALTH)
 	
 	if health_int <= 0:
 		die()
@@ -136,7 +135,23 @@ func die():
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("enemys"):
-		take_damage(10)
+		take_damage(GameConstants.PLAYER_ENEMY_CONTACT_DAMAGE)
 
 func _on_can_take_damage_timeout() -> void:
 	can_take_damage = true
+
+func _ready() -> void:
+	health_int = GameConstants.PLAYER_MAX_HEALTH
+	last_known_max_health = GameConstants.PLAYER_MAX_HEALTH
+	if not GameConstants.constants_changed.is_connected(_on_constants_changed):
+		GameConstants.constants_changed.connect(_on_constants_changed)
+	health_changed.emit(health_int, GameConstants.PLAYER_MAX_HEALTH)
+
+func _on_constants_changed() -> void:
+	var new_max = GameConstants.PLAYER_MAX_HEALTH
+	if new_max > last_known_max_health:
+		health_int = min(health_int * 2, new_max)
+	elif health_int > new_max:
+		health_int = new_max
+	last_known_max_health = new_max
+	health_changed.emit(health_int, new_max)

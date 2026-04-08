@@ -1,7 +1,6 @@
 extends CharacterBody2D
 
-const SMITE = preload("res://scene/game_objects/enemy/goblin_axe/smite.tscn")
-var hp = 20
+var hp = 0
 
 @onready var detector_shape = $detector/CollisionShape2D
 @onready var anim = $AnimatedSprite2D
@@ -11,8 +10,6 @@ var hp = 20
 enum Dir { DOWN, UP, LEFT, RIGHT }
 var current_dir = Dir.DOWN
 
-var max_speed = 150
-var damage = 10
 var player: Node2D = null
 var parent_node: Node = null
 var room_node: Node2D = null
@@ -24,6 +21,7 @@ var smite_instance: Node2D = null
 var is_dead = false # Добавляем флаг смерти
 
 func _ready() -> void:
+	hp = GameConstants.ENEMY_GOBLIN_AXE_HP
 	player = get_tree().get_first_node_in_group("player") as Node2D
 	parent_node = get_parent()
 	if parent_node:
@@ -46,7 +44,7 @@ func _physics_process(_delta: float) -> void:
 		var to_player = player.global_position - global_position
 		var direction = to_player.normalized()
 		
-		velocity = direction * max_speed
+		velocity = direction * GameConstants.ENEMY_GOBLIN_AXE_MAX_SPEED
 		move_and_slide()
 		update_run_animation(direction)
 	else:
@@ -108,7 +106,7 @@ func play_idle_animation():
 func swing():
 	if not is_instance_valid(player) or is_dead: return
 	
-	smite_instance = SMITE.instantiate()
+	smite_instance = GameConstants.ENEMY_GOBLIN_AXE_SMITE.instantiate()
 	add_child(smite_instance)
 	
 	smite_instance.visible = false
@@ -118,7 +116,7 @@ func swing():
 	if "direction" in smite_instance:
 		smite_instance.direction = target_dir
 		
-	smite_instance.position = target_dir * 20 
+	smite_instance.position = target_dir * GameConstants.ENEMY_GOBLIN_AXE_SMITE_OFFSET 
 	smite_instance.rotation = target_dir.angle()
 
 func activate_smite():
@@ -146,7 +144,7 @@ func _on_attack_timer_timeout():
 
 func _on_hitbox_area_entered(_area: Area2D) -> void:
 	if is_dead: return
-	hp -= 10
+	hp -= GameConstants.ENEMY_GOBLIN_AXE_TAKE_DAMAGE
 	
 func death():
 	is_dead = true
@@ -169,9 +167,10 @@ func death():
 		Dir.RIGHT: anim.play("death_right")
 		
 	await anim.animation_finished
+	GameConstants.register_enemy_kill()
 	queue_free()
 	
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player") and body.has_method("take_damage"):
-		body.take_damage(10)
+		body.take_damage(GameConstants.ENEMY_GOBLIN_AXE_DAMAGE)

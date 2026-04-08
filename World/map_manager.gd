@@ -24,11 +24,7 @@ extends Node2D
 ]
 
 # Размер комнаты и КОРидОРА в пикселях
-const ROOM_SIZE_X = 864 
-const ROOM_SIZE_Y = 608 + 32 
-const CORRIDOR_LENGTH = 64 
 
-const GRID_SIZE = 8
 enum RoomType { EMPTY, START, NORMAL, BOSS, TREASURE }
 var layout = []
 var spawned_rooms = []
@@ -37,7 +33,7 @@ var spawned_rooms = []
 var item_draw_pile: Array[PackedScene] = []
 
 #minimap
-var current_room_grid_pos = Vector2i(GRID_SIZE / 2, GRID_SIZE / 2)
+var current_room_grid_pos = Vector2i(GameConstants.MAP_MANAGER_GRID_SIZE / 2, GameConstants.MAP_MANAGER_GRID_SIZE / 2)
 signal room_changed(new_grid_pos)
 var visited_rooms = []
 var seen_rooms = []
@@ -92,21 +88,21 @@ func _spawn_treasure_items():
 			room_node.add_child(item_instance)
 			
 			# Строго по центру комнаты
-			var local_center = Vector2(ROOM_SIZE_X / 2.0, ROOM_SIZE_Y / 2.0)
+			var local_center = Vector2(GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2.0, GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2.0)
 			item_instance.global_position = room_node.to_global(local_center)
 
 # --- Генерация скелета ---
 func generate_layout():
 	layout = []
-	for x in range(GRID_SIZE):
+	for x in range(GameConstants.MAP_MANAGER_GRID_SIZE):
 		layout.append([])
-		for y in range(GRID_SIZE):
+		for y in range(GameConstants.MAP_MANAGER_GRID_SIZE):
 			layout[x].append(RoomType.EMPTY)
 
-	var start_pos = Vector2i(GRID_SIZE / 2, GRID_SIZE / 2)
+	var start_pos = Vector2i(GameConstants.MAP_MANAGER_GRID_SIZE / 2, GameConstants.MAP_MANAGER_GRID_SIZE / 2)
 	layout[start_pos.x][start_pos.y] = RoomType.START
 
-	var boss_pos = Vector2i(GRID_SIZE - 2, randi_range(1, GRID_SIZE - 2))
+	var boss_pos = Vector2i(GameConstants.MAP_MANAGER_GRID_SIZE - 2, randi_range(1, GameConstants.MAP_MANAGER_GRID_SIZE - 2))
 	layout[boss_pos.x][boss_pos.y] = RoomType.BOSS
 
 	var current = start_pos
@@ -164,26 +160,26 @@ func generate_layout():
 				break # Место нашли, дальше эту комнату не проверяем
 
 func is_valid_pos(pos):
-	return pos.x >= 0 and pos.x < GRID_SIZE and pos.y >= 0 and pos.y < GRID_SIZE
+	return pos.x >= 0 and pos.x < GameConstants.MAP_MANAGER_GRID_SIZE and pos.y >= 0 and pos.y < GameConstants.MAP_MANAGER_GRID_SIZE
 
 func get_random_room_of_type(type):
 	var valid_rooms = []
-	for x in range(GRID_SIZE):
-		for y in range(GRID_SIZE):
+	for x in range(GameConstants.MAP_MANAGER_GRID_SIZE):
+		for y in range(GameConstants.MAP_MANAGER_GRID_SIZE):
 			if layout[x][y] == type: valid_rooms.append(Vector2i(x, y))
 	if valid_rooms.is_empty(): return Vector2i(-1, -1)
 	return valid_rooms.pick_random()
 
 # --- ОТРИСОВКА ---
 func draw_map():
-	var cell_size_x = ROOM_SIZE_X + CORRIDOR_LENGTH
-	var cell_size_y = ROOM_SIZE_Y + CORRIDOR_LENGTH
+	var cell_size_x = GameConstants.MAP_MANAGER_ROOM_SIZE_X + GameConstants.MAP_MANAGER_CORRIDOR_LENGTH
+	var cell_size_y = GameConstants.MAP_MANAGER_ROOM_SIZE_Y + GameConstants.MAP_MANAGER_CORRIDOR_LENGTH
 	
-	var offset_x = -(GRID_SIZE * cell_size_x) / 2
-	var offset_y = -(GRID_SIZE * cell_size_y) / 2
+	var offset_x = -(GameConstants.MAP_MANAGER_GRID_SIZE * cell_size_x) / 2
+	var offset_y = -(GameConstants.MAP_MANAGER_GRID_SIZE * cell_size_y) / 2
 
-	for x in range(GRID_SIZE):
-		for y in range(GRID_SIZE):
+	for x in range(GameConstants.MAP_MANAGER_GRID_SIZE):
+		for y in range(GameConstants.MAP_MANAGER_GRID_SIZE):
 			if layout[x][y] != RoomType.EMPTY:
 				
 				var room_pos = Vector2(offset_x + x * cell_size_x, offset_y + y * cell_size_y)
@@ -234,14 +230,14 @@ func draw_map():
 				
 				if has_right:
 					var corr = corridor_h_scene.instantiate()
-					corr.position.x = room_pos.x + ROOM_SIZE_X
-					corr.position.y = room_pos.y + (ROOM_SIZE_Y / 2) - (CORRIDOR_LENGTH / 2) 
+					corr.position.x = room_pos.x + GameConstants.MAP_MANAGER_ROOM_SIZE_X
+					corr.position.y = room_pos.y + (GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2) - (GameConstants.MAP_MANAGER_CORRIDOR_LENGTH / 2) 
 					add_child(corr)
 				
 				if has_bottom:
 					var corr = corridor_v_scene.instantiate()
-					corr.position.x = room_pos.x + (ROOM_SIZE_X / 2) - (CORRIDOR_LENGTH / 2)
-					corr.position.y = room_pos.y + ROOM_SIZE_Y
+					corr.position.x = room_pos.x + (GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2) - (GameConstants.MAP_MANAGER_CORRIDOR_LENGTH / 2)
+					corr.position.y = room_pos.y + GameConstants.MAP_MANAGER_ROOM_SIZE_Y
 					add_child(corr)
 
 func check_neighbor(nx, ny):
@@ -306,8 +302,8 @@ func _spawn_obstacles_in_room(room_node: Node2D, room_type: RoomType):
 		var max_attempts = 30
 
 		for _attempt in range(max_attempts):
-			var local_x = randf_range(half_size.x + 64, ROOM_SIZE_X - half_size.x - 64)
-			var local_y = randf_range(half_size.y + 64, ROOM_SIZE_Y - half_size.y - 64)
+			var local_x = randf_range(half_size.x + 64, GameConstants.MAP_MANAGER_ROOM_SIZE_X - half_size.x - 64)
+			var local_y = randf_range(half_size.y + 64, GameConstants.MAP_MANAGER_ROOM_SIZE_Y - half_size.y - 64)
 			var local_pos = Vector2(local_x, local_y)
 			var global_pos = room_node.to_global(local_pos)
 			
@@ -369,8 +365,8 @@ func _spawn_single_enemy(space_state, room_node):
 	var max_attempts = 30 
 	
 	for _attempt in range(max_attempts):
-		var local_x = randf_range(64, ROOM_SIZE_X - 64)
-		var local_y = randf_range(64, ROOM_SIZE_Y - 64)
+		var local_x = randf_range(64, GameConstants.MAP_MANAGER_ROOM_SIZE_X - 64)
+		var local_y = randf_range(64, GameConstants.MAP_MANAGER_ROOM_SIZE_Y - 64)
 		var local_point = Vector2(local_x, local_y)
 		var global_point = room_node.to_global(local_point)
 

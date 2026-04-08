@@ -26,6 +26,10 @@ window/stretch/mode="viewport"
 
 enabled=PackedStringArray("res://addons/AS2P/plugin.cfg")
 
+[autoload]
+
+GameConstants="*res://globals/game_constants.gd"
+
 [input]
 
 move_up={

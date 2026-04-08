@@ -32,8 +32,8 @@ func _ready():
 	if separation == 0: separation = 2 # Запасной отступ, если в теме пусто
 	
 	cell_step = cell_size.x + separation
-	grid_total_size.x = cell_step * map_manager.GRID_SIZE
-	grid_total_size.y = cell_step * map_manager.GRID_SIZE
+	grid_total_size.x = cell_step * GameConstants.MAP_MANAGER_GRID_SIZE
+	grid_total_size.y = cell_step * GameConstants.MAP_MANAGER_GRID_SIZE
 		
 	map_manager.room_changed.connect(_on_room_changed)
 	_on_room_changed(map_manager.current_room_grid_pos)
@@ -43,11 +43,11 @@ func build_grid():
 		child.queue_free()
 	room_cells.clear()
 	
-	grid_container.columns = map_manager.GRID_SIZE
+	grid_container.columns = GameConstants.MAP_MANAGER_GRID_SIZE
 	
-	for y in range(map_manager.GRID_SIZE):
+	for y in range(GameConstants.MAP_MANAGER_GRID_SIZE):
 		room_cells.append([])
-		for x in range(map_manager.GRID_SIZE):
+		for x in range(GameConstants.MAP_MANAGER_GRID_SIZE):
 			var rect = ColorRect.new()
 			rect.color = Color.TRANSPARENT
 			rect.custom_minimum_size = Vector2(12, 12) 
@@ -71,8 +71,8 @@ func _on_room_changed(grid_pos: Vector2i):
 	center_map_on_room(grid_pos)
 
 func update_minimap_visuals():
-	for y in range(map_manager.GRID_SIZE):
-		for x in range(map_manager.GRID_SIZE):
+	for y in range(GameConstants.MAP_MANAGER_GRID_SIZE):
+		for x in range(GameConstants.MAP_MANAGER_GRID_SIZE):
 			var cell = room_cells[y][x]
 			var room_type = map_manager.layout[x][y]
 			var pos = Vector2i(x, y)
