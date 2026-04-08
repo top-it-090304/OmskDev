@@ -16,9 +16,10 @@ var room_node: Node2D = null
 
 var can_walk = true
 var can_attack = true
+var can_anim = true # Позволяет анимации урона проигрываться полностью
 var player_in_range = false
 var smite_instance: Node2D = null
-var is_dead = false # Добавляем флаг смерти
+var is_dead = false 
 
 func _ready() -> void:
 	hp = GameConstants.ENEMY_GOBLIN_AXE_HP
@@ -28,14 +29,12 @@ func _ready() -> void:
 		room_node = parent_node.get_parent()
 
 func _physics_process(_delta: float) -> void:
-	if is_dead: return # Мертвый гоблин не двигается
+	if is_dead: return 
 	
+	# Если гоблин в состоянии атаки или получения урона — он не идет
 	if not can_walk:
 		velocity = Vector2.ZERO
 		move_and_slide()
-		if not animP.is_playing():
-			can_walk = true
-			play_idle_animation()
 		return
 
 	var is_aggressive = parent_node and parent_node.get("aggression")
@@ -46,11 +45,15 @@ func _physics_process(_delta: float) -> void:
 		
 		velocity = direction * GameConstants.ENEMY_GOBLIN_AXE_MAX_SPEED
 		move_and_slide()
-		update_run_animation(direction)
+		
+		# Обновляем анимацию бега, только если её не перебивает "hurt"
+		if can_anim:
+			update_run_animation(direction)
 	else:
 		velocity = Vector2.ZERO
 		move_and_slide()
-		play_idle_animation()
+		if can_anim:
+			play_idle_animation()
 
 func update_run_animation(direction: Vector2):
 	if abs(direction.x) > abs(direction.y):
@@ -69,7 +72,7 @@ func update_run_animation(direction: Vector2):
 			current_dir = Dir.UP
 
 func _process(_delta):
-	if hp <= 0 and not is_dead: # Проверяем, что еще не начали умирать
+	if hp <= 0 and not is_dead:
 		death()
 
 func attack():
@@ -79,6 +82,7 @@ func attack():
 	can_walk = false
 	can_attack = false
 	
+	# Принудительно останавливаем AnimatedSprite2D перед запуском AnimationPlayer
 	anim.stop()
 	
 	match current_dir:
@@ -93,7 +97,7 @@ func attack():
 		smite_instance.queue_free()
 		smite_instance = null
 		
-	if not is_dead: # Возвращаем возможность ходить, только если жив
+	if not is_dead and can_anim: # Проверка, что нас не убили/не ударили за время атаки
 		can_walk = true
 		attack_timer.start()
 
@@ -103,12 +107,60 @@ func play_idle_animation():
 	if anim.animation != target_idle:
 		anim.play(target_idle)
 
+func take_damage(amount: int):
+	if is_dead: return
+	
+	hp -= amount
+	can_walk = false
+	can_anim = false # Запрещаем бегу перебивать анимацию боли
+	animP.stop()    # Прерываем текущую атаку
+	
+	if hp <= 0:
+		death()
+		return
+
+	# Анимация получения урона
+	match current_dir:
+		Dir.UP: anim.play("hurt_up")
+		Dir.DOWN: anim.play("hurt_down")
+		Dir.LEFT: anim.play("hurt_left")
+		Dir.RIGHT: anim.play("hurt_right")
+	
+	await anim.animation_finished
+	
+	if not is_dead:
+		can_anim = true
+		can_walk = true
+		can_attack = true
+
+func death():
+	if is_dead: return
+	is_dead = true
+	can_walk = false
+	can_attack = false
+	velocity = Vector2.ZERO 
+	
+	anim.stop()
+	animP.stop()
+	
+	# Отключаем коллизии
+	set_collision_layer_value(1, false)
+	set_collision_mask_value(1, false)
+
+	match current_dir:
+		Dir.UP: anim.play("death_up")
+		Dir.DOWN: anim.play("death_down")
+		Dir.LEFT: anim.play("death_left")
+		Dir.RIGHT: anim.play("death_right")
+		
+	await anim.animation_finished
+	GameConstants.register_enemy_kill()
+	queue_free()
+
 func swing():
 	if not is_instance_valid(player) or is_dead: return
-	
 	smite_instance = GameConstants.ENEMY_GOBLIN_AXE_SMITE.instantiate()
 	add_child(smite_instance)
-	
 	smite_instance.visible = false
 	smite_instance.monitoring = false
 	
@@ -143,53 +195,8 @@ func _on_attack_timer_timeout():
 		attack()
 
 func _on_hitbox_area_entered(_area: Area2D) -> void:
-	if is_dead: return
-	hp -= GameConstants.ENEMY_GOBLIN_AXE_TAKE_DAMAGE
-	
-func death():
-	is_dead = true
-	can_walk = false
-	can_attack = false
-	velocity = Vector2.ZERO # Полная остановка
-	
-	# Останавливаем все текущие анимации (и спрайта, и плеера)
-	anim.stop()
-	animP.stop()
-	
-	# Отключаем коллизии, чтобы труп не мешал игроку и не получал урон
-	set_collision_layer_value(1, false)
-	set_collision_mask_value(1, false)
-
-	match current_dir:
-		Dir.UP: anim.play("death_up")
-		Dir.DOWN: anim.play("death_down")
-		Dir.LEFT: anim.play("death_left")
-		Dir.RIGHT: anim.play("death_right")
-		
-	await anim.animation_finished
-	GameConstants.register_enemy_kill()
-	queue_free()
-	
-func take_damage(amount: int):
-	if  is_dead:
-		return
-	hp -= amount
-	can_walk = false
-	can_attack = false
-	if hp <= 0:
-		death()
-		return
-
-	# Анимация получения урона ПЕРЕБИВАЕТ атаку
-	match current_dir:
-		Dir.UP: anim.play("hurt_up")
-		Dir.DOWN: anim.play("hurt_down")
-		Dir.LEFT: anim.play("hurt_left")
-		Dir.RIGHT: anim.play("hurt_right")
-	
-	await anim.animation_finished
-	can_walk = true
-	can_attack = true
+	# Если урон идет через площади (например, стрелы игрока)
+	take_damage(GameConstants.ENEMY_GOBLIN_AXE_TAKE_DAMAGE)
 			
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if is_dead: return

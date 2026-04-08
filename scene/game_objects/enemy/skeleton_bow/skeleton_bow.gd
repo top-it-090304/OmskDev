@@ -1,25 +1,33 @@
 extends CharacterBody2D
 
-var hp = 0
+# Настройки из глобальных констант
+@export var hp = 0
+var max_speed = 0.0
+var damage = 20
+
 @onready var animP = $AnimationPlayer
 @onready var attack_timer = $attack_timer
 @onready var anim = $AnimatedSprite2D
 
-var max_speed = 0.0
+# Ссылки на окружение
 var player: Node2D = null
 var parent_node: Node = null
 var room_node: Node2D = null
 
+# Направления
 enum Dir { DOWN, UP, LEFT, RIGHT }
 var current_dir = Dir.DOWN
 
+# Флаги состояний
 var can_move = true
 var can_attack = true
 var player_in_range = false
 var get_closer = true
-var is_dead = false # Добавляем флаг смерти
+var is_dead = false 
+var can_anim = true # Позволяет анимациям урона перебивать бег
 
 func _ready() -> void:
+	# Инициализация параметров
 	hp = GameConstants.SKELETON_BOW_HP
 	max_speed = randf_range(GameConstants.SKELETON_BOW_SPEED_MIN, GameConstants.SKELETON_BOW_SPEED_MAX)
 	player = get_tree().get_first_node_in_group("player") as Node2D
@@ -29,12 +37,12 @@ func _ready() -> void:
 		room_node = parent_node.get_parent()
 
 func _physics_process(_delta: float) -> void:
-	if is_dead: return # Мертвые не ходят
+	if is_dead: return 
 
+	# Логика остановки, если нельзя двигаться или игрок слишком близко
 	if not player or not is_instance_valid(player) or not can_move or not get_closer:
 		velocity = Vector2.ZERO
-		
-		if not animP.is_playing():
+		if not animP.is_playing() and can_anim:
 			play_idle_animation()
 		move_and_slide() 
 		return
@@ -44,15 +52,21 @@ func _physics_process(_delta: float) -> void:
 	
 	update_direction(direction)
 
-	if parent_node and parent_node.get("aggression") and get_closer:
+	# Проверка агрессии из родительского узла (комнаты)
+	var is_aggressive = parent_node and parent_node.get("aggression")
+
+	if is_aggressive and get_closer:
 		velocity = direction * max_speed
-		play_run_animation()
+		if can_anim:
+			play_run_animation()
 		move_and_slide()
 	else:
 		velocity = Vector2.ZERO
-		play_idle_animation()
+		if can_anim:
+			play_idle_animation()
 
 func _process(_delta):
+	# Проверка смерти в каждом кадре
 	if hp <= 0 and not is_dead:
 		death()
 
@@ -71,6 +85,7 @@ func play_run_animation():
 
 func play_idle_animation():
 	if is_dead: return
+	# Обычно скелет стоит лицом вниз в покое
 	if anim.animation != "idle_down":
 		anim.play("idle_down")
 
@@ -78,12 +93,14 @@ func attack():
 	if not can_attack or not player_in_range or is_dead:
 		return
 
-	if parent_node and not parent_node.get("aggression"):
+	var is_aggressive = parent_node and parent_node.get("aggression")
+	if not is_aggressive:
 		return
 		
 	can_move = false
 	can_attack = false
 	
+	# Запуск анимации стрельбы через AnimationPlayer
 	match current_dir:
 		Dir.UP: animP.play("attack_up")
 		Dir.DOWN: animP.play("attack_down")
@@ -97,15 +114,17 @@ func attack():
 		attack_timer.start()
 		
 func take_damage(amount: int):
-	if  is_dead:
-		return
+	if is_dead: return
+	
 	hp -= amount
-	can_attack = false
+	can_anim = false # Блокируем анимацию бега
+	animP.stop()    # Прерываем атаку при получении урона
+	
 	if hp <= 0:
 		death()
 		return
 
-	# Анимация получения урона ПЕРЕБИВАЕТ атаку
+	# Проигрываем анимацию получения урона
 	match current_dir:
 		Dir.UP: anim.play("hurt_up")
 		Dir.DOWN: anim.play("hurt_down")
@@ -113,11 +132,12 @@ func take_damage(amount: int):
 		Dir.RIGHT: anim.play("hurt_right")
 	
 	await anim.animation_finished
-
-	can_attack = true
 	
+	if not is_dead:
+		can_anim = true # Возвращаем контроль анимациям бега/покоя
+		
 func shoot():
-	# Эта функция вызывается из AnimationPlayer
+	# ВЫЗЫВАЕТСЯ ИЗ КЛЮЧА В AnimationPlayer
 	if not player or not is_instance_valid(player) or is_dead: return
 	
 	var arrow_instance = GameConstants.SKELETON_BOW_ARROW.instantiate()
@@ -127,8 +147,35 @@ func shoot():
 	arrow_instance.direction = target_dir
 	arrow_instance.rotation = target_dir.angle()
 	
-	get_tree().current_scene.add_child(arrow_instance)
+	# Добавляем стрелу в корень сцены, чтобы она не двигалась вместе со скелетом
+	get_tree().current_scene.add_child.call_deferred(arrow_instance)
 
+func death():
+	if is_dead: return
+	is_dead = true
+	can_move = false
+	can_attack = false
+	velocity = Vector2.ZERO
+	
+	# Отключаем коллизии сразу, чтобы не мешать игроку
+	set_collision_layer_value(1, false)
+	set_collision_mask_value(1, false)
+	
+	animP.stop()
+	anim.stop()
+
+	# Анимация смерти
+	match current_dir:
+		Dir.UP: anim.play("death_up")
+		Dir.DOWN: anim.play("death_down")
+		Dir.LEFT: anim.play("death_left")
+		Dir.RIGHT: anim.play("death_right")
+		
+	await anim.animation_finished
+	GameConstants.register_enemy_kill()
+	queue_free()
+
+# Сигналы детекторов
 func _on_detector_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player"):
@@ -148,36 +195,8 @@ func _on_attack_timer_timeout():
 	if player_in_range:
 		attack()
 
-func _on_hitbox_area_entered(_area: Area2D) -> void:
-	if is_dead: return
-	hp -= GameConstants.SKELETON_BOW_TAKE_DAMAGE
-
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if is_dead: return
+	# Урон игроку при касании тела скелета
 	if body.is_in_group("player") and body.has_method("take_damage"):
 		body.take_damage(GameConstants.SKELETON_BOW_BODY_DAMAGE)
-
-func death():
-	is_dead = true
-	can_move = false
-	can_attack = false
-	velocity = Vector2.ZERO
-	
-	# Отключаем физическое присутствие
-	set_collision_layer_value(1, false)
-	set_collision_mask_value(1, false)
-	
-	# Останавливаем анимацию стрельбы, если она шла
-	animP.stop()
-	anim.stop()
-
-	# Запускаем анимацию смерти
-	match current_dir:
-		Dir.UP: anim.play("death_up")
-		Dir.DOWN: anim.play("death_down")
-		Dir.LEFT: anim.play("death_left")
-		Dir.RIGHT: anim.play("death_right")
-		
-	await anim.animation_finished
-	GameConstants.register_enemy_kill()
-	queue_free()

@@ -15,7 +15,7 @@ var can_anim = true
 var can_attack = true
 var is_dead = false 
 var last_known_max_health = 0
-var damage = 20
+var damage = 10
 
 signal health_changed(new_health, max_health)
 
