@@ -972,8 +972,10 @@ ability = NodePath("../../Atack_ability")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 z_index = 2
 sprite_frames = SubResource("SpriteFrames_uvqrg")
-animation = &"death_up"
+animation = &"attack_down"
 autoplay = "idle_down"
+frame = 5
+frame_progress = 1.0
 
 [node name="Camera2D" type="Camera2D" parent="."]
 
@@ -994,6 +996,7 @@ script = ExtResource("26_tp45h")
 scene_to_open = ExtResource("27_sadj6")
 
 [node name="can_take_damage" type="Timer" parent="."]
+wait_time = 1.5
 
 [connection signal="child_exiting_tree" from="." to="TextureButton" method="_on_player_child_exiting_tree"]
 [connection signal="body_entered" from="hitbox" to="." method="_on_hitbox_body_entered"]

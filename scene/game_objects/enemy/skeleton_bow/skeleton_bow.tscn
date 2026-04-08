@@ -1422,7 +1422,7 @@ autoplay = "idle_down"
 shape = SubResource("CapsuleShape2D_h3w2k")
 
 [node name="attack_timer" type="Timer" parent="." groups=["enemys"]]
-wait_time = 2.0
+wait_time = 1.5
 one_shot = true
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]

@@ -3,6 +3,8 @@
 [ext_resource type="TileSet" uid="uid://bypnx5lkfanma" path="res://sprites/Rocks/rock_1.tres" id="1_eokp7"]
 
 [node name="Rock2" type="Node2D"]
+light_mask = 129
+visibility_layer = 129
 
 [node name="TileMapLayer" type="TileMapLayer" parent="."]
 z_index = 2

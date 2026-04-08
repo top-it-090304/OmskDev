@@ -28,7 +28,7 @@ const ROOM_SIZE_X = 864
 const ROOM_SIZE_Y = 608 + 32 
 const CORRIDOR_LENGTH = 64 
 
-const GRID_SIZE = 15
+const GRID_SIZE = 8
 enum RoomType { EMPTY, START, NORMAL, BOSS, TREASURE }
 var layout = []
 var spawned_rooms = []

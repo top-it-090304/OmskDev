@@ -1,9 +1,9 @@
 extends Node2D
 
 @export var ability:Node
-var ready_for_animation=false
+var ready_for_animation = false
 var last_attack_time :=0
-var cooldown = 1000
+var cooldown = 100
 
 
 
@@ -32,9 +32,11 @@ func place_player():
 		player.Dir.LEFT: ability.get_node("Left").get_node("CollisionShape2D").disabled = false
 		player.Dir.RIGHT: ability.get_node("Right").get_node("CollisionShape2D").disabled = false
 		
-	ready_for_animation=true
+	
 	await get_tree().create_timer(0.05).timeout
 	ability.get_node("Top").get_node("CollisionShape2D").disabled = true
 	ability.get_node("Bot").get_node("CollisionShape2D").disabled = true
 	ability.get_node("Left").get_node("CollisionShape2D").disabled = true
 	ability.get_node("Right").get_node("CollisionShape2D").disabled = true
+	
+	ready_for_animation=true

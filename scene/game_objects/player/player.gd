@@ -1,7 +1,8 @@
 extends CharacterBody2D
 
 @export var atack_spawn: Node
-var max_speed = 200
+
+var max_speed = 500
 @onready var anim = $AnimatedSprite2D
 var max_health = 100
 var health_int = 100
@@ -12,18 +13,19 @@ enum Dir { DOWN, UP, LEFT, RIGHT }
 var current_dir = Dir.DOWN
 var can_move = true
 var can_anim = true
-var is_dead = false # Флаг, чтобы не вызывать die() повторно
+var is_dead = false 
 
 signal health_changed(new_health, max_health)
 
 func _physics_process(_delta: float) -> void:
-	if is_dead: return # Если мертв, физику не обрабатываем
+	if is_dead: return
 	
+	# Проверяем, не зависла ли логика атаки
 	if atack_spawn.ready_for_animation and can_anim:
 		attack()
 
 func _process(delta: float) -> void:
-	if is_dead: return # Если мертв, ввод и движение не обрабатываем
+	if is_dead: return
 	
 	if health_int <= 0:
 		die()
@@ -73,13 +75,25 @@ func attack():
 		Dir.DOWN: anim.play("attack_down")
 		Dir.LEFT: anim.play("attack_left")
 		Dir.RIGHT: anim.play("attack_right")
+	
+	# Ждем завершения
 	await anim.animation_finished
+	
+	# ПРОВЕРКА: Если текущая анимация НЕ содержит слово "attack", 
+	# значит она была прервана уроном. Выходим из функции.
+	if not anim.animation.begins_with("attack"):
+		return
+
 	atack_spawn.ready_for_animation = false
 	can_anim = true
 	
 func take_damage(amount: int):
 	if not can_take_damage or is_dead:
 		return
+	
+	# Сразу сбрасываем всё, чтобы персонаж не "завис"
+	atack_spawn.ready_for_animation = false
+	can_anim = false # Запрещаем другие анимации (ходьбу/атаку)
 	
 	can_take_damage = false
 	health_int -= amount
@@ -89,8 +103,7 @@ func take_damage(amount: int):
 		die()
 		return
 
-	# Анимация получения урона
-	can_anim = false
+	# Анимация получения урона ПЕРЕБИВАЕТ атаку
 	match current_dir:
 		Dir.UP: anim.play("hurt_up")
 		Dir.DOWN: anim.play("hurt_down")
@@ -98,13 +111,11 @@ func take_damage(amount: int):
 		Dir.RIGHT: anim.play("hurt_right")
 	
 	await anim.animation_finished
-	can_anim = true
-	damage_timer.start()
-		
-func heal(amount: int):
-	if is_dead: return
-	health_int = min(max_health, health_int + amount)
-	health_changed.emit(health_int, max_health)
+	
+	# Важно: после завершения анимации боли возвращаем управление
+	if not is_dead:
+		can_anim = true
+		damage_timer.start()
 
 func die():
 	if is_dead: return
@@ -112,15 +123,14 @@ func die():
 	can_anim = false
 	velocity = Vector2.ZERO 
 	
-	
 	match current_dir:
 		Dir.UP: anim.play("death_up")
 		Dir.DOWN: anim.play("death_down")
 		Dir.LEFT: anim.play("death_left")
 		Dir.RIGHT: anim.play("death_right")
 	
-	
 	await anim.animation_finished
+	get_tree().change_scene_to_file("res://world/UI/menu.tscn")
 	queue_free()
 
 func _on_hitbox_body_entered(body: Node2D) -> void:
