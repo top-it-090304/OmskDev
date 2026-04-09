@@ -28,7 +28,7 @@
 [ext_resource type="Texture2D" uid="uid://cds1a43xrd37d" path="res://sprites/bosses/goblin/Up/Png/GoblinBeastUpAttack01.png" id="22_03yyc"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_2u40x"]
-radius = 50.0
+radius = 42.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_ri15p"]
 radius = 40.0

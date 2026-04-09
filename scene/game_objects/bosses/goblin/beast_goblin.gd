@@ -1,22 +1,19 @@
 extends CharacterBody2D
 
-# --- Параметры ---
 var hp = 0
 var speed = GameConstants.ENEMY_BEASTGOBLIN_MAX_SPEED
 
-# --- Узлы ---
 @onready var anim = $AnimatedSprite2D
 @onready var animP = $AnimationPlayer
 @onready var attack_timer = $attack_timer
 
-# --- Состояния ---
 enum Dir { DOWN, UP, LEFT, RIGHT }
 var current_dir = Dir.DOWN
 
 var player: Node2D = null
 var parent_node: Node = null
 
-# Флаги нахождения игрока в зонах детекторов
+# Флаги детекторов
 var player_in_bite_zone = false
 var player_in_slap_zone = false
 var player_in_shoot_zone = false
@@ -34,9 +31,6 @@ func _ready() -> void:
 	parent_node = get_parent()
 	
 	attack_timer.one_shot = true
-	if not attack_timer.timeout.is_connected(_on_attack_timer_timeout):
-		attack_timer.timeout.connect(_on_attack_timer_timeout)
-	
 	_play_idle_animation()
 
 func _physics_process(_delta: float) -> void:
@@ -48,35 +42,29 @@ func _physics_process(_delta: float) -> void:
 		var to_player = player.global_position - global_position
 		var direction = to_player.normalized()
 		
-		# Если игрок слишком близко (в зоне укуса или удара), Гоблин перестает бежать, чтобы атаковать
+		# Логика движения: стоим, если игрок в зоне укуса или удара
 		if player_in_bite_zone or player_in_slap_zone:
 			velocity = Vector2.ZERO
-			if can_anim:
-				_play_idle_animation()
+			if can_anim: _play_idle_animation()
 		else:
 			velocity = direction * speed
 			move_and_slide()
-			if can_anim:
-				update_run_animation(direction)
+			if can_anim: update_run_animation(direction)
 			
-		# --- ЛОГИКА ПРИОРИТЕТОВ АТАК ---
+		# ПРИОРИТЕТЫ АТАК
 		if can_attack:
-			# 1 ПРИОРИТЕТ: Укус (самая ближняя зона)
 			if player_in_bite_zone:
 				attack("bite")
-			# 2 ПРИОРИТЕТ: Удар рукой (средняя зона)
 			elif player_in_slap_zone:
 				attack("slap")
-			# 3 ПРИОРИТЕТ: Выстрел (дальняя зона)
 			elif player_in_shoot_zone:
 				attack("shoot")
 	else:
 		velocity = Vector2.ZERO
 		move_and_slide()
-		if can_anim and not is_dead:
-			_play_idle_animation()
+		if can_anim and not is_dead: _play_idle_animation()
 
-# --- ЛОГИКА АТАКИ ---
+# --- СИСТЕМА АТАК ---
 
 func attack(type: String):
 	if not can_attack or is_dead: return
@@ -86,13 +74,16 @@ func attack(type: String):
 	can_anim = false
 	
 	var anim_name = type + "_" + _get_dir_string()
-	if not animP.has_animation(anim_name):
-		anim_name = "attack_" + _get_dir_string()
 	
-	animP.play(anim_name)
-	await animP.animation_finished
+	if animP.has_animation(anim_name):
+		animP.play(anim_name)
+		# Если зависает только bite, проверь, нет ли в AnimationPlayer 
+		# лишних ключей Call Method с опечатками
+		await animP.animation_finished
 	
-	# Удаляем Smite укуса, если он остался после анимации
+	_reset_after_attack()
+
+func _reset_after_attack():
 	if is_instance_valid(smite_instance):
 		smite_instance.queue_free()
 		smite_instance = null
@@ -100,24 +91,27 @@ func attack(type: String):
 	if not is_dead:
 		can_walk = true
 		can_anim = true
-		attack_timer.start()
+		if attack_timer.is_stopped():
+			attack_timer.start()
 
-# --- МЕТОДЫ ДЛЯ ANIMATION PLAYER (Smite и Выстрел) ---
+# --- МЕТОДЫ ДЛЯ АНИМАЦИЙ ---
 
 func bite_swing():
 	if not is_instance_valid(player) or is_dead: return
-	
 	smite_instance = GameConstants.ENEMY_GOBLIN_AXE_SMITE.instantiate()
-	add_child(smite_instance)
+	# Добавляем в сцену, чтобы эффект не "бегал" за гоблином
+	get_tree().current_scene.add_child(smite_instance)
+	
+	smite_instance.global_position = global_position
 	smite_instance.visible = false
 	smite_instance.monitoring = false
 	
 	var target_dir = (player.global_position - global_position).normalized()
 	if "direction" in smite_instance:
 		smite_instance.direction = target_dir
-		
-	smite_instance.position = target_dir * 35 
+	
 	smite_instance.rotation = target_dir.angle()
+	smite_instance.global_position += target_dir * 35
 
 func activate_bite_smite():
 	if is_instance_valid(smite_instance) and not is_dead:
@@ -127,84 +121,59 @@ func activate_bite_smite():
 func shoot():
 	if is_dead or not is_instance_valid(player): return
 	var arrow = GameConstants.SKELETON_BOW_ARROW.instantiate()
-	arrow.global_position = global_position
+	
+	# 1. Сначала определяем направление ОДИН РАЗ
 	var dir = (player.global_position - global_position).normalized()
-	if "direction" in arrow: arrow.direction = dir
+	
+	# 2. Передаем направление в стрелу
+	if "direction" in arrow:
+		arrow.direction = dir
+	
+	# 3. Настраиваем позицию и вращение
+	arrow.global_position = global_position
 	arrow.rotation = dir.angle()
+	
+	# 4. Добавляем в корень сцены (не в гоблина!)
 	get_tree().current_scene.add_child(arrow)
 
-# --- ПОЛУЧЕНИЕ УРОНА И СМЕРТЬ ---
+# --- УРОН И СИГНАЛЫ ---
+
+func _on_slap_body_entered(body: Node2D) -> void:
+	if is_dead: return
+	if body.is_in_group("player"):
+		if body.has_method("take_damage"):
+			body.take_damage(GameConstants.ENEMY_BEASTGOBLIN_SLAP_DAMAGE)
+		if body.has_method("apply_knockback"):
+			body.apply_knockback(global_position, 800.0)
 
 func take_damage(amount: int):
 	if is_dead: return
 	hp -= amount
 	
+	# Прерываем анимацию атаки, если гоблина ударили
 	animP.stop()
-	if is_instance_valid(smite_instance):
-		smite_instance.queue_free()
-		smite_instance = null
-	
-	can_anim = false
-	can_walk = false
 	
 	if hp <= 0:
 		death()
 		return
 
+	can_anim = false
+	can_walk = false
 	anim.play("hurt_" + _get_dir_string())
 	await anim.animation_finished
-	
-	if not is_dead:
-		can_anim = true
-		can_walk = true
-		if attack_timer.is_stopped():
-			can_attack = true
+	_reset_after_attack()
 
-func death():
-	is_dead = true
-	can_walk = false
-	can_attack = false
-	set_collision_layer_value(1, false)
-	set_collision_mask_value(1, false)
-	animP.stop()
-	
-	if is_instance_valid(smite_instance):
-		smite_instance.queue_free()
-	
-	var d_anim = "death_" + _get_dir_string()
-	if _get_dir_string() == "down": d_anim = "death_dowm"
-	
-	anim.play(d_anim)
-	await anim.animation_finished
-	queue_free()
+# --- ПОДКЛЮЧЕНИЕ ДЕТЕКТОРОВ ---
 
-# --- СИГНАЛЫ ДЕТЕКТОРОВ ---
+func _on_detector_bite_body_entered(body): if body.is_in_group("player"): player_in_bite_zone = true
+func _on_detector_bite_body_exited(body): if body.is_in_group("player"): player_in_bite_zone = false
+func _on_detector_slap_body_entered(body): if body.is_in_group("player"): player_in_slap_zone = true
+func _on_detector_slap_body_exited(body): if body.is_in_group("player"): player_in_slap_zone = false
+func _on_detector_shoot_body_entered(body): if body.is_in_group("player"): player_in_shoot_zone = true
+func _on_detector_shoot_body_exited(body): if body.is_in_group("player"): player_in_shoot_zone = false
 
-func _on_detector_bite_body_entered(body: Node2D) -> void:
-	if body.is_in_group("player"): player_in_bite_zone = true
-
-func _on_detector_bite_body_exited(body: Node2D) -> void:
-	if body.is_in_group("player"): player_in_bite_zone = false
-
-func _on_detector_slap_body_entered(body: Node2D) -> void:
-	if body.is_in_group("player"): player_in_slap_zone = true
-
-func _on_detector_slap_body_exited(body: Node2D) -> void:
-	if body.is_in_group("player"): player_in_slap_zone = false
-
-func _on_detector_shoot_body_entered(body: Node2D) -> void:
-	if body.is_in_group("player"): player_in_shoot_zone = true
-
-func _on_detector_shoot_body_exited(body: Node2D) -> void:
-	if body.is_in_group("player"): player_in_shoot_zone = false
-
-# --- ХИТБОКСЫ И ТАЙМЕРЫ ---
-
-func _on_hitbox_area_entered(_area: Area2D) -> void:
-	take_damage(GameConstants.ENEMY_BEASTGOBLIN_TAKE_DAMAGE)
-
-func _on_attack_timer_timeout() -> void:
-	can_attack = true
+func _on_hitbox_area_entered(_area): take_damage(GameConstants.ENEMY_BEASTGOBLIN_TAKE_DAMAGE)
+func _on_attack_timer_timeout(): can_attack = true
 
 # --- ОБНОВЛЕНИЕ АНИМАЦИЙ ---
 
@@ -224,5 +193,19 @@ func _get_dir_string() -> String:
 	return "down"
 
 func _play_idle_animation():
-	if anim.animation != "idle_down":
-		anim.play("idle_down")
+	if anim.animation != "idle_down": anim.play("idle_down")
+
+func death():
+	is_dead = true
+	can_walk = false
+	can_attack = false
+	set_collision_layer_value(1, false)
+	set_collision_mask_value(1, false)
+	animP.stop()
+	if is_instance_valid(smite_instance): smite_instance.queue_free()
+	
+	var d_anim = "death_" + _get_dir_string()
+	if _get_dir_string() == "down": d_anim = "death_dowm"
+	anim.play(d_anim)
+	await anim.animation_finished
+	queue_free()
