@@ -35,7 +35,8 @@
 radius = 9.0
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_lfjyr"]
-height = 26.0
+radius = 11.0
+height = 27.0
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_jvhot"]
 atlas = ExtResource("6_rnsqt")
@@ -1678,7 +1679,7 @@ radius = 5.0
 [node name="Player" type="CharacterBody2D" groups=["player"]]
 z_index = 2
 collision_layer = 3
-safe_margin = 1.0
+floor_max_angle = 3.14159
 script = ExtResource("1_ktjk3")
 gameover = ExtResource("2_vv8lt")
 
