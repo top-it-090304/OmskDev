@@ -13,6 +13,7 @@ config_version=5
 config/name="Dungeon"
 run/main_scene="uid://bq40uiaugbfjq"
 config/features=PackedStringArray("4.4", "Mobile")
+boot_splash/bg_color=Color(0, 0.0418439, 0.0956349, 1)
 
 [autoload]
 
@@ -85,3 +86,4 @@ pointing/emulate_mouse_from_touch=false
 
 textures/canvas_textures/default_texture_filter=0
 renderer/rendering_method="mobile"
+environment/defaults/default_clear_color=Color(0, 0, 0, 1)

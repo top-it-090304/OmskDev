@@ -6,6 +6,8 @@ extends Node2D
 @export var boss_room_variations: Array[PackedScene] = [] 
 @export var treasure_room_variations: Array[PackedScene] = [] 
 
+@export var layer: Node 
+
 @export var corridor_h_scene: PackedScene 
 @export var corridor_v_scene: PackedScene
 @export var enemy_variations: Array[PackedScene] = [] 
@@ -48,13 +50,13 @@ func _ready():
 	generate_layout()
 	draw_map()
 	await get_tree().create_timer(0).timeout
-	
+	_spawn_player()
 	await _spawn_obstacles_after_physics()
 	await _spawn_enemies_after_physics()
 	
 	# НОВОЕ: Спавним предметы в комнатах сокровищ (делаем это последним)
 	_spawn_treasure_items()
-	_spawn_player()
+	
 	
 	change_current_room(current_room_grid_pos.x, current_room_grid_pos.y)
 
@@ -65,16 +67,16 @@ func _ready():
 # НОВОЕ: СПАВН ИГРОКА
 # =====================================================================
 func _spawn_player():
-	var player_node = null
+	var Player = null
 
 	# 1. Если сцена игрока задана в инспекторе, создаем его
 	if player_scene:
-		player_node = player_scene.instantiate()
-		add_child(player_node) # Добавляем как child прямо в MapManager
+		Player = player_scene.instantiate()
+		layer.add_child(Player) # Добавляем как child прямо в MapManager
 	else:
 		# 2. Если сцена не задана, пробуем найти игрока уже на сцене (например, если он в автолоаде)
-		player_node = get_tree().get_first_node_in_group("player")
-		if not player_node:
+		Player = get_tree().get_first_node_in_group("Player")
+		if not Player:
 			push_warning("MapManager: Сцена игрока не назначена и игрок в группе 'player' не найден!")
 			return
 
@@ -88,11 +90,11 @@ func _spawn_player():
 			
 			if spawn_marker:
 				# Если маркер найден — ставим игрока строго в него
-				player_node.global_position = spawn_marker.global_position
+				Player.global_position = spawn_marker.global_position
 			else:
 				# Фолбэк (запасной вариант): если маркера нет, считаем центр математически
 				var local_center = Vector2(GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2.0, GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2.0)
-				player_node.global_position = room_node.to_global(local_center)
+				Player.global_position = room_node.to_global(local_center)
 				
 			break # Стартовая комната всего одна, выходим из цикла
 

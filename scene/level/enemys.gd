@@ -1,7 +1,7 @@
 extends Node
 
-var aggression := false
-var _player_in_room := false
+var aggression = false
+var _player_in_room = false
 
 
 func _process(delta: float) -> void:

@@ -11,4 +11,5 @@
 mouse_filter = 2
 map_manager = NodePath("../../MapManager")
 
-[node name="MapManager" parent="." instance=ExtResource("1_mln5v")]
+[node name="MapManager" parent="." node_paths=PackedStringArray("layer") instance=ExtResource("1_mln5v")]
+layer = NodePath("..")
