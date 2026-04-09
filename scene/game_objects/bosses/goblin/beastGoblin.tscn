@@ -1,4 +1,4 @@
-[gd_scene load_steps=260 format=3 uid="uid://dvni48vx1r4cj"]
+[gd_scene load_steps=263 format=3 uid="uid://dvni48vx1r4cj"]
 
 [ext_resource type="Script" uid="uid://csv2w2dx221dw" path="res://scene/game_objects/bosses/goblin/beast_goblin.gd" id="1_ri15p"]
 [ext_resource type="Texture2D" uid="uid://bd7s7pakqgqq4" path="res://sprites/bosses/goblin/Down/Png/GoblinBeastDownAttack02.png" id="2_524aj"]
@@ -27,8 +27,11 @@
 [ext_resource type="Texture2D" uid="uid://vk7pur4h64gp" path="res://sprites/bosses/goblin/Right/Png/GoblinBeastRightAttack01.png" id="21_cgxyv"]
 [ext_resource type="Texture2D" uid="uid://cds1a43xrd37d" path="res://sprites/bosses/goblin/Up/Png/GoblinBeastUpAttack01.png" id="22_03yyc"]
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_2u40x"]
+radius = 55.0
+
 [sub_resource type="CircleShape2D" id="CircleShape2D_ri15p"]
-radius = 40.0
+radius = 50.0
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_t58vs"]
 radius = 15.0
@@ -1254,7 +1257,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_awlnd")
 }],
-"loop": true,
+"loop": false,
 "name": &"run_down",
 "speed": 10.0
 }, {
@@ -1277,7 +1280,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_y1sma")
 }],
-"loop": true,
+"loop": false,
 "name": &"run_left",
 "speed": 10.0
 }, {
@@ -1300,9 +1303,9 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_kxam6")
 }],
-"loop": true,
+"loop": false,
 "name": &"run_right",
-"speed": 20.0
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -1323,7 +1326,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_fmio6")
 }],
-"loop": true,
+"loop": false,
 "name": &"run_up",
 "speed": 10.0
 }, {
@@ -2152,7 +2155,6 @@ tracks/2/keys = {
 
 [sub_resource type="Animation" id="Animation_cbxiq"]
 length = 0.8
-loop_mode = 1
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -2192,7 +2194,6 @@ tracks/2/keys = {
 
 [sub_resource type="Animation" id="Animation_4qunj"]
 length = 0.8
-loop_mode = 1
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -2232,7 +2233,6 @@ tracks/2/keys = {
 
 [sub_resource type="Animation" id="Animation_8hayd"]
 length = 0.8
-loop_mode = 1
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -2272,7 +2272,6 @@ tracks/2/keys = {
 
 [sub_resource type="Animation" id="Animation_n7df2"]
 length = 0.8
-loop_mode = 1
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -2332,9 +2331,21 @@ _data = {
 &"slap_up": SubResource("Animation_n7df2")
 }
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_nw4g5"]
+radius = 30.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_2a4ok"]
+radius = 150.0
+
 [node name="BossGoblin" type="CharacterBody2D" groups=["enemies", "enemys"]]
 collision_layer = 5
 script = ExtResource("1_ri15p")
+
+[node name="detectorSlap" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="detectorSlap"]
+shape = SubResource("CircleShape2D_2u40x")
+debug_color = Color(0.65713, 0.000222172, 0.626268, 0.0705882)
 
 [node name="slap" type="Area2D" parent="."]
 
@@ -2363,4 +2374,20 @@ libraries = {
 
 [node name="attack_timer" type="Timer" parent="."]
 
+[node name="detectorBite" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="detectorBite"]
+shape = SubResource("CircleShape2D_nw4g5")
+debug_color = Color(0.560784, 0.396078, 1, 0)
+
+[node name="detectorShoot" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="detectorShoot"]
+shape = SubResource("CircleShape2D_2a4ok")
+debug_color = Color(0.65098, 0.517647, 0, 0)
+
+[connection signal="body_entered" from="detectorSlap" to="." method="_on_detector_slap_body_entered"]
 [connection signal="body_entered" from="slap" to="." method="_on_slap_body_entered"]
+[connection signal="timeout" from="attack_timer" to="." method="_on_attack_timer_timeout"]
+[connection signal="body_entered" from="detectorBite" to="." method="_on_detector_bite_body_entered"]
+[connection signal="body_entered" from="detectorShoot" to="." method="_on_detector_shoot_body_entered"]
