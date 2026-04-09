@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=4 uid="uid://be4lwk2g4qfqc"]
+
+[ext_resource type="TileSet" uid="uid://c7u54yp1yckk1" path="res://scene/room_variants/tileset_for_rooms.tres" id="1_8vrc5"]
+
+[node name="TopWall" type="Node2D"]
+
+[node name="TileMapLayer" type="TileMapLayer" parent="."]
+tile_map_data = PackedByteArray("AAAZAAAAAAANAAwAAFAaAAAAAAANAAsAAFAbAAAAAAANAAoAAFAcAAAAAAANAAoAAFAZAAEAAAARAAcAAAAZAAIAAAAGAAgAAAAZAAMAAAAFAAYAAAAZAAQAAAAFAAYAAAAaAAEAAAAGAAgAAAAaAAIAAAAGAAUAAAAaAAMAAAARAAYAAAAaAAQAAAARAAYAAAAbAAEAAAAGAAgAAAAbAAIAAAAGAAgAAAAbAAMAAAAGAAgAAAAbAAQAAAAGAAgAAAAcAAEAAAAGAAgAAAAcAAIAAAARAAcAAAAcAAMAAAAFAAYAAAAcAAQAAAAFAAYAAAA=")
+tile_set = ExtResource("1_8vrc5")

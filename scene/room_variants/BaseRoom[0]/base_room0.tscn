@@ -1,10 +1,14 @@
-[gd_scene load_steps=31 format=4 uid="uid://m1ir1mum4qac"]
+[gd_scene load_steps=35 format=4 uid="uid://m1ir1mum4qac"]
 
 [ext_resource type="Script" uid="uid://d35yfp8vn3tmp" path="res://scene/room_variants/BaseRoom[0]/base_room_0.gd" id="1_8a7m1"]
 [ext_resource type="TileSet" uid="uid://c7u54yp1yckk1" path="res://scene/room_variants/tileset_for_rooms.tres" id="1_nm8j4"]
+[ext_resource type="PackedScene" uid="uid://be4lwk2g4qfqc" path="res://sprites/Rocks/top_wall.tscn" id="2_618pc"]
 [ext_resource type="Script" uid="uid://bfmesc6rve018" path="res://scene/level/room_shape.gd" id="2_cib8v"]
+[ext_resource type="PackedScene" uid="uid://c2ctulieyuv06" path="res://sprites/Rocks/left_wall.tscn" id="3_g8r5t"]
 [ext_resource type="Script" uid="uid://cr6mv2r4o37d7" path="res://scene/level/enemys.gd" id="3_rgse5"]
+[ext_resource type="PackedScene" uid="uid://beah3kj0mi8ae" path="res://sprites/Rocks/down_wall.tscn" id="4_4wg7f"]
 [ext_resource type="Script" uid="uid://jmqbjpx8nui8" path="res://scene/room_variants/BaseRoom[0]/door.gd" id="5_rgse5"]
+[ext_resource type="PackedScene" uid="uid://cpx8icdl30v1" path="res://sprites/Rocks/right_wall.tscn" id="5_slhwe"]
 [ext_resource type="Texture2D" uid="uid://0g2ojsmfltkg" path="res://assets/layers/Animated Tiles/Lava Dungeon/Doors/Wide door Red/Png/Wide door red closing.png" id="6_qvk3c"]
 [ext_resource type="Texture2D" uid="uid://dcikqsasxplwo" path="res://assets/layers/Animated Tiles/Lava Dungeon/Doors/Wide door Red/Png/Wide door red opening.png" id="7_r2xgy"]
 [ext_resource type="Texture2D" uid="uid://b5c6qrutijkq0" path="res://assets/layers/Animated Tiles/Lava Dungeon/Doors/Без имени.png" id="8_qvk3c"]
@@ -169,6 +173,10 @@ animations = [{
 
 [node name="base_room0" type="Node2D"]
 script = ExtResource("1_8a7m1")
+wall_top = ExtResource("2_618pc")
+wall_left = ExtResource("3_g8r5t")
+wall_down = ExtResource("4_4wg7f")
+wall_right = ExtResource("5_slhwe")
 
 [node name="upper" type="TileMapLayer" parent="."]
 z_index = 4
@@ -199,6 +207,7 @@ script = ExtResource("3_rgse5")
 [node name="Obstacles" type="Node2D" parent="."]
 
 [node name="DoorTop" type="StaticBody2D" parent="."]
+z_index = 1
 position = Vector2(432, 64)
 collision_mask = 3
 script = ExtResource("5_rgse5")
@@ -213,6 +222,7 @@ sprite_frames = SubResource("SpriteFrames_3kknp")
 animation = &"Closed"
 
 [node name="DoorBottom" type="StaticBody2D" parent="."]
+z_index = 1
 position = Vector2(432, 664)
 collision_mask = 3
 script = ExtResource("5_rgse5")
@@ -229,6 +239,7 @@ sprite_frames = SubResource("SpriteFrames_aicd8")
 animation = &"Closed"
 
 [node name="DoorLeft" type="StaticBody2D" parent="."]
+z_index = 1
 position = Vector2(8, 368)
 collision_mask = 3
 script = ExtResource("5_rgse5")
@@ -247,6 +258,7 @@ sprite_frames = SubResource("SpriteFrames_aicd8")
 animation = &"Closed"
 
 [node name="DoorRight" type="StaticBody2D" parent="."]
+z_index = 1
 position = Vector2(856, 368)
 collision_mask = 3
 script = ExtResource("5_rgse5")

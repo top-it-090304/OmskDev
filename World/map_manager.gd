@@ -13,6 +13,7 @@ extends Node2D
 # НОВОЕ: Массив всех возможных предметов для Treasure Room
 @export var treasure_items: Array[PackedScene] = []
 
+@export var player_scene:PackedScene
 # Гибкий массив препятствий
 @export var obstacle_data: Array[Dictionary] = [
 	{"scene": preload("res://sprites/Rocks/rock_1.tscn"), "size": Vector2(32, 32)},
@@ -53,13 +54,49 @@ func _ready():
 	
 	# НОВОЕ: Спавним предметы в комнатах сокровищ (делаем это последним)
 	_spawn_treasure_items()
+	_spawn_player()
 	
 	change_current_room(current_room_grid_pos.x, current_room_grid_pos.y)
 
 # =====================================================================
 # НОВОЕ: ЛОГИКА "КОЛОДЫ КАРТ" ДЛЯ ПРЕДМЕТОВ
 # =====================================================================
+# =====================================================================
+# НОВОЕ: СПАВН ИГРОКА
+# =====================================================================
+func _spawn_player():
+	var player_node = null
 
+	# 1. Если сцена игрока задана в инспекторе, создаем его
+	if player_scene:
+		player_node = player_scene.instantiate()
+		add_child(player_node) # Добавляем как child прямо в MapManager
+	else:
+		# 2. Если сцена не задана, пробуем найти игрока уже на сцене (например, если он в автолоаде)
+		player_node = get_tree().get_first_node_in_group("player")
+		if not player_node:
+			push_warning("MapManager: Сцена игрока не назначена и игрок в группе 'player' не найден!")
+			return
+
+	# Ищем стартовую комнату в списке заспавненных
+	for room_data in spawned_rooms:
+		if room_data["type"] == RoomType.START:
+			var room_node = room_data["node"]
+			
+			# Ищем маркер по имени (можно переименовать как угодно)
+			var spawn_marker = room_node.find_child("PlayerSpawn", true, false)
+			
+			if spawn_marker:
+				# Если маркер найден — ставим игрока строго в него
+				player_node.global_position = spawn_marker.global_position
+			else:
+				# Фолбэк (запасной вариант): если маркера нет, считаем центр математически
+				var local_center = Vector2(GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2.0, GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2.0)
+				player_node.global_position = room_node.to_global(local_center)
+				
+			break # Стартовая комната всего одна, выходим из цикла
+
+# =============
 func _get_next_treasure_item() -> PackedScene:
 	if treasure_items.is_empty():
 		return null
