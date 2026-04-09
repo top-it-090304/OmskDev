@@ -15,7 +15,7 @@ var can_anim = true
 var can_attack = true
 var is_dead = false 
 var last_known_max_health = 0
-var damage = 10
+var damage = 150
 
 signal health_changed(new_health, max_health)
 
@@ -169,3 +169,7 @@ func _on_hitbox_attack_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("enemies"):
 		body.take_damage(damage)
+
+func heal(amount:int) -> void:
+	health_int += amount
+	health_changed.emit(health_int, GameConstants.PLAYER_MAX_HEALTH)

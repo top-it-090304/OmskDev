@@ -155,8 +155,18 @@ func death():
 		
 	await anim.animation_finished
 	GameConstants.register_enemy_kill()
+	GameConstants.register_enemy_kill()
+	if randf() <= 0.25:
+		_spawn_loot()
+	
+	# 3. И только в самом конце удаляем врага
 	queue_free()
-
+	
+func _spawn_loot():
+	var potion = GameConstants.HEALTH_POTION.instantiate()
+	potion.global_position = global_position
+	get_parent().add_child(potion)
+	
 func swing():
 	if not is_instance_valid(player) or is_dead: return
 	smite_instance = GameConstants.ENEMY_GOBLIN_AXE_SMITE.instantiate()

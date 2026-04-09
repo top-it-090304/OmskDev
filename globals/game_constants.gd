@@ -12,6 +12,7 @@ var MAP_MANAGER_GRID_SIZE = 8
 
 const SKELETON_BOW_ARROW = preload("res://scene/game_objects/enemy/skeleton_bow/arrow.tscn")
 const ENEMY_GOBLIN_AXE_SMITE = preload("res://scene/game_objects/enemy/goblin_axe/smite.tscn")
+const HEALTH_POTION = preload("res://scene/pick_up/Heal potion/heal_potion.tscn")
 
 var PLAYER_MAX_SPEED = 500
 var PLAYER_MAX_HEALTH = 100
