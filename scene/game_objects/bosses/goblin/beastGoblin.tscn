@@ -1703,10 +1703,10 @@ tracks/2/keys = {
 "transitions": PackedFloat32Array(1, 1),
 "values": [{
 "args": [],
-"method": &"bite_swing"
+"method": &"spawn_bite_smite"
 }, {
 "args": [],
-"method": &"activate_bite_smite"
+"method": &"activate_bite"
 }]
 }
 
@@ -1747,10 +1747,10 @@ tracks/2/keys = {
 "transitions": PackedFloat32Array(1, 1),
 "values": [{
 "args": [],
-"method": &"bite_swing"
+"method": &"spawn_bite_smite"
 }, {
 "args": [],
-"method": &"activate_bite_smite"
+"method": &"activate_bite"
 }]
 }
 
@@ -1791,10 +1791,10 @@ tracks/2/keys = {
 "transitions": PackedFloat32Array(1, 1),
 "values": [{
 "args": [],
-"method": &"bite_swing"
+"method": &"spawn_bite_smite"
 }, {
 "args": [],
-"method": &"activate_bite_smite"
+"method": &"activate_bite"
 }]
 }
 
@@ -1835,10 +1835,10 @@ tracks/2/keys = {
 "transitions": PackedFloat32Array(1, 1),
 "values": [{
 "args": [],
-"method": &"bite_swing"
+"method": &"spawn_bite_smite"
 }, {
 "args": [],
-"method": &"activate_bite_smite"
+"method": &"activate_bite"
 }]
 }
 

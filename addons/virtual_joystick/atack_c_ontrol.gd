@@ -9,7 +9,9 @@ var vector: Vector2 = Vector2.ZERO
 var touch_index: int = -1 
 
 func _ready() -> void:
+	# Защищаем от случайных нажатий мимо
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Ставим стик ровно по центру
 	_center_knob()
 
 func _input(event: InputEvent) -> void:
@@ -32,22 +34,25 @@ func _is_point_in_joystick_area(point: Vector2) -> bool:
 	return rect.has_point(point)
 
 func _update_joystick(touch_pos: Vector2) -> void:
-	# Находим точный ЦЕНТР базы на экране
+	# Берем реальный центр базы на экране
 	var base_center = base.get_global_rect().get_center()
 	var dir = (touch_pos - base_center).normalized()
 	var dist = clampf((touch_pos - base_center).length(), 0, radius)
 	
-	# Высчитываем идеальную точку, куда должен прийти центр стика
+	# Идеальная точка для центра стика
 	var target_point = base_center + dir * dist
 	
-	# Сдвигаем стик так, чтобы его центр оказался в нужной точке
-	knob.global_position = target_point - (knob.size / 2.0)
+	# Узнаем, на сколько пикселей реальный центр стика отбит от его левого верхнего угла
+	var knob_center_offset = knob.get_global_rect().get_center() - knob.global_position
+	
+	# Сдвигаем левый верхний угол стика так, чтобы его центр попал в цель
+	knob.global_position = target_point - knob_center_offset
 	vector = dir
 
 func _center_knob() -> void:
-	# Строго ставим центр стика в центр базы
 	var base_center = base.get_global_rect().get_center()
-	knob.global_position = base_center - (knob.size / 2.0)
+	var knob_center_offset = knob.get_global_rect().get_center() - knob.global_position
+	knob.global_position = base_center - knob_center_offset
 
 func _reset_joystick() -> void:
 	touch_index = -1
