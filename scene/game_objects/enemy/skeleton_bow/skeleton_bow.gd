@@ -154,17 +154,17 @@ func death():
 	if is_dead: return
 	is_dead = true
 	can_move = false
+
 	can_attack = false
-	velocity = Vector2.ZERO
+	velocity = Vector2.ZERO 
 	
-	# Отключаем коллизии сразу, чтобы не мешать игроку
+	anim.stop()
+	animP.stop()
+	
+	# Отключаем коллизии
 	set_collision_layer_value(1, false)
 	set_collision_mask_value(1, false)
-	
-	animP.stop()
-	anim.stop()
 
-	# Анимация смерти
 	match current_dir:
 		Dir.UP: anim.play("death_up")
 		Dir.DOWN: anim.play("death_down")
@@ -173,7 +173,17 @@ func death():
 		
 	await anim.animation_finished
 	GameConstants.register_enemy_kill()
+	GameConstants.register_enemy_kill()
+	if randf() <= 0.25:
+		_spawn_loot()
+	
+	# 3. И только в самом конце удаляем врага
 	queue_free()
+	
+func _spawn_loot():
+	var potion = GameConstants.HEALTH_POTION.instantiate()
+	potion.global_position = global_position
+	get_parent().add_child(potion)
 
 # Сигналы детекторов
 func _on_detector_body_entered(body: Node2D) -> void:
