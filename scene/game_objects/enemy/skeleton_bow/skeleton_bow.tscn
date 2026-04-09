@@ -1532,6 +1532,7 @@ _data = {
 
 [node name="skeleton_bow" type="CharacterBody2D" groups=["enemies"]]
 collision_layer = 5
+floor_max_angle = 0.0
 script = ExtResource("1_h3w2k")
 
 [node name="detector" type="Area2D" parent="."]

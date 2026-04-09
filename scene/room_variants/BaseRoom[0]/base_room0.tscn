@@ -172,6 +172,7 @@ animations = [{
 }]
 
 [node name="base_room0" type="Node2D"]
+z_index = 3
 script = ExtResource("1_8a7m1")
 wall_top = ExtResource("2_618pc")
 wall_left = ExtResource("3_g8r5t")

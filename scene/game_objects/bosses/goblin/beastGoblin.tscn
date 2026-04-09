@@ -1,6 +1,6 @@
 [gd_scene load_steps=260 format=3 uid="uid://dvni48vx1r4cj"]
 
-[ext_resource type="Script" path="res://scene/game_objects/bosses/goblin/beast_goblin.gd" id="1_ri15p"]
+[ext_resource type="Script" uid="uid://csv2w2dx221dw" path="res://scene/game_objects/bosses/goblin/beast_goblin.gd" id="1_ri15p"]
 [ext_resource type="Texture2D" uid="uid://bd7s7pakqgqq4" path="res://sprites/bosses/goblin/Down/Png/GoblinBeastDownAttack02.png" id="2_524aj"]
 [ext_resource type="Texture2D" uid="uid://b08541sqve2vh" path="res://sprites/bosses/goblin/Left/Png/GoblinBeastLeftAttack02.png" id="3_upmi1"]
 [ext_resource type="Texture2D" uid="uid://bpt2lwh7qimpu" path="res://sprites/bosses/goblin/Right/Png/GoblinBeastRightAttack02.png" id="4_gylxb"]
