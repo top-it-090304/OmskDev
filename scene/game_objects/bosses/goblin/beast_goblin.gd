@@ -91,6 +91,7 @@ func attack(type: String):
 	# Гарантированно останавливаем AnimationPlayer после анимации
 	animP.stop()
 	
+	
 	_reset_after_attack()
 
 func _reset_after_attack():

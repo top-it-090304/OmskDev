@@ -1,4 +1,4 @@
-[gd_scene load_steps=169 format=3 uid="uid://couoeiwpgdvx6"]
+[gd_scene load_steps=169 format=3 uid="uid://dby7lrn52nuub"]
 
 [ext_resource type="Script" uid="uid://b4d56hcuiwhmy" path="res://scene/game_objects/player/Player.gd" id="1_ktjk3"]
 [ext_resource type="Texture2D" uid="uid://pagggpic45vn" path="res://sprites/player/Health/Health_progressbar_sprite_under.png" id="2_gvguk"]

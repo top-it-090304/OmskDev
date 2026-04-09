@@ -121,7 +121,7 @@ func take_damage(amount: int):
 	hp_bar.update_hp(hp, GameConstants.SKELETON_BOW_HP)
 	
 	can_anim = false 
-	can_move = false # 1. ДОБАВИТЬ: Принудительно останавливаем скелета на время анимации боли
+	can_move = false 
 	animP.stop()    
 	
 	if hp <= 0:
@@ -138,8 +138,13 @@ func take_damage(amount: int):
 	
 	if not is_dead:
 		can_anim = true 
-		can_move = true # 2. ДОБАВИТЬ: Размораживаем скелета после получения урона
+		can_move = true 
 		
+		# --- НОВОЕ: ПЕРЕЗАПУСК ТАЙМЕРА АТАКИ ---
+		# Если таймер стоит на месте (потому что мы оборвали атаку),
+		# запускаем его заново. Дадим скелету 0.5 сек передышки после урона.
+		if attack_timer.is_stopped():
+			attack_timer.start(0.5) 
 func shoot():
 	if not player or not is_instance_valid(player) or is_dead: return
 	
