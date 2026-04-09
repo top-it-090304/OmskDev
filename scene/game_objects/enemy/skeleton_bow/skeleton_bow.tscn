@@ -23,7 +23,7 @@
 [ext_resource type="Texture2D" uid="uid://paxd5rm7tqop" path="res://sprites/enemys/skeletonBow/Up/Png/SkeletonWithBowUpHurt.png" id="13_5u4vk"]
 [ext_resource type="Texture2D" uid="uid://8o1hatxsh21y" path="res://assets/hpUnderEnemy.png" id="22_uml27"]
 [ext_resource type="Texture2D" uid="uid://bu1d3dqfv283u" path="res://assets/hpProgressEnemy.png" id="23_5u4vk"]
-[ext_resource type="Script" uid="uid://osq5kv0630j2" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="24_15ev2"]
+[ext_resource type="Script" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="24_15ev2"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_dfcc5"]
 radius = 150.0
