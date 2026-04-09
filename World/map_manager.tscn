@@ -11,7 +11,7 @@
 [ext_resource type="PackedScene" uid="uid://ot1bjrnddml7" path="res://scene/game_objects/enemy/skeleton_bow/skeleton_bow.tscn" id="5_xsmnk"]
 [ext_resource type="PackedScene" uid="uid://dvni48vx1r4cj" path="res://scene/game_objects/bosses/goblin/beastGoblin.tscn" id="10_4r2i8"]
 [ext_resource type="PackedScene" uid="uid://bbelva8io0yft" path="res://scene/pick_up/artefact(boots_of_travel).tscn" id="10_ygotc"]
-[ext_resource type="PackedScene" uid="uid://bx25v18fhyfv0" path="res://scene/game_objects/player/player.tscn" id="11_ubomv"]
+[ext_resource type="PackedScene" uid="uid://couoeiwpgdvx6" path="res://scene/game_objects/player/player.tscn" id="11_ubomv"]
 
 [node name="MapManager" type="Node2D"]
 script = ExtResource("1_l755g")
