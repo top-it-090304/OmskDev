@@ -90,6 +90,18 @@ func attack():
 	can_anim = true
 	attack_timer.start()
 	
+func apply_knockback(source_position: Vector2, force: float):
+	if is_dead: return
+	
+	# Считаем вектор от источника (босса) к игроку
+	var knockback_dir = (global_position - source_position).normalized()
+	# Присваиваем velocity импульс
+	velocity = knockback_dir * force
+	
+	# Можно на мгновение запретить управление, если хочешь более жесткий эффект
+	# can_anim = false
+	# await get_tree().create_timer(0.2).timeout
+	# can_anim = true
 func take_damage(amount: int):
 	if not can_take_damage or is_dead:
 		return

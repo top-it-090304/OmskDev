@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=4 uid="uid://bto3swn3i5217"]
+[gd_scene load_steps=5 format=4 uid="uid://bto3swn3i5217"]
 
 [ext_resource type="PackedScene" uid="uid://m1ir1mum4qac" path="res://scene/room_variants/BaseRoom[0]/base_room0.tscn" id="1_icvpx"]
 [ext_resource type="TileSet" uid="uid://c7u54yp1yckk1" path="res://scene/room_variants/tileset_for_rooms.tres" id="2_2ymm8"]
+[ext_resource type="PackedScene" uid="uid://brtumm08sjxo1" path="res://scene/game_objects/bosses/goblin/beastGoblin.tscn" id="3_2ymm8"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8a7m1"]
 size = Vector2(48, 8)
@@ -62,3 +63,6 @@ tile_set = ExtResource("2_2ymm8")
 position = Vector2(432, 368)
 tile_map_data = PackedByteArray("AAD1//P/AAASAAIAAAD1//T/AAASAAMAAAD1//X/AAASAAQAAAD1//b/AAASAAUAAAD2//P/AAATAAIAAAD2//T/AAATAAMAAAD2//X/AAATAAQAAAD2//b/AAATAAUAAAAJAPP/AAAUAAIAAAAJAPT/AAAUAAMAAAAJAPX/AAAUAAQAAAAJAPb/AAAUAAUAAAAKAPP/AAAVAAIAAAAKAPT/AAAVAAMAAAAKAPX/AAAVAAQAAAAKAPb/AAAVAAUAAAAIAOr/AAAgAAIAAAAIAOv/AAAgAAMAAAAIAOz/AAAgAAQAAAAIAO3/AAAgAAUAAAAIAO7/AgAAAAMAAAAJAOr/AAAhAAIAAAAJAOv/AAAhAAMAAAAJAOz/AAAhAAQAAAAJAO3/AAAhAAUAAAAJAO7/AgAAAAMAAAA=")
 tile_set = ExtResource("2_2ymm8")
+
+[node name="BossGoblin" parent="." index="11" instance=ExtResource("3_2ymm8")]
+position = Vector2(432, 367)

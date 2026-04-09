@@ -1,5 +1,6 @@
-[gd_scene load_steps=257 format=3 uid="uid://brtumm08sjxo1"]
+[gd_scene load_steps=260 format=3 uid="uid://brtumm08sjxo1"]
 
+[ext_resource type="Script" uid="uid://csv2w2dx221dw" path="res://scene/game_objects/bosses/goblin/beast_goblin.gd" id="1_ri15p"]
 [ext_resource type="Texture2D" uid="uid://bd7s7pakqgqq4" path="res://sprites/bosses/goblin/Down/Png/GoblinBeastDownAttack02.png" id="2_524aj"]
 [ext_resource type="Texture2D" uid="uid://b08541sqve2vh" path="res://sprites/bosses/goblin/Left/Png/GoblinBeastLeftAttack02.png" id="3_upmi1"]
 [ext_resource type="Texture2D" uid="uid://bpt2lwh7qimpu" path="res://sprites/bosses/goblin/Right/Png/GoblinBeastRightAttack02.png" id="4_gylxb"]
@@ -25,6 +26,9 @@
 [ext_resource type="Texture2D" uid="uid://cdwe0shfjgmrl" path="res://sprites/bosses/goblin/Left/Png/GoblinBeastLeftAttack01.png" id="20_y1sma"]
 [ext_resource type="Texture2D" uid="uid://vk7pur4h64gp" path="res://sprites/bosses/goblin/Right/Png/GoblinBeastRightAttack01.png" id="21_cgxyv"]
 [ext_resource type="Texture2D" uid="uid://cds1a43xrd37d" path="res://sprites/bosses/goblin/Up/Png/GoblinBeastUpAttack01.png" id="22_03yyc"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ri15p"]
+radius = 40.0
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_t58vs"]
 radius = 15.0
@@ -2078,6 +2082,18 @@ tracks/1/keys = {
 "update": 1,
 "values": ["slap_down"]
 }
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("slap/CollisionShape2D:disabled")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0.4, 0.733333),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [false, true]
+}
 
 [sub_resource type="Animation" id="Animation_4qunj"]
 length = 0.8
@@ -2105,6 +2121,18 @@ tracks/1/keys = {
 "transitions": PackedFloat32Array(1),
 "update": 1,
 "values": ["slap_left"]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("slap/CollisionShape2D:disabled")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0.4, 0.733333),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [false, true]
 }
 
 [sub_resource type="Animation" id="Animation_8hayd"]
@@ -2134,6 +2162,18 @@ tracks/1/keys = {
 "update": 1,
 "values": ["slap_right"]
 }
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("slap/CollisionShape2D:disabled")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0.4, 0.733333),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [false, true]
+}
 
 [sub_resource type="Animation" id="Animation_n7df2"]
 length = 0.8
@@ -2162,9 +2202,37 @@ tracks/1/keys = {
 "update": 1,
 "values": ["slap_up"]
 }
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("slap/CollisionShape2D:disabled")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0.4, 0.733333),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [false, true]
+}
+
+[sub_resource type="Animation" id="Animation_2u40x"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("slap/CollisionShape2D:disabled")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_yfnq7"]
 _data = {
+&"RESET": SubResource("Animation_2u40x"),
 &"bite_down": SubResource("Animation_0h5wg"),
 &"bite_left": SubResource("Animation_qtpv1"),
 &"bite_right": SubResource("Animation_tpotq"),
@@ -2185,6 +2253,13 @@ _data = {
 }
 
 [node name="BossGoblin" type="CharacterBody2D" groups=["enemies", "enemys"]]
+script = ExtResource("1_ri15p")
+
+[node name="slap" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="slap"]
+shape = SubResource("CircleShape2D_ri15p")
+disabled = true
 
 [node name="hitbox" type="Area2D" parent="."]
 
@@ -2194,8 +2269,9 @@ debug_color = Color(1, 0, 0, 0.419608)
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." groups=["enemys"]]
 sprite_frames = SubResource("SpriteFrames_boadp")
-animation = &"hurt_up"
+animation = &"slap_up"
 autoplay = "idle_down"
+frame = 4
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CapsuleShape2D_wtjsh")
@@ -2206,3 +2282,5 @@ libraries = {
 }
 
 [node name="attack_timer" type="Timer" parent="."]
+
+[connection signal="body_entered" from="slap" to="." method="_on_slap_body_entered"]

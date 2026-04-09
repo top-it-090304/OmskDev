@@ -172,8 +172,6 @@ func death():
 		Dir.RIGHT: anim.play("death_right")
 		
 	await anim.animation_finished
-	GameConstants.register_enemy_kill()
-	GameConstants.register_enemy_kill()
 	if randf() <= 0.25:
 		_spawn_loot()
 	
