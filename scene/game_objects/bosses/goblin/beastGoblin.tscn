@@ -28,7 +28,7 @@
 [ext_resource type="Texture2D" uid="uid://cds1a43xrd37d" path="res://sprites/bosses/goblin/Up/Png/GoblinBeastUpAttack01.png" id="22_03yyc"]
 [ext_resource type="Texture2D" uid="uid://8o1hatxsh21y" path="res://assets/hpUnderEnemy.png" id="27_2a4ok"]
 [ext_resource type="Texture2D" uid="uid://bu1d3dqfv283u" path="res://assets/hpProgressEnemy.png" id="28_o155f"]
-[ext_resource type="Script" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="29_wqun3"]
+[ext_resource type="Script" uid="uid://osq5kv0630j2" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="29_wqun3"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_2u40x"]
 radius = 55.0
@@ -1237,7 +1237,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_j6clo")
 }],
-"loop": false,
+"loop": true,
 "name": &"idle_down",
 "speed": 5.0
 }, {
@@ -1702,17 +1702,14 @@ tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0, 0.5, 0.633333),
-"transitions": PackedFloat32Array(1, 1, 1),
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
 "values": [{
 "args": [],
 "method": &"spawn_bite_smite"
 }, {
 "args": [],
 "method": &"activate_bite"
-}, {
-"args": [],
-"method": &"_reset_after_attack"
 }]
 }
 
@@ -1749,17 +1746,14 @@ tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0, 0.5, 0.633333),
-"transitions": PackedFloat32Array(1, 1, 1),
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
 "values": [{
 "args": [],
 "method": &"spawn_bite_smite"
 }, {
 "args": [],
 "method": &"activate_bite"
-}, {
-"args": [],
-"method": &"_reset_after_attack"
 }]
 }
 
@@ -1796,17 +1790,14 @@ tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0, 0.5, 0.633333),
-"transitions": PackedFloat32Array(1, 1, 1),
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
 "values": [{
 "args": [],
 "method": &"spawn_bite_smite"
 }, {
 "args": [],
 "method": &"activate_bite"
-}, {
-"args": [],
-"method": &"_reset_after_attack"
 }]
 }
 
@@ -1843,17 +1834,14 @@ tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0, 0.5, 0.633333),
-"transitions": PackedFloat32Array(1, 1, 1),
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
 "values": [{
 "args": [],
 "method": &"spawn_bite_smite"
 }, {
 "args": [],
 "method": &"activate_bite"
-}, {
-"args": [],
-"method": &"_reset_after_attack"
 }]
 }
 
@@ -2206,20 +2194,6 @@ tracks/2/keys = {
 "update": 1,
 "values": [false, true]
 }
-tracks/3/type = "method"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath(".")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0.8),
-"transitions": PackedFloat32Array(1),
-"values": [{
-"args": [],
-"method": &"_reset_after_attack"
-}]
-}
 
 [sub_resource type="Animation" id="Animation_4qunj"]
 length = 0.8
@@ -2258,20 +2232,6 @@ tracks/2/keys = {
 "transitions": PackedFloat32Array(1, 1),
 "update": 1,
 "values": [false, true]
-}
-tracks/3/type = "method"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath(".")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0.8),
-"transitions": PackedFloat32Array(1),
-"values": [{
-"args": [],
-"method": &"_reset_after_attack"
-}]
 }
 
 [sub_resource type="Animation" id="Animation_8hayd"]
@@ -2312,20 +2272,6 @@ tracks/2/keys = {
 "update": 1,
 "values": [false, true]
 }
-tracks/3/type = "method"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath(".")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0.8),
-"transitions": PackedFloat32Array(1),
-"values": [{
-"args": [],
-"method": &"_reset_after_attack"
-}]
-}
 
 [sub_resource type="Animation" id="Animation_n7df2"]
 length = 0.8
@@ -2364,20 +2310,6 @@ tracks/2/keys = {
 "transitions": PackedFloat32Array(1, 1),
 "update": 1,
 "values": [false, true]
-}
-tracks/3/type = "method"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath(".")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0.8),
-"transitions": PackedFloat32Array(1),
-"values": [{
-"args": [],
-"method": &"_reset_after_attack"
-}]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_yfnq7"]
@@ -2445,8 +2377,6 @@ libraries = {
 }
 
 [node name="attack_timer" type="Timer" parent="."]
-wait_time = 2.0
-one_shot = true
 
 [node name="detectorBite" type="Area2D" parent="."]
 
