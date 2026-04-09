@@ -1,4 +1,4 @@
-[gd_scene load_steps=258 format=3 uid="uid://brtumm08sjxo1"]
+[gd_scene load_steps=257 format=3 uid="uid://brtumm08sjxo1"]
 
 [ext_resource type="Texture2D" uid="uid://bd7s7pakqgqq4" path="res://sprites/bosses/goblin/Down/Png/GoblinBeastDownAttack02.png" id="2_524aj"]
 [ext_resource type="Texture2D" uid="uid://b08541sqve2vh" path="res://sprites/bosses/goblin/Left/Png/GoblinBeastLeftAttack02.png" id="3_upmi1"]
@@ -2184,9 +2184,6 @@ _data = {
 &"slap_up": SubResource("Animation_n7df2")
 }
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_144w1"]
-size = Vector2(30, 40)
-
 [node name="BossGoblin" type="CharacterBody2D" groups=["enemies", "enemys"]]
 
 [node name="hitbox" type="Area2D" parent="."]
@@ -2209,9 +2206,3 @@ libraries = {
 }
 
 [node name="attack_timer" type="Timer" parent="."]
-
-[node name="SlapArea" type="Area2D" parent="."]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="SlapArea"]
-position = Vector2(-57.2727, 27.2727)
-shape = SubResource("RectangleShape2D_144w1")

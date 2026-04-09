@@ -117,14 +117,14 @@ func take_damage(amount: int):
 	if is_dead: return
 	
 	hp -= amount
-	can_anim = false # Блокируем анимацию бега
-	animP.stop()    # Прерываем атаку при получении урона
+	can_anim = false 
+	animP.stop()    
 	
 	if hp <= 0:
 		death()
 		return
 
-	# Проигрываем анимацию получения урона
+	
 	match current_dir:
 		Dir.UP: anim.play("hurt_up")
 		Dir.DOWN: anim.play("hurt_down")
