@@ -7,6 +7,7 @@
 size = Vector2(48, 8)
 
 [node name="Boss_room0" instance=ExtResource("1_icvpx")]
+z_index = 2
 wall_top = null
 wall_left = null
 wall_down = null

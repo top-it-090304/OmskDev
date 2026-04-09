@@ -1,21 +1,27 @@
-[gd_scene load_steps=4 format=3 uid="uid://dmr0fcamx7t56"]
+[gd_scene load_steps=4 format=3 uid="uid://dfuapr48brg6e"]
 
-[ext_resource type="Script" uid="uid://dvwuhkci5w46k" path="res://addons/virtual_joystick/virtual_joystick.gd" id="1_8x4dy"]
-[ext_resource type="Texture2D" uid="uid://bm30au8mjfc2f" path="res://addons/virtual_joystick/textures/joystick_base_outline.png" id="2_jhjs2"]
-[ext_resource type="Texture2D" uid="uid://dt13r06u87fib" path="res://addons/virtual_joystick/textures/joystick_tip_arrows.png" id="3_3etdg"]
+[ext_resource type="Script" uid="uid://bv71vscldt7x5" path="res://addons/virtual_joystick/atack_c_ontrol.gd" id="1_gkscv"]
+[ext_resource type="Texture2D" uid="uid://bm30au8mjfc2f" path="res://addons/virtual_joystick/textures/joystick_base_outline.png" id="2_ya4wl"]
+[ext_resource type="Texture2D" uid="uid://dt13r06u87fib" path="res://addons/virtual_joystick/textures/joystick_tip_arrows.png" id="3_m7yji"]
 
 [node name="Virtual Joystick" type="Control"]
+z_index = 400
 layout_mode = 3
-anchors_preset = 2
+anchor_left = 1.0
 anchor_top = 1.0
+anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = -320.0
 offset_top = -296.0
-offset_right = 320.0
-grow_vertical = 0
-script = ExtResource("1_8x4dy")
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+script = ExtResource("1_gkscv")
 
 [node name="Base" type="TextureRect" parent="."]
 modulate = Color(0.678431, 0.513726, 0.341176, 0.784314)
+z_index = 400
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -30,11 +36,13 @@ grow_horizontal = 2
 grow_vertical = 2
 pivot_offset = Vector2(100, 100)
 mouse_force_pass_scroll_events = false
-texture = ExtResource("2_jhjs2")
+texture = ExtResource("2_ya4wl")
+expand_mode = 1
 stretch_mode = 5
 
 [node name="Tip" type="TextureRect" parent="Base"]
-modulate = Color(0.936144, 0.84868, 0.762369, 0.784314)
+modulate = Color(0.937255, 0.847059, 0.760784, 0.784314)
+z_index = 400
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -48,5 +56,6 @@ offset_bottom = 50.0
 grow_horizontal = 2
 grow_vertical = 2
 pivot_offset = Vector2(50, 50)
-texture = ExtResource("3_3etdg")
-stretch_mode = 5
+texture = ExtResource("3_m7yji")
+expand_mode = 1
+stretch_mode = 3

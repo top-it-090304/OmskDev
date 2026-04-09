@@ -1,13 +1,16 @@
 extends CharacterBody2D
 
 @export var atack_spawn: Node
-@export var gameover:PackedScene
+@export var gameover: PackedScene
+@onready var attack_joystick = $MobileController/VirtualJoystick2 
+
 @onready var anim = $AnimatedSprite2D
 var health_int = 0
 var can_take_damage = true
 @onready var damage_timer = $can_take_damage
 @onready var attack_timer = $can_attack
 @onready var animP = $AnimationPlayer
+
 enum Dir { DOWN, UP, LEFT, RIGHT }
 var current_dir = Dir.DOWN
 var can_move = true
@@ -21,29 +24,40 @@ signal health_changed(new_health, max_health)
 
 func _physics_process(_delta: float) -> void:
 	if is_dead: return
-	
+	# ВАЖНО: move_and_slide() ДОЛЖНА быть в _physics_process
+	move_and_slide()
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if is_dead: return
 	
 	if health_int <= 0:
 		die()
 		return
-	if Input.is_action_just_pressed("attack"):
-		attack()
+		
+	# --- ЛОГИКА АТАКИ ЧЕРЕЗ ДЖОЙСТИК ---
+	if attack_joystick and attack_joystick.is_active:
+		var atk_vector = attack_joystick.vector
+		if atk_vector != Vector2.ZERO:
+			# Поворачиваем игрока в сторону джойстика атаки
+			update_direction(atk_vector)
+			# Атакуем по кулдауну
+			if can_attack:
+				attack()
+	
+	# --- ЛОГИКА ДВИЖЕНИЯ ---
 	var direction = movement_vector()
 	
 	if direction != Vector2.ZERO:
 		velocity = direction * GameConstants.PLAYER_MAX_SPEED
-		update_direction(direction)
+		# Обновляем направление только если НЕ атакуем джойстиком
+		if not (attack_joystick and attack_joystick.is_active):
+			update_direction(direction)
 		if can_anim:
 			play_walk_animation()
 	else:
 		velocity = velocity.move_toward(Vector2.ZERO, GameConstants.PLAYER_MAX_SPEED)
 		if can_anim:
 			play_idle_animation()
-
-	move_and_slide()
 
 func movement_vector() -> Vector2:
 	return Input.get_vector("move_left", "move_right", "move_up", "move_down").normalized()
@@ -82,33 +96,22 @@ func attack():
 		Dir.LEFT: animP.play("attack_left")
 		Dir.RIGHT: animP.play("attack_right")
 	
-	# Ждем завершения анимации именно в AnimationPlayer!
+	# Ждем завершения анимации
 	await animP.animation_finished
 	
-
-
 	can_anim = true
 	attack_timer.start()
 	
 func apply_knockback(source_position: Vector2, force: float):
 	if is_dead: return
-	
-	# Считаем вектор от источника (босса) к игроку
 	var knockback_dir = (global_position - source_position).normalized()
-	# Присваиваем velocity импульс
 	velocity = knockback_dir * force
-	
-	# Можно на мгновение запретить управление, если хочешь более жесткий эффект
-	# can_anim = false
-	# await get_tree().create_timer(0.2).timeout
-	# can_anim = true
+
 func take_damage(amount: int):
 	if not can_take_damage or is_dead:
 		return
 	
-	# Сразу сбрасываем всё, чтобы персонаж не "завис"
 	can_anim = false 
-	
 	can_take_damage = false
 	health_int -= amount
 	health_changed.emit(health_int, GameConstants.PLAYER_MAX_HEALTH)
@@ -117,7 +120,6 @@ func take_damage(amount: int):
 		die()
 		return
 
-	# Анимация получения урона ПЕРЕБИВАЕТ атаку
 	match current_dir:
 		Dir.UP: anim.play("hurt_up")
 		Dir.DOWN: anim.play("hurt_down")
@@ -126,7 +128,6 @@ func take_damage(amount: int):
 	
 	await anim.animation_finished
 	
-	# Важно: после завершения анимации боли возвращаем управление
 	if not is_dead:
 		can_anim = true
 		damage_timer.start()
@@ -144,10 +145,8 @@ func die():
 		Dir.RIGHT: anim.play("death_right")
 	
 	await anim.animation_finished
-	var over=gameover.instantiate()
+	var over = gameover.instantiate()
 	add_child(over)
-	
-	
 
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if is_dead: return
@@ -173,10 +172,8 @@ func _on_constants_changed() -> void:
 	last_known_max_health = new_max
 	health_changed.emit(health_int, new_max)
 
-
 func _on_can_attack_timeout() -> void:
 	can_attack = true
-
 
 func _on_hitbox_attack_body_entered(body: Node2D) -> void:
 	print("Удар по объекту: ", body.name)
@@ -184,6 +181,6 @@ func _on_hitbox_attack_body_entered(body: Node2D) -> void:
 	if body.is_in_group("enemies"):
 		body.take_damage(damage)
 
-func heal(amount:int) -> void:
+func heal(amount: int) -> void:
 	health_int += amount
 	health_changed.emit(health_int, GameConstants.PLAYER_MAX_HEALTH)
