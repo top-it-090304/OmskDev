@@ -39,6 +39,13 @@ func _ready() -> void:
 func _physics_process(_delta: float) -> void:
 	if is_dead: return 
 
+	# Проверка агрессии из родительского узла (комнаты)
+	var is_aggressive = parent_node and parent_node.get("aggression")
+
+	# ИСПРАВЛЕНИЕ: Если игрок уже в детекторе и комната стала агрессивной — атакуем
+	if is_aggressive and player_in_range and can_attack and can_move:
+		attack()
+
 	# Логика остановки, если нельзя двигаться или игрок слишком близко
 	if not player or not is_instance_valid(player) or not can_move or not get_closer:
 		velocity = Vector2.ZERO
@@ -52,9 +59,6 @@ func _physics_process(_delta: float) -> void:
 	
 	update_direction(direction)
 
-	# Проверка агрессии из родительского узла (комнаты)
-	var is_aggressive = parent_node and parent_node.get("aggression")
-
 	if is_aggressive and get_closer:
 		velocity = direction * max_speed
 		if can_anim:
@@ -66,7 +70,6 @@ func _physics_process(_delta: float) -> void:
 			play_idle_animation()
 
 func _process(_delta):
-	# Проверка смерти в каждом кадре
 	if hp <= 0 and not is_dead:
 		death()
 
@@ -90,11 +93,8 @@ func play_idle_animation():
 		anim.play("idle_down")
 
 func attack():
+	# Мы убрали проверку aggression отсюда, так как она теперь в physics_process
 	if not can_attack or not player_in_range or is_dead:
-		return
-
-	var is_aggressive = parent_node and parent_node.get("aggression")
-	if not is_aggressive:
 		return
 		
 	can_move = false
@@ -124,7 +124,6 @@ func take_damage(amount: int):
 		death()
 		return
 
-	
 	match current_dir:
 		Dir.UP: anim.play("hurt_up")
 		Dir.DOWN: anim.play("hurt_down")
@@ -147,14 +146,12 @@ func shoot():
 	arrow_instance.direction = target_dir
 	arrow_instance.rotation = target_dir.angle()
 	
-	# Добавляем стрелу в корень сцены, чтобы она не двигалась вместе со скелетом
 	get_tree().current_scene.add_child.call_deferred(arrow_instance)
 
 func death():
 	if is_dead: return
 	is_dead = true
 	can_move = false
-
 	can_attack = false
 	velocity = Vector2.ZERO 
 	
@@ -175,7 +172,6 @@ func death():
 	if randf() <= 0.25:
 		_spawn_loot()
 	
-	# 3. И только в самом конце удаляем врага
 	queue_free()
 	
 func _spawn_loot():
@@ -189,8 +185,7 @@ func _on_detector_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):
 		player_in_range = true
 		get_closer = false 
-		if can_attack:
-			attack()
+		# Теперь вызов attack() в physics_process подхватит это автоматически
 
 func _on_detector_body_exited(body: Node2D) -> void:
 	if body.is_in_group("player"):
@@ -200,11 +195,9 @@ func _on_detector_body_exited(body: Node2D) -> void:
 func _on_attack_timer_timeout():
 	if is_dead: return
 	can_attack = true
-	if player_in_range:
-		attack()
+	# Если игрок всё еще в зоне, атака сработает в следующем кадре physics_process
 
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if is_dead: return
-	# Урон игроку при касании тела скелета
 	if body.is_in_group("player") and body.has_method("take_damage"):
 		body.take_damage(GameConstants.SKELETON_BOW_BODY_DAMAGE)
