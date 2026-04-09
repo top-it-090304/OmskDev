@@ -1739,7 +1739,7 @@ script = ExtResource("28_jjj0s")
 scene_to_open = ExtResource("29_l6dqq")
 
 [node name="can_take_damage" type="Timer" parent="."]
-wait_time = 1.5
+wait_time = 0.5
 
 [node name="hitbox_attack" type="Area2D" parent="."]
 

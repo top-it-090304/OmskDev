@@ -8,6 +8,8 @@ var damage = 20
 @onready var animP = $AnimationPlayer
 @onready var attack_timer = $attack_timer
 @onready var anim = $AnimatedSprite2D
+# --- НОВОЕ ---
+@onready var hp_bar = $TextureProgressBar
 
 # Ссылки на окружение
 var player: Node2D = null
@@ -20,15 +22,18 @@ var current_dir = Dir.DOWN
 
 # Флаги состояний
 var can_move = true
-var can_attack = false # Изначально false, чтобы не стрелял в первый же кадр
+var can_attack = false 
 var player_in_range = false
 var get_closer = true
 var is_dead = false 
-var can_anim = true # Позволяет анимациям урона перебивать бег
+var can_anim = true 
 
 func _ready() -> void:
 	# Инициализация параметров
 	hp = GameConstants.SKELETON_BOW_HP
+	# --- НОВОЕ ---
+	hp_bar.update_hp(hp, GameConstants.SKELETON_BOW_HP)
+	
 	max_speed = randf_range(GameConstants.SKELETON_BOW_SPEED_MIN, GameConstants.SKELETON_BOW_SPEED_MAX)
 	player = get_tree().get_first_node_in_group("player") as Node2D
 	parent_node = get_parent()
@@ -36,20 +41,16 @@ func _ready() -> void:
 	if parent_node:
 		room_node = parent_node.get_parent()
 	
-	# Даем скелету небольшую паузу после появления перед первой атакой
 	attack_timer.start(1.0) 
 
 func _physics_process(_delta: float) -> void:
 	if is_dead: return 
 
-	# Проверка агрессии из родительского узла (комнаты)
 	var is_aggressive = parent_node and parent_node.get("aggression")
 
-	# ЛОГИКА АТАКИ: Стреляем, если агрессивны, игрок в зоне и мы готовы
 	if is_aggressive and player_in_range and can_attack and can_move:
 		attack()
 
-	# Логика остановки, если нельзя двигаться или игрок слишком близко
 	if not player or not is_instance_valid(player) or not can_move or not get_closer:
 		velocity = Vector2.ZERO
 		if not animP.is_playing() and can_anim:
@@ -101,7 +102,6 @@ func attack():
 	can_move = false
 	can_attack = false
 	
-	# Запуск анимации стрельбы
 	match current_dir:
 		Dir.UP: animP.play("attack_up")
 		Dir.DOWN: animP.play("attack_down")
@@ -112,13 +112,16 @@ func attack():
 	
 	if not is_dead:
 		can_move = true
-		attack_timer.start() # Перезарядка перед следующим выстрелом
+		attack_timer.start()
 		
 func take_damage(amount: int):
 	if is_dead: return
 	
 	hp -= amount
+	hp_bar.update_hp(hp, GameConstants.SKELETON_BOW_HP)
+	
 	can_anim = false 
+	can_move = false # 1. ДОБАВИТЬ: Принудительно останавливаем скелета на время анимации боли
 	animP.stop()    
 	
 	if hp <= 0:
@@ -135,9 +138,9 @@ func take_damage(amount: int):
 	
 	if not is_dead:
 		can_anim = true 
+		can_move = true # 2. ДОБАВИТЬ: Размораживаем скелета после получения урона
 		
 func shoot():
-	# Вызывается через AnimationPlayer
 	if not player or not is_instance_valid(player) or is_dead: return
 	
 	var arrow_instance = GameConstants.SKELETON_BOW_ARROW.instantiate()
@@ -179,15 +182,12 @@ func _spawn_loot():
 	potion.global_position = global_position
 	get_parent().add_child(potion)
 
-# Сигналы
 func _on_detector_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player"):
 		player_in_range = true
 		get_closer = false 
 		
-		# Если скелет готов стрелять, даем микро-задержку (0.4с), 
-		# чтобы выстрел не был мгновенным при входе
 		if can_attack:
 			can_attack = false
 			attack_timer.start(0.4) 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=180 format=3 uid="uid://ot1bjrnddml7"]
+[gd_scene load_steps=183 format=3 uid="uid://ot1bjrnddml7"]
 
 [ext_resource type="Script" uid="uid://k6oppqmu6kll" path="res://scene/game_objects/enemy/skeleton_bow/skeleton_bow.gd" id="1_h3w2k"]
 [ext_resource type="Texture2D" uid="uid://c1xid83v6ajlw" path="res://sprites/enemys/skeletonBow/Down/Png/SkeletonWithBowDownAttack01.png" id="1_n57qw"]
@@ -21,6 +21,9 @@
 [ext_resource type="Texture2D" uid="uid://cvgjd1mbxxlfl" path="res://sprites/enemys/skeletonBow/Up/Png/SkeletonWithSBowUpWalk.png" id="12_i5q24"]
 [ext_resource type="Texture2D" uid="uid://1k3ybp41hhpy" path="res://sprites/enemys/skeletonBow/Right/Png/SkeletonWithBowRightHurt.png" id="12_uml27"]
 [ext_resource type="Texture2D" uid="uid://paxd5rm7tqop" path="res://sprites/enemys/skeletonBow/Up/Png/SkeletonWithBowUpHurt.png" id="13_5u4vk"]
+[ext_resource type="Texture2D" uid="uid://8o1hatxsh21y" path="res://assets/hpUnderEnemy.png" id="22_uml27"]
+[ext_resource type="Texture2D" uid="uid://bu1d3dqfv283u" path="res://assets/hpProgressEnemy.png" id="23_5u4vk"]
+[ext_resource type="Script" uid="uid://osq5kv0630j2" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="24_15ev2"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_dfcc5"]
 radius = 150.0
@@ -1566,6 +1569,18 @@ one_shot = true
 libraries = {
 &"": SubResource("AnimationLibrary_5u4vk")
 }
+
+[node name="TextureProgressBar" type="TextureProgressBar" parent="."]
+offset_left = -18.0
+offset_top = 17.0
+offset_right = 26.0
+offset_bottom = 23.0
+scale = Vector2(0.8, 0.8)
+max_value = 20.0
+value = 10.0
+texture_under = ExtResource("22_uml27")
+texture_progress = ExtResource("23_5u4vk")
+script = ExtResource("24_15ev2")
 
 [connection signal="body_entered" from="detector" to="." method="_on_detector_body_entered"]
 [connection signal="body_exited" from="detector" to="." method="_on_detector_body_exited"]

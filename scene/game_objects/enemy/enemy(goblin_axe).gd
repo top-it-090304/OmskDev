@@ -6,6 +6,9 @@ var hp = 0
 @onready var anim = $AnimatedSprite2D
 @onready var animP = $AnimationPlayer
 @onready var attack_timer = $attack_timer
+# --- НОВОЕ ---
+@onready var hp_bar = $TextureProgressBar
+
 var speed = GameConstants.ENEMY_GOBLIN_AXE_MAX_SPEED
 enum Dir { DOWN, UP, LEFT, RIGHT }
 var current_dir = Dir.DOWN
@@ -16,13 +19,17 @@ var room_node: Node2D = null
 
 var can_walk = true
 var can_attack = true
-var can_anim = true # Позволяет анимации урона проигрываться полностью
+var can_anim = true 
 var player_in_range = false
 var smite_instance: Node2D = null
 var is_dead = false 
 
 func _ready() -> void:
 	hp = GameConstants.ENEMY_GOBLIN_AXE_HP
+	# --- НОВОЕ ---
+	# Инициализируем полоску здоровья при появлении врага
+	hp_bar.update_hp(hp, GameConstants.ENEMY_GOBLIN_AXE_HP)
+	
 	player = get_tree().get_first_node_in_group("player") as Node2D
 	parent_node = get_parent()
 	if parent_node:
@@ -31,7 +38,6 @@ func _ready() -> void:
 func _physics_process(_delta: float) -> void:
 	if is_dead: return 
 	
-	# Если гоблин в состоянии атаки или получения урона — он не идет
 	if not can_walk:
 		velocity = Vector2.ZERO
 		move_and_slide()
@@ -46,7 +52,6 @@ func _physics_process(_delta: float) -> void:
 		velocity = direction * speed
 		move_and_slide()
 		
-		# Обновляем анимацию бега, только если её не перебивает "hurt"
 		if can_anim:
 			update_run_animation(direction)
 	else:
@@ -79,10 +84,8 @@ func attack():
 	if not can_attack or not player_in_range or is_dead:
 		return
 		
-	
 	can_attack = false
 	can_anim = false
-	# Принудительно останавливаем AnimatedSprite2D перед запуском AnimationPlayer
 	anim.stop()
 	speed *= 1.5
 	match current_dir:
@@ -98,8 +101,7 @@ func attack():
 		smite_instance.queue_free()
 		smite_instance = null
 		
-	if not is_dead and can_anim: # Проверка, что нас не убили/не ударили за время атаки
-
+	if not is_dead and can_anim:
 		attack_timer.start()
 
 func play_idle_animation():
@@ -112,15 +114,18 @@ func take_damage(amount: int):
 	if is_dead: return
 	
 	hp -= amount
+	# --- НОВОЕ ---
+	# Обновляем полоску здоровья каждый раз, когда враг получает урон
+	hp_bar.update_hp(hp, GameConstants.ENEMY_GOBLIN_AXE_HP)
+	
 	can_walk = false
-	can_anim = false # Запрещаем бегу перебивать анимацию боли
-	animP.stop()    # Прерываем текущую атаку
+	can_anim = false 
+	animP.stop()    
 	
 	if hp <= 0:
 		death()
 		return
 
-	# Анимация получения урона
 	match current_dir:
 		Dir.UP: anim.play("hurt_up")
 		Dir.DOWN: anim.play("hurt_down")
@@ -144,7 +149,6 @@ func death():
 	anim.stop()
 	animP.stop()
 	
-	# Отключаем коллизии
 	set_collision_layer_value(1, false)
 	set_collision_mask_value(1, false)
 
@@ -158,7 +162,6 @@ func death():
 	if randf() <= 0.25:
 		_spawn_loot()
 	
-	# 3. И только в самом конце удаляем врага
 	queue_free()
 	
 func _spawn_loot():
@@ -204,7 +207,6 @@ func _on_attack_timer_timeout():
 		attack()
 
 func _on_hitbox_area_entered(_area: Area2D) -> void:
-	# Если урон идет через площади (например, стрелы игрока)
 	take_damage(GameConstants.ENEMY_GOBLIN_AXE_TAKE_DAMAGE)
 			
 func _on_hitbox_body_entered(body: Node2D) -> void:

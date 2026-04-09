@@ -15,7 +15,7 @@ const ENEMY_GOBLIN_AXE_SMITE = preload("res://scene/game_objects/enemy/goblin_ax
 const HEALTH_POTION = preload("res://scene/pick_up/Heal potion/heal_potion.tscn")
 
 # --- PLAYER STATS ---
-var PLAYER_MAX_SPEED = 500
+var PLAYER_MAX_SPEED = 300
 var PLAYER_MAX_HEALTH = 100
 var PLAYER_ENEMY_CONTACT_DAMAGE = 10
 

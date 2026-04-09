@@ -1,4 +1,4 @@
-[gd_scene load_steps=263 format=3 uid="uid://dvni48vx1r4cj"]
+[gd_scene load_steps=266 format=3 uid="uid://dvni48vx1r4cj"]
 
 [ext_resource type="Script" uid="uid://csv2w2dx221dw" path="res://scene/game_objects/bosses/goblin/beast_goblin.gd" id="1_ri15p"]
 [ext_resource type="Texture2D" uid="uid://bd7s7pakqgqq4" path="res://sprites/bosses/goblin/Down/Png/GoblinBeastDownAttack02.png" id="2_524aj"]
@@ -26,6 +26,9 @@
 [ext_resource type="Texture2D" uid="uid://cdwe0shfjgmrl" path="res://sprites/bosses/goblin/Left/Png/GoblinBeastLeftAttack01.png" id="20_y1sma"]
 [ext_resource type="Texture2D" uid="uid://vk7pur4h64gp" path="res://sprites/bosses/goblin/Right/Png/GoblinBeastRightAttack01.png" id="21_cgxyv"]
 [ext_resource type="Texture2D" uid="uid://cds1a43xrd37d" path="res://sprites/bosses/goblin/Up/Png/GoblinBeastUpAttack01.png" id="22_03yyc"]
+[ext_resource type="Texture2D" uid="uid://8o1hatxsh21y" path="res://assets/hpUnderEnemy.png" id="27_2a4ok"]
+[ext_resource type="Texture2D" uid="uid://bu1d3dqfv283u" path="res://assets/hpProgressEnemy.png" id="28_o155f"]
+[ext_resource type="Script" uid="uid://osq5kv0630j2" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="29_wqun3"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_2u40x"]
 radius = 55.0
@@ -2386,6 +2389,18 @@ debug_color = Color(0.560784, 0.396078, 1, 0)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="detectorShoot"]
 shape = SubResource("CircleShape2D_2a4ok")
 debug_color = Color(0.65098, 0.517647, 0, 0)
+
+[node name="TextureProgressBar" type="TextureProgressBar" parent="."]
+offset_left = -18.0
+offset_top = 17.0
+offset_right = 26.0
+offset_bottom = 23.0
+scale = Vector2(0.8, 0.8)
+max_value = 20.0
+value = 10.0
+texture_under = ExtResource("27_2a4ok")
+texture_progress = ExtResource("28_o155f")
+script = ExtResource("29_wqun3")
 
 [connection signal="body_entered" from="detectorSlap" to="." method="_on_detector_slap_body_entered"]
 [connection signal="body_entered" from="slap" to="." method="_on_slap_body_entered"]
