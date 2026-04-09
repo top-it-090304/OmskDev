@@ -7,7 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://c2ctulieyuv06" path="res://sprites/Rocks/left_wall.tscn" id="3_g8r5t"]
 [ext_resource type="Script" uid="uid://cr6mv2r4o37d7" path="res://scene/level/enemys.gd" id="3_rgse5"]
 [ext_resource type="PackedScene" uid="uid://beah3kj0mi8ae" path="res://sprites/Rocks/down_wall.tscn" id="4_4wg7f"]
-[ext_resource type="Script" path="res://scene/room_variants/BaseRoom[0]/door.gd" id="5_rgse5"]
+[ext_resource type="Script" uid="uid://jmqbjpx8nui8" path="res://scene/room_variants/BaseRoom[0]/door.gd" id="5_rgse5"]
 [ext_resource type="PackedScene" uid="uid://cpx8icdl30v1" path="res://sprites/Rocks/right_wall.tscn" id="5_slhwe"]
 [ext_resource type="Texture2D" uid="uid://0g2ojsmfltkg" path="res://assets/layers/Animated Tiles/Lava Dungeon/Doors/Wide door Red/Png/Wide door red closing.png" id="6_qvk3c"]
 [ext_resource type="Texture2D" uid="uid://dcikqsasxplwo" path="res://assets/layers/Animated Tiles/Lava Dungeon/Doors/Wide door Red/Png/Wide door red opening.png" id="7_r2xgy"]
@@ -278,7 +278,3 @@ animation = &"Closed"
 
 [connection signal="area_entered" from="room_shape" to="Enemys" method="_on_room_shape_area_entered"]
 [connection signal="area_exited" from="room_shape" to="Enemys" method="_on_room_shape_area_exited"]
-[connection signal="body_entered" from="room_shape" to="Enemys" method="_on_room_shape_body_entered"]
-[connection signal="body_exited" from="room_shape" to="Enemys" method="_on_room_shape_body_exited"]
-[connection signal="child_exiting_tree" from="room_shape" to="Enemys" method="_on_room_shape_child_exiting_tree"]
-[connection signal="tree_exiting" from="room_shape" to="Enemys" method="_on_room_shape_tree_exiting"]

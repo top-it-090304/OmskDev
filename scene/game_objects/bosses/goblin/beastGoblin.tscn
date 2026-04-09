@@ -1,6 +1,6 @@
-[gd_scene load_steps=260 format=3 uid="uid://brtumm08sjxo1"]
+[gd_scene load_steps=260 format=3 uid="uid://dvni48vx1r4cj"]
 
-[ext_resource type="Script" uid="uid://csv2w2dx221dw" path="res://scene/game_objects/bosses/goblin/beast_goblin.gd" id="1_ri15p"]
+[ext_resource type="Script" path="res://scene/game_objects/bosses/goblin/beast_goblin.gd" id="1_ri15p"]
 [ext_resource type="Texture2D" uid="uid://bd7s7pakqgqq4" path="res://sprites/bosses/goblin/Down/Png/GoblinBeastDownAttack02.png" id="2_524aj"]
 [ext_resource type="Texture2D" uid="uid://b08541sqve2vh" path="res://sprites/bosses/goblin/Left/Png/GoblinBeastLeftAttack02.png" id="3_upmi1"]
 [ext_resource type="Texture2D" uid="uid://bpt2lwh7qimpu" path="res://sprites/bosses/goblin/Right/Png/GoblinBeastRightAttack02.png" id="4_gylxb"]
@@ -1636,6 +1636,33 @@ animations = [{
 radius = 12.0
 height = 45.0
 
+[sub_resource type="Animation" id="Animation_2u40x"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("slap/CollisionShape2D:disabled")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:animation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [&"shoot_up"]
+}
+
 [sub_resource type="Animation" id="Animation_0h5wg"]
 length = 0.642857
 tracks/0/type = "value"
@@ -2283,33 +2310,6 @@ tracks/2/keys = {
 "values": [false, true]
 }
 
-[sub_resource type="Animation" id="Animation_2u40x"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("slap/CollisionShape2D:disabled")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("AnimatedSprite2D:animation")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [&"shoot_up"]
-}
-
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_yfnq7"]
 _data = {
 &"RESET": SubResource("Animation_2u40x"),
@@ -2333,6 +2333,7 @@ _data = {
 }
 
 [node name="BossGoblin" type="CharacterBody2D" groups=["enemies", "enemys"]]
+collision_layer = 5
 script = ExtResource("1_ri15p")
 
 [node name="slap" type="Area2D" parent="."]
