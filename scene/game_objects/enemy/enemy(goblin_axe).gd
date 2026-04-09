@@ -6,7 +6,7 @@ var hp = 0
 @onready var anim = $AnimatedSprite2D
 @onready var animP = $AnimationPlayer
 @onready var attack_timer = $attack_timer
-
+var speed = GameConstants.ENEMY_GOBLIN_AXE_MAX_SPEED
 enum Dir { DOWN, UP, LEFT, RIGHT }
 var current_dir = Dir.DOWN
 
@@ -43,7 +43,7 @@ func _physics_process(_delta: float) -> void:
 		var to_player = player.global_position - global_position
 		var direction = to_player.normalized()
 		
-		velocity = direction * GameConstants.ENEMY_GOBLIN_AXE_MAX_SPEED
+		velocity = direction * speed
 		move_and_slide()
 		
 		# Обновляем анимацию бега, только если её не перебивает "hurt"
@@ -79,12 +79,12 @@ func attack():
 	if not can_attack or not player_in_range or is_dead:
 		return
 		
-	can_walk = false
-	can_attack = false
 	
+	can_attack = false
+	can_anim = false
 	# Принудительно останавливаем AnimatedSprite2D перед запуском AnimationPlayer
 	anim.stop()
-	
+	speed *= 1.5
 	match current_dir:
 		Dir.UP: animP.play("attack_up")
 		Dir.DOWN: animP.play("attack_down")
@@ -92,13 +92,14 @@ func attack():
 		Dir.RIGHT: animP.play("attack_right")
 		
 	await animP.animation_finished
-	
+	speed /= 1.5
+	can_anim = true
 	if is_instance_valid(smite_instance):
 		smite_instance.queue_free()
 		smite_instance = null
 		
 	if not is_dead and can_anim: # Проверка, что нас не убили/не ударили за время атаки
-		can_walk = true
+
 		attack_timer.start()
 
 func play_idle_animation():
@@ -154,9 +155,17 @@ func death():
 		Dir.RIGHT: anim.play("death_right")
 		
 	await anim.animation_finished
-	GameConstants.register_enemy_kill()
+	if randf() <= 0.25:
+		_spawn_loot()
+	
+	# 3. И только в самом конце удаляем врага
 	queue_free()
-
+	
+func _spawn_loot():
+	var potion = GameConstants.HEALTH_POTION.instantiate()
+	potion.global_position = global_position
+	get_parent().add_child(potion)
+	
 func swing():
 	if not is_instance_valid(player) or is_dead: return
 	smite_instance = GameConstants.ENEMY_GOBLIN_AXE_SMITE.instantiate()

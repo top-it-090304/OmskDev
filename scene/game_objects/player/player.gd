@@ -15,7 +15,7 @@ var can_anim = true
 var can_attack = true
 var is_dead = false 
 var last_known_max_health = 0
-var damage = 10
+var damage = 150
 
 signal health_changed(new_health, max_health)
 
@@ -90,6 +90,18 @@ func attack():
 	can_anim = true
 	attack_timer.start()
 	
+func apply_knockback(source_position: Vector2, force: float):
+	if is_dead: return
+	
+	# Считаем вектор от источника (босса) к игроку
+	var knockback_dir = (global_position - source_position).normalized()
+	# Присваиваем velocity импульс
+	velocity = knockback_dir * force
+	
+	# Можно на мгновение запретить управление, если хочешь более жесткий эффект
+	# can_anim = false
+	# await get_tree().create_timer(0.2).timeout
+	# can_anim = true
 func take_damage(amount: int):
 	if not can_take_damage or is_dead:
 		return
@@ -171,3 +183,7 @@ func _on_hitbox_attack_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("enemies"):
 		body.take_damage(damage)
+
+func heal(amount:int) -> void:
+	health_int += amount
+	health_changed.emit(health_int, GameConstants.PLAYER_MAX_HEALTH)
