@@ -1790,7 +1790,6 @@ _data = {
 }
 
 [node name="BossGoblin" type="CharacterBody2D" groups=["enemies"]]
-scale = Vector2(1.1, 1.1)
 script = ExtResource("1_opac5")
 
 [node name="hitbox" type="Area2D" parent="."]

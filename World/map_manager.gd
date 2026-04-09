@@ -11,7 +11,7 @@ extends Node2D
 @export var corridor_h_scene: PackedScene 
 @export var corridor_v_scene: PackedScene
 @export var enemy_variations: Array[PackedScene] = [] 
-
+@export var boss_variations: Array[PackedScene] = [] 
 # НОВОЕ: Массив всех возможных предметов для Treasure Room
 @export var treasure_items: Array[PackedScene] = []
 
@@ -289,7 +289,7 @@ func check_neighbor(nx, ny):
 # =====================================================================
 
 func _spawn_obstacles_in_room(room_node: Node2D, room_type: RoomType):
-	if room_type == RoomType.START or room_type == RoomType.TREASURE or room_type == RoomType.EMPTY:
+	if room_type == RoomType.BOSS or room_type == RoomType.START or room_type == RoomType.TREASURE or room_type == RoomType.EMPTY:
 		return
 		
 	if obstacle_data.is_empty():
@@ -395,11 +395,38 @@ func _spawn_enemies_after_physics():
 		var enemy_count = 0
 		
 		if room_type==RoomType.NORMAL: enemy_count = randi_range(2, 5)
-			
+		
+		if room_type==RoomType.BOSS: 
+			_spawn_boss(space_state, room_node)
+			return
 			
 		for _i in range(enemy_count):
 			_spawn_single_enemy(space_state, room_node)
+func _spawn_boss(space_state, room_node):
+		var local_x = (GameConstants.MAP_MANAGER_ROOM_SIZE_X /2)
+		var local_y = (GameConstants.MAP_MANAGER_ROOM_SIZE_Y /2)
+		var local_point = Vector2(local_x, local_y)
+		var global_point = room_node.to_global(local_point)
 
+		var query = PhysicsPointQueryParameters2D.new()
+		query.position = global_point 
+		query.collide_with_bodies = true  
+		query.collide_with_areas = false  
+		query.collision_mask = 1 
+
+		var intersection = space_state.intersect_point(query)
+
+		if intersection.is_empty():
+			var selected_boss_scene = boss_variations.pick_random()
+			var boss = selected_boss_scene.instantiate()
+			
+			var area_enemys = room_node.find_child("Enemys")
+			if area_enemys == null:
+				return
+			
+			area_enemys.add_child(boss)
+			boss.global_position = global_point
+			return 
 func _spawn_single_enemy(space_state, room_node):
 	var max_attempts = 30 
 	
