@@ -1,7 +1,8 @@
-[gd_scene load_steps=168 format=3 uid="uid://xawnnltchw47"]
+[gd_scene load_steps=169 format=3 uid="uid://xawnnltchw47"]
 
 [ext_resource type="Script" uid="uid://b4d56hcuiwhmy" path="res://scene/game_objects/player/Player.gd" id="1_ktjk3"]
 [ext_resource type="Texture2D" uid="uid://pagggpic45vn" path="res://sprites/player/Health/Health_progressbar_sprite_under.png" id="2_gvguk"]
+[ext_resource type="PackedScene" uid="uid://5b5gg5popt2v" path="res://World/UI/game_over.tscn" id="2_vv8lt"]
 [ext_resource type="Texture2D" uid="uid://dxdn8h61vtnv5" path="res://sprites/player/Health/Health_progressbar_sprite_progress.png" id="3_vv8lt"]
 [ext_resource type="Script" uid="uid://bxelbrdtxv7u6" path="res://scene/game_objects/player/health.gd" id="4_sfq4q"]
 [ext_resource type="PackedScene" uid="uid://5f3o7tew7oun" path="res://scene/button/mobile_controller.tscn" id="5_tigyi"]
@@ -1679,6 +1680,7 @@ z_index = 2
 collision_layer = 3
 safe_margin = 1.0
 script = ExtResource("1_ktjk3")
+gameover = ExtResource("2_vv8lt")
 
 [node name="TextureProgressBar" type="TextureProgressBar" parent="."]
 z_index = 10

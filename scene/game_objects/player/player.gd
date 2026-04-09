@@ -1,7 +1,7 @@
 extends CharacterBody2D
 
 @export var atack_spawn: Node
-
+@export var gameover:PackedScene
 @onready var anim = $AnimatedSprite2D
 var health_int = 0
 var can_take_damage = true
@@ -132,8 +132,10 @@ func die():
 		Dir.RIGHT: anim.play("death_right")
 	
 	await anim.animation_finished
-	get_tree().change_scene_to_file("res://world/UI/menu.tscn")
-	queue_free()
+	var over=gameover.instantiate()
+	add_child(over)
+	
+	
 
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if is_dead: return
