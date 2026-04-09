@@ -77,8 +77,6 @@ func attack(type: String):
 	
 	if animP.has_animation(anim_name):
 		animP.play(anim_name)
-		# Если зависает только bite, проверь, нет ли в AnimationPlayer 
-		# лишних ключей Call Method с опечатками
 		await animP.animation_finished
 	
 	_reset_after_attack()
