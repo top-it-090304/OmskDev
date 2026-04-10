@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Dungeon"
-run/main_scene="uid://bq40uiaugbfjq"
+run/main_scene="uid://btc3fcnovye8d"
 config/features=PackedStringArray("4.4", "Mobile")
 boot_splash/bg_color=Color(0, 0.0418439, 0.0956349, 1)
 

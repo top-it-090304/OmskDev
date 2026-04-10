@@ -1,6 +1,6 @@
 extends Control
 @export var scene_to_open: PackedScene  # Перетащите сцену в инспекторе
-
+var target_scene="res://world/ui/menu.tscn"
 func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	get_tree().paused=true
@@ -17,4 +17,5 @@ func _on_texture_button_2_pressed() -> void:
 
 func _on_texture_button_3_pressed() -> void:
 	get_tree().paused=false
-	get_tree().change_scene_to_file("res://world/UI/menu.tscn")
+	
+	get_tree().change_scene_to_file(target_scene)
