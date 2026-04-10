@@ -6,13 +6,16 @@ extends Node2D
 @export var boss_room_variations: Array[PackedScene] = [] 
 @export var treasure_room_variations: Array[PackedScene] = [] 
 
+@export var layer: Node 
+
 @export var corridor_h_scene: PackedScene 
 @export var corridor_v_scene: PackedScene
 @export var enemy_variations: Array[PackedScene] = [] 
-
+@export var boss_variations: Array[PackedScene] = [] 
 # НОВОЕ: Массив всех возможных предметов для Treasure Room
 @export var treasure_items: Array[PackedScene] = []
 
+@export var player_scene:PackedScene
 # Гибкий массив препятствий
 @export var obstacle_data: Array[Dictionary] = [
 	{"scene": preload("res://sprites/Rocks/rock_1.tscn"), "size": Vector2(32, 32)},
@@ -47,19 +50,55 @@ func _ready():
 	generate_layout()
 	draw_map()
 	await get_tree().create_timer(0).timeout
-	
+	_spawn_player()
 	await _spawn_obstacles_after_physics()
 	await _spawn_enemies_after_physics()
 	
 	# НОВОЕ: Спавним предметы в комнатах сокровищ (делаем это последним)
 	_spawn_treasure_items()
 	
+	
 	change_current_room(current_room_grid_pos.x, current_room_grid_pos.y)
 
 # =====================================================================
 # НОВОЕ: ЛОГИКА "КОЛОДЫ КАРТ" ДЛЯ ПРЕДМЕТОВ
 # =====================================================================
+# =====================================================================
+# НОВОЕ: СПАВН ИГРОКА
+# =====================================================================
+func _spawn_player():
+	var Player = null
 
+	# 1. Если сцена игрока задана в инспекторе, создаем его
+	if player_scene:
+		Player = player_scene.instantiate()
+		layer.add_child(Player) # Добавляем как child прямо в MapManager
+	else:
+		# 2. Если сцена не задана, пробуем найти игрока уже на сцене (например, если он в автолоаде)
+		Player = get_tree().get_first_node_in_group("Player")
+		if not Player:
+			push_warning("MapManager: Сцена игрока не назначена и игрок в группе 'player' не найден!")
+			return
+
+	# Ищем стартовую комнату в списке заспавненных
+	for room_data in spawned_rooms:
+		if room_data["type"] == RoomType.START:
+			var room_node = room_data["node"]
+			
+			# Ищем маркер по имени (можно переименовать как угодно)
+			var spawn_marker = room_node.find_child("PlayerSpawn", true, false)
+			
+			if spawn_marker:
+				# Если маркер найден — ставим игрока строго в него
+				Player.global_position = spawn_marker.global_position
+			else:
+				# Фолбэк (запасной вариант): если маркера нет, считаем центр математически
+				var local_center = Vector2(GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2.0, GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2.0)
+				Player.global_position = room_node.to_global(local_center)
+				
+			break # Стартовая комната всего одна, выходим из цикла
+
+# =============
 func _get_next_treasure_item() -> PackedScene:
 	if treasure_items.is_empty():
 		return null
@@ -250,7 +289,7 @@ func check_neighbor(nx, ny):
 # =====================================================================
 
 func _spawn_obstacles_in_room(room_node: Node2D, room_type: RoomType):
-	if room_type == RoomType.START or room_type == RoomType.TREASURE or room_type == RoomType.EMPTY:
+	if room_type == RoomType.BOSS or room_type == RoomType.START or room_type == RoomType.TREASURE or room_type == RoomType.EMPTY:
 		return
 		
 	if obstacle_data.is_empty():
@@ -356,11 +395,38 @@ func _spawn_enemies_after_physics():
 		var enemy_count = 0
 		
 		if room_type==RoomType.NORMAL: enemy_count = randi_range(2, 5)
-			
+		
+		if room_type==RoomType.BOSS: 
+			_spawn_boss(space_state, room_node)
+			return
 			
 		for _i in range(enemy_count):
 			_spawn_single_enemy(space_state, room_node)
+func _spawn_boss(space_state, room_node):
+		var local_x = (GameConstants.MAP_MANAGER_ROOM_SIZE_X /2)
+		var local_y = (GameConstants.MAP_MANAGER_ROOM_SIZE_Y /2)
+		var local_point = Vector2(local_x, local_y)
+		var global_point = room_node.to_global(local_point)
 
+		var query = PhysicsPointQueryParameters2D.new()
+		query.position = global_point 
+		query.collide_with_bodies = true  
+		query.collide_with_areas = false  
+		query.collision_mask = 1 
+
+		var intersection = space_state.intersect_point(query)
+
+		if intersection.is_empty():
+			var selected_boss_scene = boss_variations.pick_random()
+			var boss = selected_boss_scene.instantiate()
+			
+			var area_enemys = room_node.find_child("Enemys")
+			if area_enemys == null:
+				return
+			
+			area_enemys.add_child(boss)
+			boss.global_position = global_point
+			return 
 func _spawn_single_enemy(space_state, room_node):
 	var max_attempts = 30 
 	

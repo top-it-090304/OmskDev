@@ -1,4 +1,4 @@
-[gd_scene load_steps=156 format=3 uid="uid://djme8hqe5u87s"]
+[gd_scene load_steps=159 format=3 uid="uid://djme8hqe5u87s"]
 
 [ext_resource type="Script" uid="uid://d2kkculxvdxu5" path="res://scene/game_objects/enemy/enemy(goblin_axe).gd" id="1_2xi4h"]
 [ext_resource type="Texture2D" uid="uid://3iftfbt86hrh" path="res://sprites/enemys/axeGoblin/Down/Png/GoblinDownAttack01.png" id="2_jcyvn"]
@@ -19,6 +19,9 @@
 [ext_resource type="Texture2D" uid="uid://c7pamfjq8gs6f" path="res://sprites/enemys/axeGoblin/Up/Png/GoblinUpDeath.png" id="9_kdo45"]
 [ext_resource type="Texture2D" uid="uid://d1rgulso2vqkk" path="res://sprites/enemys/axeGoblin/Up/Png/GoblinUpHurt.png" id="9_ld14w"]
 [ext_resource type="Script" uid="uid://d0rsjn1v4kmxq" path="res://scene/game_objects/enemy/goblin_axe/attack_timer.gd" id="15_upxj5"]
+[ext_resource type="Script" uid="uid://osq5kv0630j2" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="20_enwt8"]
+[ext_resource type="Texture2D" uid="uid://8o1hatxsh21y" path="res://assets/hpUnderEnemy.png" id="20_kdo45"]
+[ext_resource type="Texture2D" uid="uid://bu1d3dqfv283u" path="res://assets/hpProgressEnemy.png" id="21_ersmr"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_0e6ua"]
 atlas = ExtResource("2_jcyvn")
@@ -961,7 +964,7 @@ radius = 13.0
 height = 35.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_gg0d6"]
-radius = 28.0179
+radius = 49.0102
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_6027f"]
 radius = 13.0
@@ -1300,16 +1303,18 @@ _data = {
 &"run_up": SubResource("Animation_538nr")
 }
 
-[node name="enemy(goblin_axe)" type="CharacterBody2D"]
+[node name="enemy(goblin_axe)" type="CharacterBody2D" groups=["enemies"]]
 collision_layer = 5
-collision_mask = 7
+floor_max_angle = 0.0
+safe_margin = 0.001
 script = ExtResource("1_2xi4h")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 z_index = 1
 sprite_frames = SubResource("SpriteFrames_yl1a4")
-animation = &"death_right"
+animation = &"hurt_up"
 autoplay = "idle_down"
+frame = 3
 
 [node name="hitbox" type="Area2D" parent="." groups=["enemys"]]
 collision_layer = 0
@@ -1321,7 +1326,7 @@ shape = SubResource("CapsuleShape2D_upxj5")
 debug_color = Color(1, 0.148545, 0.269002, 0.42)
 
 [node name="detector" type="Area2D" parent="."]
-collision_mask = 6
+collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="detector"]
 shape = SubResource("CircleShape2D_gg0d6")
@@ -1340,6 +1345,18 @@ speed_scale = 3.0
 wait_time = 1.5
 one_shot = true
 script = ExtResource("15_upxj5")
+
+[node name="TextureProgressBar" type="TextureProgressBar" parent="."]
+offset_left = -18.0
+offset_top = 17.0
+offset_right = 26.0
+offset_bottom = 23.0
+scale = Vector2(0.8, 0.8)
+max_value = 20.0
+value = 10.0
+texture_under = ExtResource("20_kdo45")
+texture_progress = ExtResource("21_ersmr")
+script = ExtResource("20_enwt8")
 
 [connection signal="area_entered" from="hitbox" to="." method="_on_hitbox_area_entered"]
 [connection signal="body_entered" from="hitbox" to="." method="_on_hitbox_body_entered"]

@@ -1,40 +1,59 @@
 extends CharacterBody2D
 
-var hp = 0
+# Настройки из глобальных констант
+@export var hp = 0
+var max_speed = 0.0
+var damage = 20
+
 @onready var animP = $AnimationPlayer
 @onready var attack_timer = $attack_timer
 @onready var anim = $AnimatedSprite2D
+# --- НОВОЕ ---
+@onready var hp_bar = $TextureProgressBar
 
-var max_speed = 0.0
+# Ссылки на окружение
 var player: Node2D = null
 var parent_node: Node = null
 var room_node: Node2D = null
 
+# Направления
 enum Dir { DOWN, UP, LEFT, RIGHT }
 var current_dir = Dir.DOWN
 
+# Флаги состояний
 var can_move = true
-var can_attack = true
+var can_attack = false 
 var player_in_range = false
 var get_closer = true
-var is_dead = false # Добавляем флаг смерти
+var is_dead = false 
+var can_anim = true 
 
 func _ready() -> void:
+	# Инициализация параметров
 	hp = GameConstants.SKELETON_BOW_HP
+	# --- НОВОЕ ---
+	hp_bar.update_hp(hp, GameConstants.SKELETON_BOW_HP)
+	
 	max_speed = randf_range(GameConstants.SKELETON_BOW_SPEED_MIN, GameConstants.SKELETON_BOW_SPEED_MAX)
 	player = get_tree().get_first_node_in_group("player") as Node2D
 	parent_node = get_parent()
 
 	if parent_node:
 		room_node = parent_node.get_parent()
+	
+	attack_timer.start(1.0) 
 
 func _physics_process(_delta: float) -> void:
-	if is_dead: return # Мертвые не ходят
+	if is_dead: return 
+
+	var is_aggressive = parent_node and parent_node.get("aggression")
+
+	if is_aggressive and player_in_range and can_attack and can_move:
+		attack()
 
 	if not player or not is_instance_valid(player) or not can_move or not get_closer:
 		velocity = Vector2.ZERO
-		
-		if not animP.is_playing():
+		if not animP.is_playing() and can_anim:
 			play_idle_animation()
 		move_and_slide() 
 		return
@@ -44,13 +63,15 @@ func _physics_process(_delta: float) -> void:
 	
 	update_direction(direction)
 
-	if parent_node and parent_node.get("aggression") and get_closer:
+	if is_aggressive and get_closer:
 		velocity = direction * max_speed
-		play_run_animation()
+		if can_anim:
+			play_run_animation()
 		move_and_slide()
 	else:
 		velocity = Vector2.ZERO
-		play_idle_animation()
+		if can_anim:
+			play_idle_animation()
 
 func _process(_delta):
 	if hp <= 0 and not is_dead:
@@ -77,9 +98,6 @@ func play_idle_animation():
 func attack():
 	if not can_attack or not player_in_range or is_dead:
 		return
-
-	if parent_node and not parent_node.get("aggression"):
-		return
 		
 	can_move = false
 	can_attack = false
@@ -95,9 +113,39 @@ func attack():
 	if not is_dead:
 		can_move = true
 		attack_timer.start()
+		
+func take_damage(amount: int):
+	if is_dead: return
+	
+	hp -= amount
+	hp_bar.update_hp(hp, GameConstants.SKELETON_BOW_HP)
+	
+	can_anim = false 
+	can_move = false 
+	animP.stop()    
+	
+	if hp <= 0:
+		death()
+		return
 
+	match current_dir:
+		Dir.UP: anim.play("hurt_up")
+		Dir.DOWN: anim.play("hurt_down")
+		Dir.LEFT: anim.play("hurt_left")
+		Dir.RIGHT: anim.play("hurt_right")
+	
+	await anim.animation_finished
+	
+	if not is_dead:
+		can_anim = true 
+		can_move = true 
+		
+		# --- НОВОЕ: ПЕРЕЗАПУСК ТАЙМЕРА АТАКИ ---
+		# Если таймер стоит на месте (потому что мы оборвали атаку),
+		# запускаем его заново. Дадим скелету 0.5 сек передышки после урона.
+		if attack_timer.is_stopped():
+			attack_timer.start(0.5) 
 func shoot():
-	# Эта функция вызывается из AnimationPlayer
 	if not player or not is_instance_valid(player) or is_dead: return
 	
 	var arrow_instance = GameConstants.SKELETON_BOW_ARROW.instantiate()
@@ -107,15 +155,47 @@ func shoot():
 	arrow_instance.direction = target_dir
 	arrow_instance.rotation = target_dir.angle()
 	
-	get_tree().current_scene.add_child(arrow_instance)
+	get_tree().current_scene.add_child.call_deferred(arrow_instance)
+
+func death():
+	if is_dead: return
+	is_dead = true
+	can_move = false
+	can_attack = false
+	velocity = Vector2.ZERO 
+	
+	anim.stop()
+	animP.stop()
+	
+	set_collision_layer_value(1, false)
+	set_collision_mask_value(1, false)
+
+	match current_dir:
+		Dir.UP: anim.play("death_up")
+		Dir.DOWN: anim.play("death_down")
+		Dir.LEFT: anim.play("death_left")
+		Dir.RIGHT: anim.play("death_right")
+		
+	await anim.animation_finished
+	if randf() <= 0.25:
+		_spawn_loot()
+	
+	queue_free()
+	
+func _spawn_loot():
+	var potion = GameConstants.HEALTH_POTION.instantiate()
+	potion.global_position = global_position
+	get_parent().add_child(potion)
 
 func _on_detector_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player"):
 		player_in_range = true
 		get_closer = false 
+		
 		if can_attack:
-			attack()
+			can_attack = false
+			attack_timer.start(0.4) 
 
 func _on_detector_body_exited(body: Node2D) -> void:
 	if body.is_in_group("player"):
@@ -125,39 +205,8 @@ func _on_detector_body_exited(body: Node2D) -> void:
 func _on_attack_timer_timeout():
 	if is_dead: return
 	can_attack = true
-	if player_in_range:
-		attack()
-
-func _on_hitbox_area_entered(_area: Area2D) -> void:
-	if is_dead: return
-	hp -= GameConstants.SKELETON_BOW_TAKE_DAMAGE
 
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player") and body.has_method("take_damage"):
 		body.take_damage(GameConstants.SKELETON_BOW_BODY_DAMAGE)
-
-func death():
-	is_dead = true
-	can_move = false
-	can_attack = false
-	velocity = Vector2.ZERO
-	
-	# Отключаем физическое присутствие
-	set_collision_layer_value(1, false)
-	set_collision_mask_value(1, false)
-	
-	# Останавливаем анимацию стрельбы, если она шла
-	animP.stop()
-	anim.stop()
-
-	# Запускаем анимацию смерти
-	match current_dir:
-		Dir.UP: anim.play("death_up")
-		Dir.DOWN: anim.play("death_down")
-		Dir.LEFT: anim.play("death_left")
-		Dir.RIGHT: anim.play("death_right")
-		
-	await anim.animation_finished
-	GameConstants.register_enemy_kill()
-	queue_free()

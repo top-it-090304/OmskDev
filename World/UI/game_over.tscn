@@ -1,0 +1,57 @@
+[gd_scene load_steps=3 format=3 uid="uid://5b5gg5popt2v"]
+
+[ext_resource type="Script" uid="uid://da4weso50ou81" path="res://World/UI/panel.gd" id="1_a0rhm"]
+[ext_resource type="FontFile" uid="uid://wbjr6hf3uxdc" path="res://Font/PixelRpgFont-Regular.ttf" id="1_yu6mb"]
+
+[node name="GAME_OVER" type="Control"]
+z_index = 4096
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+metadata/_edit_use_anchors_ = true
+
+[node name="ColorRect" type="ColorRect" parent="."]
+z_index = 4096
+layout_mode = 2
+offset_left = -320.0
+offset_top = -180.0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.784314)
+
+[node name="PanelContainer" type="MarginContainer" parent="."]
+z_index = 4096
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="button" type="Button" parent="PanelContainer"]
+layout_mode = 2
+script = ExtResource("1_a0rhm")
+metadata/_edit_use_anchors_ = true
+
+[node name="Label" type="Label" parent="PanelContainer"]
+z_index = 4096
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_colors/font_shadow_color = Color(0.41598, 0.41598, 0.41598, 1)
+theme_override_fonts/font = ExtResource("1_yu6mb")
+theme_override_font_sizes/font_size = 80
+text = "GAME OVER..."
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 3.0
+autostart = true
+
+[connection signal="pressed" from="PanelContainer/button" to="PanelContainer/button" method="_on_pressed"]
+[connection signal="timeout" from="Timer" to="PanelContainer/button" method="_on_timer_timeout"]

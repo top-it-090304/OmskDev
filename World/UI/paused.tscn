@@ -32,9 +32,21 @@ metadata/_edit_use_anchors_ = true
 
 [node name="GenericPanel" type="Sprite2D" parent="VBoxContainer"]
 modulate = Color(1, 1, 1, 0.941176)
-position = Vector2(115, 104)
-scale = Vector2(5.375, 3.5)
+position = Vector2(115, 117.5)
+scale = Vector2(5.375, 3)
 texture = ExtResource("2_wujia")
+
+[node name="Label2" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.976471, 0.745098, 0, 0.941176)
+theme_override_colors/font_shadow_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.821911, 2.62313e-06, 7.70092e-07, 1)
+theme_override_fonts/font = ExtResource("4_s5ror")
+theme_override_font_sizes/font_size = 25
+text = "Aurora's"
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
 
 [node name="Label" type="Label" parent="VBoxContainer"]
 layout_mode = 2
@@ -42,10 +54,9 @@ theme_override_colors/font_color = Color(0.976471, 0.745098, 0, 0.941176)
 theme_override_colors/font_shadow_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.821911, 2.62313e-06, 7.70092e-07, 1)
 theme_override_fonts/font = ExtResource("4_s5ror")
-theme_override_font_sizes/font_size = 40
+theme_override_font_sizes/font_size = 25
 text = "Dungeon"
 horizontal_alignment = 1
-vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
 
 [node name="TextureButton" type="TextureButton" parent="VBoxContainer"]
