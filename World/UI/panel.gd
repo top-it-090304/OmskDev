@@ -1,7 +1,7 @@
 extends Button
 
 @onready var timer = $Timer
-var target_scene="res://world/ui/menu.tscn"
+@export var target_scene="res://World/UI/menu.tscn"
 func _on_pressed() -> void:
 	# 1. Отключаем кнопку, чтобы не было двойного нажатия при лаге
 	set_deferred("disabled", true)

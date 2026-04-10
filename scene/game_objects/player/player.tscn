@@ -1679,7 +1679,8 @@ radius = 5.0
 [node name="Player" type="CharacterBody2D" groups=["player"]]
 z_index = 2
 collision_layer = 3
-floor_max_angle = 3.14159
+floor_max_angle = 0.0
+safe_margin = 0.001
 script = ExtResource("1_ktjk3")
 gameover = ExtResource("2_vv8lt")
 
@@ -1750,7 +1751,7 @@ shape = SubResource("CapsuleShape2D_t824c")
 disabled = true
 
 [node name="can_attack" type="Timer" parent="."]
-wait_time = 0.5
+wait_time = 0.3
 
 [node name="MobileController" parent="." instance=ExtResource("5_tigyi")]
 

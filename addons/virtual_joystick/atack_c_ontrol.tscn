@@ -35,6 +35,7 @@ offset_right = 100.0
 offset_bottom = 100.0
 grow_horizontal = 2
 grow_vertical = 2
+scale = Vector2(1.5, 1.5)
 pivot_offset = Vector2(100, 100)
 mouse_force_pass_scroll_events = false
 texture = ExtResource("2_ya4wl")

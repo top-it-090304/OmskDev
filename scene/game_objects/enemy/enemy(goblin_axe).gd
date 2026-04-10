@@ -138,8 +138,7 @@ func take_damage(amount: int):
 		can_anim = true
 		can_walk = true
 		can_attack = true
-		if attack_timer.is_stopped():
-			attack_timer.start(0.5) 
+
 func death():
 	if is_dead: return
 	is_dead = true

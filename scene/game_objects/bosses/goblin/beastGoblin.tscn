@@ -2361,6 +2361,8 @@ radius = 150.0
 [node name="BossGoblin" type="CharacterBody2D" groups=["enemies", "enemys"]]
 z_index = 2
 collision_layer = 5
+floor_max_angle = 0.0
+safe_margin = 0.001
 script = ExtResource("1_ri15p")
 
 [node name="detectorSlap" type="Area2D" parent="."]
