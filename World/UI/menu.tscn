@@ -690,7 +690,7 @@ texture_pressed = ExtResource("2_4lrdm")
 texture_hover = ExtResource("3_aqj1r")
 stretch_mode = 0
 script = ExtResource("6_g0kwj")
-target_scene = ExtResource("7_c5dx4")
+target_scene1 = ExtResource("7_c5dx4")
 metadata/_edit_use_anchors_ = true
 
 [node name="Label" type="Label" parent="VBoxContainer/TextureButton2"]
