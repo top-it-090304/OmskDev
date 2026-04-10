@@ -379,7 +379,6 @@ texture_pressed = ExtResource("2_4lrdm")
 texture_hover = ExtResource("3_aqj1r")
 stretch_mode = 0
 metadata/_edit_use_anchors_ = true
-metadata/_edit_lock_ = true
 
 [node name="Label" type="Label" parent="VBoxContainer/TextureButton"]
 modulate = Color(1, 1, 1, 0.886275)
@@ -406,7 +405,6 @@ texture_hover = ExtResource("3_aqj1r")
 stretch_mode = 0
 script = ExtResource("6_g0kwj")
 metadata/_edit_use_anchors_ = true
-metadata/_edit_lock_ = true
 
 [node name="Label" type="Label" parent="VBoxContainer/TextureButton2"]
 modulate = Color(1, 1, 1, 0.886275)
@@ -434,7 +432,6 @@ stretch_mode = 0
 script = ExtResource("7_6s5qj")
 scene_to_open = ExtResource("8_mhsod")
 metadata/_edit_use_anchors_ = true
-metadata/_edit_lock_ = true
 
 [node name="Label" type="Label" parent="VBoxContainer/TextureButton3"]
 modulate = Color(1, 1, 1, 0.886275)
@@ -461,7 +458,6 @@ texture_hover = ExtResource("3_aqj1r")
 stretch_mode = 0
 script = ExtResource("7_yliwy")
 metadata/_edit_use_anchors_ = true
-metadata/_edit_lock_ = true
 
 [node name="Label" type="Label" parent="VBoxContainer/TextureButton4"]
 modulate = Color(1, 1, 1, 0.886275)

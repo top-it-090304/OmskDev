@@ -16,7 +16,6 @@ action_up = "move_up"
 action_down = "move_down"
 
 [node name="VirtualJoystick2" parent="." instance=ExtResource("2_5v1cm")]
-anchors_preset = 3
 offset_left = -160.0
 offset_top = -152.0
 offset_right = 160.0
