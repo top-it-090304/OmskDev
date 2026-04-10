@@ -14,4 +14,4 @@ func _on_pressed() -> void:
 
 func _on_timer_timeout() -> void:
 	# Вызываем ту же логику
-	_on_pressed()
+	get_tree().change_scene_to_file("res://world/UI/menu.tscn")

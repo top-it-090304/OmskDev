@@ -28,7 +28,7 @@
 [ext_resource type="Texture2D" uid="uid://cds1a43xrd37d" path="res://sprites/bosses/goblin/Up/Png/GoblinBeastUpAttack01.png" id="22_03yyc"]
 [ext_resource type="Texture2D" uid="uid://8o1hatxsh21y" path="res://assets/hpUnderEnemy.png" id="27_2a4ok"]
 [ext_resource type="Texture2D" uid="uid://bu1d3dqfv283u" path="res://assets/hpProgressEnemy.png" id="28_o155f"]
-[ext_resource type="Script" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="29_wqun3"]
+[ext_resource type="Script" uid="uid://osq5kv0630j2" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="29_wqun3"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_2u40x"]
 radius = 55.0

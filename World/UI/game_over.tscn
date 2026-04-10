@@ -51,6 +51,7 @@ text = "GAME OVER..."
 
 [node name="Timer" type="Timer" parent="."]
 wait_time = 3.0
+autostart = true
 
 [connection signal="pressed" from="PanelContainer/button" to="PanelContainer/button" method="_on_pressed"]
 [connection signal="timeout" from="Timer" to="PanelContainer/button" method="_on_timer_timeout"]
