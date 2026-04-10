@@ -6,7 +6,7 @@ var speed = GameConstants.ENEMY_BEASTGOBLIN_MAX_SPEED
 @onready var anim = $AnimatedSprite2D
 @onready var animP = $AnimationPlayer
 @onready var attack_timer = $attack_timer
-# --- НОВОЕ ---
+
 @onready var hp_bar = $TextureProgressBar
 
 enum Dir { DOWN, UP, LEFT, RIGHT }
@@ -110,7 +110,7 @@ func _reset_after_attack():
 
 # --- МЕТОДЫ ДЛЯ АНИМАЦИЙ ---
 
-func bite_swing():
+func spawn_bite_swing():
 	if not is_instance_valid(player) or is_dead: return
 	smite_instance = GameConstants.ENEMY_GOBLIN_AXE_SMITE.instantiate()
 	# Добавляем в сцену, чтобы эффект не "бегал" за гоблином
@@ -127,7 +127,7 @@ func bite_swing():
 	smite_instance.rotation = target_dir.angle()
 	smite_instance.global_position += target_dir * 35
 
-func activate_bite_smite():
+func activate_bite():
 	if is_instance_valid(smite_instance) and not is_dead:
 		smite_instance.visible = true
 		smite_instance.monitoring = true

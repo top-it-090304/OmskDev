@@ -19,40 +19,20 @@ scale = Vector2(0.948, 1.006)
 
 [node name="DoorTop" parent="." index="5"]
 z_index = 0
-collision_layer = 0
-collision_mask = 2
-script = null
-
-[node name="CollisionShape2D" parent="DoorTop" index="0"]
-disabled = false
 
 [node name="DoorBottom" parent="." index="6"]
 z_index = 0
-collision_layer = 0
-collision_mask = 2
-script = null
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="DoorBottom" index="0"]
 position = Vector2(0, -4)
 shape = SubResource("RectangleShape2D_8a7m1")
+disabled = true
 
 [node name="DoorLeft" parent="." index="7"]
 z_index = 0
-collision_layer = 0
-collision_mask = 2
-script = null
-
-[node name="CollisionShape2D" parent="DoorLeft" index="0"]
-disabled = false
 
 [node name="DoorRight" parent="." index="8"]
 z_index = 0
-collision_layer = 0
-collision_mask = 2
-script = null
-
-[node name="CollisionShape2D" parent="DoorRight" index="0"]
-disabled = false
 
 [node name="untuchable" type="TileMapLayer" parent="." index="9"]
 position = Vector2(432, 368)
@@ -63,8 +43,3 @@ tile_set = ExtResource("2_2ymm8")
 position = Vector2(432, 368)
 tile_map_data = PackedByteArray("AAD1//P/AAASAAIAAAD1//T/AAASAAMAAAD1//X/AAASAAQAAAD1//b/AAASAAUAAAD2//P/AAATAAIAAAD2//T/AAATAAMAAAD2//X/AAATAAQAAAD2//b/AAATAAUAAAAJAPP/AAAUAAIAAAAJAPT/AAAUAAMAAAAJAPX/AAAUAAQAAAAJAPb/AAAUAAUAAAAKAPP/AAAVAAIAAAAKAPT/AAAVAAMAAAAKAPX/AAAVAAQAAAAKAPb/AAAVAAUAAAAIAOr/AAAgAAIAAAAIAOv/AAAgAAMAAAAIAOz/AAAgAAQAAAAIAO3/AAAgAAUAAAAIAO7/AgAAAAMAAAAJAOr/AAAhAAIAAAAJAOv/AAAhAAMAAAAJAOz/AAAhAAQAAAAJAO3/AAAhAAUAAAAJAO7/AgAAAAMAAAA=")
 tile_set = ExtResource("2_2ymm8")
-
-[connection signal="body_entered" from="room_shape" to="Enemys" method="_on_room_shape_body_entered"]
-[connection signal="body_exited" from="room_shape" to="Enemys" method="_on_room_shape_body_exited"]
-[connection signal="child_exiting_tree" from="room_shape" to="Enemys" method="_on_room_shape_child_exiting_tree"]
-[connection signal="tree_exiting" from="room_shape" to="Enemys" method="_on_room_shape_tree_exiting"]

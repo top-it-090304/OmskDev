@@ -28,7 +28,7 @@
 [ext_resource type="Texture2D" uid="uid://cds1a43xrd37d" path="res://sprites/bosses/goblin/Up/Png/GoblinBeastUpAttack01.png" id="22_03yyc"]
 [ext_resource type="Texture2D" uid="uid://8o1hatxsh21y" path="res://assets/hpUnderEnemy.png" id="27_2a4ok"]
 [ext_resource type="Texture2D" uid="uid://bu1d3dqfv283u" path="res://assets/hpProgressEnemy.png" id="28_o155f"]
-[ext_resource type="Script" uid="uid://osq5kv0630j2" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="29_wqun3"]
+[ext_resource type="Script" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="29_wqun3"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_2u40x"]
 radius = 55.0
@@ -1746,11 +1746,17 @@ tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0, 0.5),
-"transitions": PackedFloat32Array(1, 1),
+"times": PackedFloat32Array(0, 0.0001, 0.5, 0.5001),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
 "values": [{
 "args": [],
 "method": &"spawn_bite_smite"
+}, {
+"args": [],
+"method": &"spawn_bite_swing"
+}, {
+"args": [],
+"method": &"activate_bite"
 }, {
 "args": [],
 "method": &"activate_bite"
@@ -1790,11 +1796,17 @@ tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0, 0.5),
-"transitions": PackedFloat32Array(1, 1),
+"times": PackedFloat32Array(0, 0.0001, 0.5, 0.5001),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
 "values": [{
 "args": [],
 "method": &"spawn_bite_smite"
+}, {
+"args": [],
+"method": &"spawn_bite_swing"
+}, {
+"args": [],
+"method": &"activate_bite"
 }, {
 "args": [],
 "method": &"activate_bite"
@@ -1834,11 +1846,17 @@ tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0, 0.5),
-"transitions": PackedFloat32Array(1, 1),
+"times": PackedFloat32Array(0, 0.0001, 0.5, 0.5001),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
 "values": [{
 "args": [],
 "method": &"spawn_bite_smite"
+}, {
+"args": [],
+"method": &"spawn_bite_swing"
+}, {
+"args": [],
+"method": &"activate_bite"
 }, {
 "args": [],
 "method": &"activate_bite"

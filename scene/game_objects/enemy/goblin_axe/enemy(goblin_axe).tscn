@@ -19,7 +19,7 @@
 [ext_resource type="Texture2D" uid="uid://c7pamfjq8gs6f" path="res://sprites/enemys/axeGoblin/Up/Png/GoblinUpDeath.png" id="9_kdo45"]
 [ext_resource type="Texture2D" uid="uid://d1rgulso2vqkk" path="res://sprites/enemys/axeGoblin/Up/Png/GoblinUpHurt.png" id="9_ld14w"]
 [ext_resource type="Script" uid="uid://d0rsjn1v4kmxq" path="res://scene/game_objects/enemy/goblin_axe/attack_timer.gd" id="15_upxj5"]
-[ext_resource type="Script" uid="uid://osq5kv0630j2" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="20_enwt8"]
+[ext_resource type="Script" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="20_enwt8"]
 [ext_resource type="Texture2D" uid="uid://8o1hatxsh21y" path="res://assets/hpUnderEnemy.png" id="20_kdo45"]
 [ext_resource type="Texture2D" uid="uid://bu1d3dqfv283u" path="res://assets/hpProgressEnemy.png" id="21_ersmr"]
 
