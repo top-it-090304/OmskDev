@@ -8,7 +8,8 @@
       "Bash(2)",
       "Bash(find . -type f -name *.gd ! -path ./.godot/*)",
       "Bash(xargs grep:*)",
-      "Bash(find . -name \"*.tscn\" -type f -exec grep -l \"exp_bar\" {})"
+      "Bash(find . -name \"*.tscn\" -type f -exec grep -l \"exp_bar\" {})",
+      "Bash(grep -E \"\\\\.\\(gd|tscn\\)$\")"
     ]
   }
 }

@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://bq40uiaugbfjq"]
+[gd_scene load_steps=5 format=3 uid="uid://bq40uiaugbfjq"]
 
 [ext_resource type="PackedScene" uid="uid://n6dhykg53x0b" path="res://World/map_manager.tscn" id="1_mln5v"]
 [ext_resource type="PackedScene" uid="uid://ec471alip6hl" path="res://scene/game_objects/player/exp_bar.tscn" id="2_jn37s"]
 [ext_resource type="PackedScene" uid="uid://capqga0p285u0" path="res://World/minimap.tscn" id="3_o2u7n"]
+[ext_resource type="PackedScene" uid="uid://d00qjcqxvua3o" path="res://scene/game_objects/player/backpack.tscn" id="4_backpack"]
 
 [node name="Layer" type="Node"]
 
@@ -20,6 +21,14 @@ anchor_bottom = 0.0833333
 grow_horizontal = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
+
+[node name="Backpack" parent="UI" instance=ExtResource("4_backpack")]
+modulate = Color(1, 1, 1, 0.67451)
+z_index = 50
+offset_left = -146.0
+offset_top = 135.0
+offset_right = -8.0
+offset_bottom = 325.0
 
 [node name="MapManager" parent="." node_paths=PackedStringArray("layer") instance=ExtResource("1_mln5v")]
 layer = NodePath("..")
