@@ -1,9 +1,20 @@
-[gd_scene load_steps=5 format=3 uid="uid://bq40uiaugbfjq"]
+[gd_scene load_steps=16 format=3 uid="uid://bq40uiaugbfjq"]
 
 [ext_resource type="PackedScene" uid="uid://n6dhykg53x0b" path="res://World/map_manager.tscn" id="1_mln5v"]
 [ext_resource type="PackedScene" uid="uid://ec471alip6hl" path="res://scene/game_objects/player/exp_bar.tscn" id="2_jn37s"]
 [ext_resource type="PackedScene" uid="uid://capqga0p285u0" path="res://World/minimap.tscn" id="3_o2u7n"]
 [ext_resource type="PackedScene" uid="uid://d00qjcqxvua3o" path="res://scene/game_objects/player/backpack.tscn" id="4_backpack"]
+[ext_resource type="PackedScene" uid="uid://bbelva8io0yft" path="res://scene/pick_up/artefacts/artefact(boots_of_travel).tscn" id="5_v7fgi"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/blue_shroom.tscn" id="6_ikq8h"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/clock.tscn" id="7_qpvvc"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/coffee_mug.tscn" id="8_shab0"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/crown.tscn" id="9_f2vw5"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/diamond.tscn" id="10_ylsjx"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/golden_cup.tscn" id="11_3hlwg"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/injector.tscn" id="12_0el4m"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/metal_shield.tscn" id="13_cueid"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/old_book.tscn" id="14_36tnp"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/red_potion.tscn" id="15_rhie0"]
 
 [node name="Layer" type="Node"]
 
@@ -32,3 +43,4 @@ offset_bottom = 325.0
 
 [node name="MapManager" parent="." node_paths=PackedStringArray("layer") instance=ExtResource("1_mln5v")]
 layer = NodePath("..")
+treasure_items = Array[PackedScene]([ExtResource("5_v7fgi"), ExtResource("6_ikq8h"), ExtResource("7_qpvvc"), ExtResource("8_shab0"), ExtResource("9_f2vw5"), ExtResource("10_ylsjx"), ExtResource("11_3hlwg"), ExtResource("12_0el4m"), ExtResource("13_cueid"), ExtResource("14_36tnp"), ExtResource("15_rhie0")])

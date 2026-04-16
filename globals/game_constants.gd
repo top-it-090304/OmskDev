@@ -25,6 +25,7 @@ var PLAYER_LEVEL = 1
 var PLAYER_EXPERIENCE = 0
 var PLAYER_BASE_EXP_TO_LEVEL = 50  # Опыт для 2 уровня (уменьшено для тестирования)
 var PLAYER_EXP_MULTIPLIER = 1.3  # Каждый уровень требует в 1.3 раза больше опыта
+var PLAYER_EXP_MULTIPLIER_BONUS = 1.0  # Бонус от артефактов
 
 # Прирост характеристик за уровень
 var PLAYER_HEALTH_PER_LEVEL = 20
@@ -102,6 +103,7 @@ func _stats_keys() -> PackedStringArray:
 		"PLAYER_EXPERIENCE",
 		"PLAYER_BASE_EXP_TO_LEVEL",
 		"PLAYER_EXP_MULTIPLIER",
+		"PLAYER_EXP_MULTIPLIER_BONUS",
 		"PLAYER_HEALTH_PER_LEVEL",
 		"PLAYER_SPEED_PER_LEVEL",
 		"PLAYER_DAMAGE_PER_LEVEL",

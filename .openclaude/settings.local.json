@@ -9,7 +9,13 @@
       "Bash(find . -type f -name *.gd ! -path ./.godot/*)",
       "Bash(xargs grep:*)",
       "Bash(find . -name \"*.tscn\" -type f -exec grep -l \"exp_bar\" {})",
-      "Bash(grep -E \"\\\\.\\(gd|tscn\\)$\")"
+      "Bash(grep -E \"\\\\.\\(gd|tscn\\)$\")",
+      "Bash(grep \"\\\\.png$\")",
+      "Bash(grep -E \"\\\\.\\(gd|tscn|md\\)$\")",
+      "Bash(for file:*)",
+      "Bash(do sed:*)",
+      "Bash(sed -i 's/scale = Vector2\\(0.8, 0.8\\)//g' \"$file\")",
+      "Bash(done)"
     ]
   }
 }

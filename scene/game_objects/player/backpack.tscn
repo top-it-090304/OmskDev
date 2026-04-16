@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://d00qjcqxvua3o"]
 
-[ext_resource type="Script" path="res://scene/game_objects/player/backpack.gd" id="1"]
+[ext_resource type="Script" uid="uid://dhrys8efi6agp" path="res://scene/game_objects/player/backpack.gd" id="1"]
 
 [node name="Backpack" type="Control" groups=["backpack"]]
 layout_mode = 3

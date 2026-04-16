@@ -205,8 +205,15 @@ func heal(amount: int) -> void:
 # === СИСТЕМА ОПЫТА И УРОВНЕЙ ===
 
 func add_experience(amount: int) -> void:
-	print("Получен опыт: ", amount, " | Текущий опыт: ", current_exp, "/", exp_to_next_level)
-	current_exp += amount
+	# Применяем множитель опыта от артефактов
+	var multiplier = 1.0
+	if "PLAYER_EXP_MULTIPLIER_BONUS" in GameConstants:
+		multiplier = GameConstants.PLAYER_EXP_MULTIPLIER_BONUS
+
+	var final_amount = int(amount * multiplier)
+
+	print("Получен опыт: ", final_amount, " (базовый: ", amount, ", множитель: x", multiplier, ") | Текущий опыт: ", current_exp, "/", exp_to_next_level)
+	current_exp += final_amount
 	GameConstants.PLAYER_EXPERIENCE = current_exp
 	exp_changed.emit(current_exp, exp_to_next_level)
 

@@ -171,7 +171,7 @@ func generate_layout():
 		if is_valid_pos(new_pos) and layout[new_pos.x][new_pos.y] == RoomType.EMPTY:
 			layout[new_pos.x][new_pos.y] = RoomType.NORMAL
 
-	var treasure_count = randi_range(1, 2)
+	var treasure_count = randi_range(9, 10)
 	var treasures_placed = 0
 	
 	# Даем 15 попыток (вместо 2), чтобы точно найти свободное место на карте
