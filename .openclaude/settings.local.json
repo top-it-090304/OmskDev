@@ -5,7 +5,8 @@
       "Bash(find . -type f -iname *base_room*)",
       "Bash(find . -type f -iname *enemy*)",
       "Bash(find . -type f -name *.gd -exec grep -l \"Enemys\\\\|enemys\" {})",
-      "Bash(2)"
+      "Bash(2)",
+      "Bash(find . -type f -name *.gd ! -path ./.godot/*)"
     ]
   }
 }

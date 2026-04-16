@@ -222,9 +222,33 @@ func death():
 	set_collision_mask_value(1, false)
 	animP.stop()
 	if is_instance_valid(smite_instance): smite_instance.queue_free()
-	
+
 	var d_anim = "death_" + _get_dir_string()
-	if _get_dir_string() == "down": d_anim = "death_dowm" # <--- (Небольшая опечатка у тебя тут была: "dowm" вместо "down", оставил как есть, чтобы не сломать твои спрайты, но на будущее имей в виду)
+	if _get_dir_string() == "down": d_anim = "death_dowm"
 	anim.play(d_anim)
 	await anim.animation_finished
+
+	# Выдаем опыт игроку
+	_give_exp_to_player()
+
+	# Спавним лут с большим шансом для босса
+	if randf() <= 0.75:
+		_spawn_loot()
+
 	queue_free()
+
+func _give_exp_to_player():
+	var player_node = get_tree().get_first_node_in_group("player")
+	if player_node and player_node.has_method("add_experience"):
+		player_node.add_experience(GameConstants.ENEMY_BEASTGOBLIN_EXP_REWARD)
+
+func _spawn_loot():
+	var potion = GameConstants.HEALTH_POTION.instantiate()
+	potion.global_position = global_position
+	# Добавляем в комнату, а не в Enemys node
+	if parent_node:
+		var room_node = parent_node.get_parent()
+		if room_node:
+			room_node.add_child(potion)
+	else:
+		get_parent().add_child(potion)

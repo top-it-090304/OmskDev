@@ -144,11 +144,11 @@ func death():
 	is_dead = true
 	can_walk = false
 	can_attack = false
-	velocity = Vector2.ZERO 
-	
+	velocity = Vector2.ZERO
+
 	anim.stop()
 	animP.stop()
-	
+
 	set_collision_layer_value(1, false)
 	set_collision_mask_value(1, false)
 
@@ -157,12 +157,21 @@ func death():
 		Dir.DOWN: anim.play("death_down")
 		Dir.LEFT: anim.play("death_left")
 		Dir.RIGHT: anim.play("death_right")
-		
+
 	await anim.animation_finished
+
+	# Выдаем опыт игроку
+	_give_exp_to_player()
+
 	if randf() <= 0.25:
 		_spawn_loot()
-	
+
 	queue_free()
+
+func _give_exp_to_player():
+	var player_node = get_tree().get_first_node_in_group("player")
+	if player_node and player_node.has_method("add_experience"):
+		player_node.add_experience(GameConstants.ENEMY_GOBLIN_AXE_EXP_REWARD)
 	
 func _spawn_loot():
 	var potion = GameConstants.HEALTH_POTION.instantiate()

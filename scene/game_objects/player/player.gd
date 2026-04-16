@@ -11,6 +11,11 @@ var can_take_damage = true
 @onready var attack_timer = $can_attack
 @onready var animP = $AnimationPlayer
 
+# Система уровней
+var current_level = 1
+var current_exp = 0
+var exp_to_next_level = 100
+
 enum Dir { DOWN, UP, LEFT, RIGHT }
 var current_dir = Dir.DOWN
 var can_move = true
@@ -21,6 +26,8 @@ var last_known_max_health = 0
 
 
 signal health_changed(new_health, max_health)
+signal exp_changed(current_exp, exp_needed)
+signal level_up(new_level)
 
 func _physics_process(_delta: float) -> void:
 	if is_dead: return
@@ -163,6 +170,12 @@ func _ready() -> void:
 		GameConstants.constants_changed.connect(_on_constants_changed)
 	health_changed.emit(health_int, GameConstants.PLAYER_MAX_HEALTH)
 
+	# Инициализация системы уровней
+	current_level = GameConstants.PLAYER_LEVEL
+	current_exp = GameConstants.PLAYER_EXPERIENCE
+	exp_to_next_level = _calculate_exp_for_level(current_level + 1)
+	exp_changed.emit(current_exp, exp_to_next_level)
+
 func _on_constants_changed() -> void:
 	var new_max = GameConstants.PLAYER_MAX_HEALTH
 	if new_max > last_known_max_health:
@@ -184,3 +197,42 @@ func _on_hitbox_attack_body_entered(body: Node2D) -> void:
 func heal(amount: int) -> void:
 	health_int += amount
 	health_changed.emit(health_int, GameConstants.PLAYER_MAX_HEALTH)
+
+# === СИСТЕМА ОПЫТА И УРОВНЕЙ ===
+
+func add_experience(amount: int) -> void:
+	current_exp += amount
+	GameConstants.PLAYER_EXPERIENCE = current_exp
+	exp_changed.emit(current_exp, exp_to_next_level)
+
+	# Проверка повышения уровня
+	while current_exp >= exp_to_next_level:
+		level_up_player()
+
+func _calculate_exp_for_level(level: int) -> int:
+	# Формула: базовый_опыт * (множитель ^ (уровень - 1))
+	return int(GameConstants.PLAYER_BASE_EXP_TO_LEVEL * pow(GameConstants.PLAYER_EXP_MULTIPLIER, level - 1))
+
+func level_up_player() -> void:
+	current_level += 1
+	GameConstants.PLAYER_LEVEL = current_level
+
+	# Вычитаем опыт для текущего уровня
+	current_exp -= exp_to_next_level
+	exp_to_next_level = _calculate_exp_for_level(current_level + 1)
+
+	# Увеличиваем характеристики
+	GameConstants.PLAYER_MAX_HEALTH += GameConstants.PLAYER_HEALTH_PER_LEVEL
+	GameConstants.PLAYER_MAX_SPEED += GameConstants.PLAYER_SPEED_PER_LEVEL
+	GameConstants.PLAYER_ATTACK_DAMAGE += GameConstants.PLAYER_DAMAGE_PER_LEVEL
+
+	# Восстанавливаем здоровье при повышении уровня
+	health_int = GameConstants.PLAYER_MAX_HEALTH
+	last_known_max_health = GameConstants.PLAYER_MAX_HEALTH
+
+	# Сигналы
+	level_up.emit(current_level)
+	health_changed.emit(health_int, GameConstants.PLAYER_MAX_HEALTH)
+	exp_changed.emit(current_exp, exp_to_next_level)
+
+	print("Level Up! Новый уровень: ", current_level)
