@@ -167,7 +167,11 @@ func death():
 func _spawn_loot():
 	var potion = GameConstants.HEALTH_POTION.instantiate()
 	potion.global_position = global_position
-	get_parent().add_child(potion)
+	# Добавляем в комнату, а не в Enemys node, чтобы не блокировать двери
+	if parent_node:
+		room_node.add_child(potion)
+	else:
+		get_parent().add_child(potion)
 	
 func swing():
 	if not is_instance_valid(player) or is_dead: return

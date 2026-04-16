@@ -18,4 +18,10 @@ func _on_room_shape_area_exited(_area: Area2D) -> void:
 
 
 func _update_aggression() -> void:
-	aggression = _player_in_room and get_child_count() > 0
+	# Считаем только живых врагов (у которых нет флага is_dead)
+	var alive_enemies = 0
+	for child in get_children():
+		if child.has_method("take_damage") and not child.get("is_dead"):
+			alive_enemies += 1
+
+	aggression = _player_in_room and alive_enemies > 0
