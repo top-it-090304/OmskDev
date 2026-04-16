@@ -19,6 +19,12 @@ var PLAYER_MAX_SPEED = 200
 var PLAYER_MAX_HEALTH = 2000
 var PLAYER_ENEMY_CONTACT_DAMAGE = 10
 var PLAYER_ATTACK_DAMAGE = 10
+var PLAYER_ARMOR = 0  # Блокирует фиксированное количество урона
+var PLAYER_DODGE_CHANCE = 0.0  # Шанс уклонения (0.0 - 1.0)
+var PLAYER_CRIT_CHANCE = 0.0  # Шанс критического удара (0.0 - 1.0)
+var PLAYER_CRIT_MULTIPLIER = 2.0  # Множитель критического урона
+var PLAYER_LIFESTEAL = 0.0  # Вампиризм (0.0 - 1.0)
+var PLAYER_ATTACK_SPEED = 1.0  # Множитель скорости атаки
 
 # --- PLAYER LEVEL SYSTEM ---
 var PLAYER_LEVEL = 1
@@ -67,7 +73,10 @@ var ENEMY_BEASTGOBLIN_EXP_REWARD = 50
 # --- PROGRESSION ---
 var ENEMIES_KILLED = 0
 var KILLS_FOR_SPEED_DOUBLE = 5
-var KILLS_FOR_HP_DOUBLE = 10 
+var KILLS_FOR_HP_DOUBLE = 10
+var ROOMS_CLEARED = 0  # Количество зачищенных комнат
+var ENEMY_LEVEL = 1  # Текущий уровень врагов
+var ENEMY_LEVEL_SCALING = 0.15  # 15% прироста характеристик за уровень 
 
 var _reload_timer_sec := 0.0
 var _last_cfg_mtime := -1
@@ -99,6 +108,12 @@ func _stats_keys() -> PackedStringArray:
 		"PLAYER_MAX_HEALTH",
 		"PLAYER_ENEMY_CONTACT_DAMAGE",
 		"PLAYER_ATTACK_DAMAGE",
+		"PLAYER_ARMOR",
+		"PLAYER_DODGE_CHANCE",
+		"PLAYER_CRIT_CHANCE",
+		"PLAYER_CRIT_MULTIPLIER",
+		"PLAYER_LIFESTEAL",
+		"PLAYER_ATTACK_SPEED",
 		"PLAYER_LEVEL",
 		"PLAYER_EXPERIENCE",
 		"PLAYER_BASE_EXP_TO_LEVEL",
@@ -133,7 +148,10 @@ func _stats_keys() -> PackedStringArray:
 		"ENEMY_BEASTGOBLIN_EXP_REWARD",
 		"ENEMIES_KILLED",
 		"KILLS_FOR_SPEED_DOUBLE",
-		"KILLS_FOR_HP_DOUBLE"
+		"KILLS_FOR_HP_DOUBLE",
+		"ROOMS_CLEARED",
+		"ENEMY_LEVEL",
+		"ENEMY_LEVEL_SCALING"
 	])
 
 func load_from_disk() -> void:
@@ -162,3 +180,22 @@ func set_stat(key: String, value: Variant, persist := true) -> void:
 	if persist:
 		save_to_disk()
 	constants_changed.emit()
+
+# Функция для расчета характеристик врага с учетом уровня
+func get_scaled_enemy_stat(base_value: float) -> int:
+	var multiplier = 1.0 + (ENEMY_LEVEL - 1) * ENEMY_LEVEL_SCALING
+	return int(base_value * multiplier)
+
+# Функция для повышения уровня врагов при зачистке комнаты
+func on_room_cleared() -> void:
+	ROOMS_CLEARED += 1
+
+	# Каждые 2 комнаты - повышение уровня врагов
+	if ROOMS_CLEARED % 2 == 0:
+		ENEMY_LEVEL += 1
+		print("=== УРОВЕНЬ ВРАГОВ ПОВЫШЕН ===")
+		print("Новый уровень врагов: ", ENEMY_LEVEL)
+		print("Множитель характеристик: x", 1.0 + (ENEMY_LEVEL - 1) * ENEMY_LEVEL_SCALING)
+		print("==============================")
+
+	save_to_disk()

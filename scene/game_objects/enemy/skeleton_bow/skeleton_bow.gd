@@ -29,18 +29,22 @@ var is_dead = false
 var can_anim = true 
 
 func _ready() -> void:
-	# Инициализация параметров
-	hp = GameConstants.SKELETON_BOW_HP
+	# Инициализация параметров с масштабированием
+	hp = GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_HP)
+	max_speed = randf_range(
+		GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_SPEED_MIN),
+		GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_SPEED_MAX)
+	)
+
 	# --- НОВОЕ ---
-	hp_bar.update_hp(hp, GameConstants.SKELETON_BOW_HP)
-	
-	max_speed = randf_range(GameConstants.SKELETON_BOW_SPEED_MIN, GameConstants.SKELETON_BOW_SPEED_MAX)
+	hp_bar.update_hp(hp, hp)
+
 	player = get_tree().get_first_node_in_group("player") as Node2D
 	parent_node = get_parent()
 
 	if parent_node:
 		room_node = parent_node.get_parent()
-	
+
 	attack_timer.start(1.0) 
 
 func _physics_process(_delta: float) -> void:
@@ -116,9 +120,10 @@ func attack():
 		
 func take_damage(amount: int):
 	if is_dead: return
-	
+
 	hp -= amount
-	hp_bar.update_hp(hp, GameConstants.SKELETON_BOW_HP)
+	var max_hp = GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_HP)
+	hp_bar.update_hp(hp, max_hp)
 	
 	can_anim = false 
 	can_move = false 
@@ -189,8 +194,9 @@ func death():
 func _give_exp_to_player():
 	var player_node = get_tree().get_first_node_in_group("player")
 	if player_node and player_node.has_method("add_experience"):
-		print("Skeleton Bow выдает опыт: ", GameConstants.SKELETON_BOW_EXP_REWARD)
-		player_node.add_experience(GameConstants.SKELETON_BOW_EXP_REWARD)
+		var exp_reward = GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_EXP_REWARD)
+		print("Skeleton Bow выдает опыт: ", exp_reward, " (уровень врагов: ", GameConstants.ENEMY_LEVEL, ")")
+		player_node.add_experience(exp_reward)
 	else:
 		print("ОШИБКА: Игрок не найден или нет метода add_experience")
 
@@ -225,4 +231,5 @@ func _on_attack_timer_timeout():
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player") and body.has_method("take_damage"):
-		body.take_damage(GameConstants.SKELETON_BOW_BODY_DAMAGE)
+		var damage = GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_BODY_DAMAGE)
+		body.take_damage(damage)

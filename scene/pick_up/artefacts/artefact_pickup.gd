@@ -11,6 +11,12 @@ class_name ArtefactPickup
 @export var speed_bonus: int = 0
 @export var health_bonus: int = 0
 @export var damage_bonus: int = 0
+@export var armor_bonus: int = 0
+@export var dodge_chance_bonus: float = 0.0  # 0.05 = 5%
+@export var crit_chance_bonus: float = 0.0  # 0.1 = 10%
+@export var crit_multiplier_bonus: float = 0.0  # 0.5 = +50% к множителю
+@export var lifesteal_bonus: float = 0.0  # 0.1 = 10% вампиризм
+@export var attack_speed_bonus: float = 0.0  # 0.1 = +10% скорости атаки
 @export var health_per_level_bonus: int = 0
 @export var speed_per_level_bonus: int = 0
 @export var damage_per_level_bonus: int = 0
@@ -91,6 +97,40 @@ func apply_effects() -> void:
 		GameConstants.PLAYER_ATTACK_DAMAGE += damage_bonus
 		stat_changes.append({"text": "+%d к урону" % damage_bonus, "color": Color(1, 0.7, 0.3)})
 		print("  +", damage_bonus, " к урону")
+
+	if armor_bonus != 0:
+		GameConstants.PLAYER_ARMOR += armor_bonus
+		stat_changes.append({"text": "+%d к броне" % armor_bonus, "color": Color(0.7, 0.7, 0.7)})
+		print("  +", armor_bonus, " к броне")
+
+	if dodge_chance_bonus != 0.0:
+		GameConstants.PLAYER_DODGE_CHANCE += dodge_chance_bonus
+		var percent = int(dodge_chance_bonus * 100)
+		stat_changes.append({"text": "+%d%% шанс уклонения" % percent, "color": Color(0.5, 0.8, 1)})
+		print("  +", percent, "% шанс уклонения")
+
+	if crit_chance_bonus != 0.0:
+		GameConstants.PLAYER_CRIT_CHANCE += crit_chance_bonus
+		var percent = int(crit_chance_bonus * 100)
+		stat_changes.append({"text": "+%d%% шанс крита" % percent, "color": Color(1, 1, 0.3)})
+		print("  +", percent, "% шанс крита")
+
+	if crit_multiplier_bonus != 0.0:
+		GameConstants.PLAYER_CRIT_MULTIPLIER += crit_multiplier_bonus
+		stat_changes.append({"text": "+%.1fx к криту" % crit_multiplier_bonus, "color": Color(1, 1, 0.3)})
+		print("  +", crit_multiplier_bonus, "x к криту")
+
+	if lifesteal_bonus != 0.0:
+		GameConstants.PLAYER_LIFESTEAL += lifesteal_bonus
+		var percent = int(lifesteal_bonus * 100)
+		stat_changes.append({"text": "+%d%% вампиризм" % percent, "color": Color(0.8, 0.2, 0.2)})
+		print("  +", percent, "% вампиризм")
+
+	if attack_speed_bonus != 0.0:
+		GameConstants.PLAYER_ATTACK_SPEED += attack_speed_bonus
+		var percent = int(attack_speed_bonus * 100)
+		stat_changes.append({"text": "+%d%% скорости атаки" % percent, "color": Color(1, 0.5, 0)})
+		print("  +", percent, "% скорости атаки")
 
 	# Бонусы за уровень
 	if health_per_level_bonus != 0:

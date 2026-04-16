@@ -31,13 +31,15 @@ var smite_instance: Node2D = null
 var is_attacking = false
 
 func _ready() -> void:
-	hp = GameConstants.ENEMY_BEASTGOBLIN_HP
+	hp = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_HP)
+	speed = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_MAX_SPEED)
+
 	# --- НОВОЕ ---
-	hp_bar.update_hp(hp, GameConstants.ENEMY_BEASTGOBLIN_HP)
-	
+	hp_bar.update_hp(hp, hp)
+
 	player = get_tree().get_first_node_in_group("player") as Node2D
 	parent_node = get_parent()
-	
+
 	attack_timer.one_shot = true
 	_play_idle_animation()
 
@@ -156,16 +158,18 @@ func _on_slap_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player"):
 		if body.has_method("take_damage"):
-			body.take_damage(GameConstants.ENEMY_BEASTGOBLIN_SLAP_DAMAGE)
+			var damage = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_SLAP_DAMAGE)
+			body.take_damage(damage)
 		if body.has_method("apply_knockback"):
 			body.apply_knockback(global_position, 800.0)
 
 func take_damage(amount: int):
 	if is_dead: return
 	hp -= amount
-	
+
 	# --- НОВОЕ ---
-	hp_bar.update_hp(hp, GameConstants.ENEMY_BEASTGOBLIN_HP)
+	var max_hp = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_HP)
+	hp_bar.update_hp(hp, max_hp)
 	
 	# Прерываем анимацию атаки, если гоблина ударили
 	animP.stop()

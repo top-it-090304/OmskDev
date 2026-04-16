@@ -25,11 +25,14 @@ var smite_instance: Node2D = null
 var is_dead = false 
 
 func _ready() -> void:
-	hp = GameConstants.ENEMY_GOBLIN_AXE_HP
+	# Применяем масштабирование по уровню врагов
+	hp = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_GOBLIN_AXE_HP)
+	speed = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_GOBLIN_AXE_MAX_SPEED)
+
 	# --- НОВОЕ ---
 	# Инициализируем полоску здоровья при появлении врага
-	hp_bar.update_hp(hp, GameConstants.ENEMY_GOBLIN_AXE_HP)
-	
+	hp_bar.update_hp(hp, hp)
+
 	player = get_tree().get_first_node_in_group("player") as Node2D
 	parent_node = get_parent()
 	if parent_node:
@@ -112,11 +115,12 @@ func play_idle_animation():
 
 func take_damage(amount: int):
 	if is_dead: return
-	
+
 	hp -= amount
 	# --- НОВОЕ ---
 	# Обновляем полоску здоровья каждый раз, когда враг получает урон
-	hp_bar.update_hp(hp, GameConstants.ENEMY_GOBLIN_AXE_HP)
+	var max_hp = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_GOBLIN_AXE_HP)
+	hp_bar.update_hp(hp, max_hp)
 	
 	can_walk = false
 	can_anim = false 
@@ -171,8 +175,9 @@ func death():
 func _give_exp_to_player():
 	var player_node = get_tree().get_first_node_in_group("player")
 	if player_node and player_node.has_method("add_experience"):
-		print("Goblin Axe выдает опыт: ", GameConstants.ENEMY_GOBLIN_AXE_EXP_REWARD)
-		player_node.add_experience(GameConstants.ENEMY_GOBLIN_AXE_EXP_REWARD)
+		var exp_reward = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_GOBLIN_AXE_EXP_REWARD)
+		print("Goblin Axe выдает опыт: ", exp_reward, " (уровень врагов: ", GameConstants.ENEMY_LEVEL, ")")
+		player_node.add_experience(exp_reward)
 	else:
 		print("ОШИБКА: Игрок не найден или нет метода add_experience")
 	
@@ -228,4 +233,5 @@ func _on_hitbox_area_entered(_area: Area2D) -> void:
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player") and body.has_method("take_damage"):
-		body.take_damage(GameConstants.ENEMY_GOBLIN_AXE_DAMAGE)
+		var damage = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_GOBLIN_AXE_DAMAGE)
+		body.take_damage(damage)
