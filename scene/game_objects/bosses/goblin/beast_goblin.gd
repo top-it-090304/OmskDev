@@ -244,8 +244,9 @@ func death():
 func _give_exp_to_player():
 	var player_node = get_tree().get_first_node_in_group("player")
 	if player_node and player_node.has_method("add_experience"):
-		print("Beast Goblin выдает опыт: ", GameConstants.ENEMY_BEASTGOBLIN_EXP_REWARD)
-		player_node.add_experience(GameConstants.ENEMY_BEASTGOBLIN_EXP_REWARD)
+		var exp_reward = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_EXP_REWARD)
+		print("Beast Goblin выдает опыт: ", exp_reward, " (уровень врагов: ", GameConstants.ENEMY_LEVEL, ")")
+		player_node.add_experience(exp_reward)
 	else:
 		print("ОШИБКА: Игрок не найден или нет метода add_experience")
 

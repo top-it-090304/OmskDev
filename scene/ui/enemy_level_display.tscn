@@ -1,0 +1,32 @@
+[gd_scene load_steps=2 format=3 uid="uid://djw8n7hn0de6h"]
+
+[ext_resource type="Script" uid="uid://c1cnxs22u7xvb" path="res://scene/ui/enemy_level_display.gd" id="1_enemy_level"]
+
+[node name="EnemyLevelDisplay" type="Control"]
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -250.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 70.0
+grow_horizontal = 0
+script = ExtResource("1_enemy_level")
+
+[node name="LevelLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.974
+anchor_right = 1.0
+anchor_bottom = 0.28
+offset_left = -0.0200043
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 12
+text = "10"
+horizontal_alignment = 2
+vertical_alignment = 1

@@ -199,3 +199,4 @@ func on_room_cleared() -> void:
 		print("==============================")
 
 	save_to_disk()
+	constants_changed.emit()

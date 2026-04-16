@@ -15,7 +15,8 @@
       "Bash(for file:*)",
       "Bash(do sed:*)",
       "Bash(sed -i 's/scale = Vector2\\(0.8, 0.8\\)//g' \"$file\")",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(\"D:\\\\GIT WORK\\\\OmskDev\\\\scene\\\\ui\\\\enemy_level_display.tscn\":*)"
     ]
   }
 }
