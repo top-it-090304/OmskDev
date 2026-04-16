@@ -18,7 +18,7 @@ func _on_room_shape_area_exited(_area: Area2D) -> void:
 
 
 func _update_aggression() -> void:
-	# Считаем только живых врагов (у которых нет флага is_dead)
+	# Считаем только живых врагов (у которых нет флага is_вdead)
 	var alive_enemies = 0
 	for child in get_children():
 		if child.has_method("take_damage") and not child.get("is_dead"):

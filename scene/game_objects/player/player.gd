@@ -2,7 +2,9 @@ extends CharacterBody2D
 
 @export var atack_spawn: Node
 @export var gameover: PackedScene
-@onready var attack_joystick = $MobileController/VirtualJoystick2 
+@onready var attack_joystick = $MobileController/VirtualJoystick2
+
+const LEVEL_UP_POPUP = preload("res://scene/ui/level_up_popup.tscn")
 
 @onready var anim = $AnimatedSprite2D
 var health_int = 0
@@ -164,16 +166,18 @@ func _on_can_take_damage_timeout() -> void:
 	can_take_damage = true
 
 func _ready() -> void:
+	# Инициализация системы уровней СНАЧАЛА
+	current_level = GameConstants.PLAYER_LEVEL
+	current_exp = GameConstants.PLAYER_EXPERIENCE
+	exp_to_next_level = _calculate_exp_for_level(current_level + 1)
+
 	health_int = GameConstants.PLAYER_MAX_HEALTH
 	last_known_max_health = GameConstants.PLAYER_MAX_HEALTH
 	if not GameConstants.constants_changed.is_connected(_on_constants_changed):
 		GameConstants.constants_changed.connect(_on_constants_changed)
-	health_changed.emit(health_int, GameConstants.PLAYER_MAX_HEALTH)
 
-	# Инициализация системы уровней
-	current_level = GameConstants.PLAYER_LEVEL
-	current_exp = GameConstants.PLAYER_EXPERIENCE
-	exp_to_next_level = _calculate_exp_for_level(current_level + 1)
+	# Эмитим сигналы ПОСЛЕ инициализации всех переменных
+	health_changed.emit(health_int, GameConstants.PLAYER_MAX_HEALTH)
 	exp_changed.emit(current_exp, exp_to_next_level)
 
 func _on_constants_changed() -> void:
@@ -201,6 +205,7 @@ func heal(amount: int) -> void:
 # === СИСТЕМА ОПЫТА И УРОВНЕЙ ===
 
 func add_experience(amount: int) -> void:
+	print("Получен опыт: ", amount, " | Текущий опыт: ", current_exp, "/", exp_to_next_level)
 	current_exp += amount
 	GameConstants.PLAYER_EXPERIENCE = current_exp
 	exp_changed.emit(current_exp, exp_to_next_level)
@@ -211,9 +216,15 @@ func add_experience(amount: int) -> void:
 
 func _calculate_exp_for_level(level: int) -> int:
 	# Формула: базовый_опыт * (множитель ^ (уровень - 1))
-	return int(GameConstants.PLAYER_BASE_EXP_TO_LEVEL * pow(GameConstants.PLAYER_EXP_MULTIPLIER, level - 1))
+	var exp_needed = int(GameConstants.PLAYER_BASE_EXP_TO_LEVEL * pow(GameConstants.PLAYER_EXP_MULTIPLIER, level - 1))
+	print("Опыт для уровня ", level, ": ", exp_needed)
+	return exp_needed
 
 func level_up_player() -> void:
+	print("=== LEVEL UP! ===")
+	print("Старый уровень: ", current_level)
+	print("Текущий опыт: ", current_exp, " | Требовалось: ", exp_to_next_level)
+
 	current_level += 1
 	GameConstants.PLAYER_LEVEL = current_level
 
@@ -230,9 +241,21 @@ func level_up_player() -> void:
 	health_int = GameConstants.PLAYER_MAX_HEALTH
 	last_known_max_health = GameConstants.PLAYER_MAX_HEALTH
 
+	# Показываем popup
+	_show_level_up_popup()
+
 	# Сигналы
 	level_up.emit(current_level)
 	health_changed.emit(health_int, GameConstants.PLAYER_MAX_HEALTH)
 	exp_changed.emit(current_exp, exp_to_next_level)
 
-	print("Level Up! Новый уровень: ", current_level)
+	print("Новый уровень: ", current_level)
+	print("Остаток опыта: ", current_exp, " | Нужно для следующего: ", exp_to_next_level)
+	print("==================")
+
+func _show_level_up_popup():
+	print("Показываем Level Up Popup!")
+	var popup = LEVEL_UP_POPUP.instantiate()
+	popup.global_position = global_position + Vector2(0, -50)
+	get_tree().current_scene.add_child(popup)
+	print("Popup добавлен в сцену")

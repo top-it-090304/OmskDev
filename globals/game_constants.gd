@@ -16,15 +16,15 @@ const HEALTH_POTION = preload("res://scene/pick_up/Heal potion/heal_potion.tscn"
 
 # --- PLAYER STATS ---
 var PLAYER_MAX_SPEED = 200
-var PLAYER_MAX_HEALTH = 200
+var PLAYER_MAX_HEALTH = 2000
 var PLAYER_ENEMY_CONTACT_DAMAGE = 10
 var PLAYER_ATTACK_DAMAGE = 10
 
 # --- PLAYER LEVEL SYSTEM ---
 var PLAYER_LEVEL = 1
 var PLAYER_EXPERIENCE = 0
-var PLAYER_BASE_EXP_TO_LEVEL = 100  # Опыт для 2 уровня
-var PLAYER_EXP_MULTIPLIER = 1.5  # Каждый уровень требует в 1.5 раза больше опыта
+var PLAYER_BASE_EXP_TO_LEVEL = 50  # Опыт для 2 уровня (уменьшено для тестирования)
+var PLAYER_EXP_MULTIPLIER = 1.3  # Каждый уровень требует в 1.3 раза больше опыта
 
 # Прирост характеристик за уровень
 var PLAYER_HEALTH_PER_LEVEL = 20
@@ -37,7 +37,7 @@ var ENEMY_GOBLIN_AXE_MAX_SPEED = 150
 var ENEMY_GOBLIN_AXE_DAMAGE = 10
 var ENEMY_GOBLIN_AXE_SMITE_OFFSET = 20
 var ENEMY_GOBLIN_AXE_TAKE_DAMAGE = 10
-var ENEMY_GOBLIN_AXE_EXP_REWARD = 15
+var ENEMY_GOBLIN_AXE_EXP_REWARD = 100
 
 # --- ENEMY: SKELETON BOW ---
 var SKELETON_BOW_HP = 50
@@ -46,7 +46,7 @@ var SKELETON_BOW_SPEED_MIN = 70
 var SKELETON_BOW_SPEED_MAX = 160
 var SKELETON_BOW_TAKE_DAMAGE = 10
 var SKELETON_BOW_BODY_DAMAGE = 10
-var SKELETON_BOW_EXP_REWARD = 12
+var SKELETON_BOW_EXP_REWARD = 18
 
 # --- PROJECTILES ---
 var ARROW_DAMAGE = 20

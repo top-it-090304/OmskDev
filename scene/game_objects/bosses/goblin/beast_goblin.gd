@@ -240,7 +240,10 @@ func death():
 func _give_exp_to_player():
 	var player_node = get_tree().get_first_node_in_group("player")
 	if player_node and player_node.has_method("add_experience"):
+		print("Beast Goblin выдает опыт: ", GameConstants.ENEMY_BEASTGOBLIN_EXP_REWARD)
 		player_node.add_experience(GameConstants.ENEMY_BEASTGOBLIN_EXP_REWARD)
+	else:
+		print("ОШИБКА: Игрок не найден или нет метода add_experience")
 
 func _spawn_loot():
 	var potion = GameConstants.HEALTH_POTION.instantiate()

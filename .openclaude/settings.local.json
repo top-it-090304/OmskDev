@@ -6,7 +6,9 @@
       "Bash(find . -type f -iname *enemy*)",
       "Bash(find . -type f -name *.gd -exec grep -l \"Enemys\\\\|enemys\" {})",
       "Bash(2)",
-      "Bash(find . -type f -name *.gd ! -path ./.godot/*)"
+      "Bash(find . -type f -name *.gd ! -path ./.godot/*)",
+      "Bash(xargs grep:*)",
+      "Bash(find . -name \"*.tscn\" -type f -exec grep -l \"exp_bar\" {})"
     ]
   }
 }
