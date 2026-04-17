@@ -76,6 +76,9 @@ func pickup(player: Node) -> void:
 	# Добавляем в рюкзак
 	add_to_backpack()
 
+	# Отмечаем комнату как собранную
+	mark_room_as_collected()
+
 	# Анимация подбора
 	play_pickup_animation()
 
@@ -208,3 +211,11 @@ func show_stat_popup() -> void:
 	for change in stat_changes:
 		popup.add_stat_line(change["text"], change["color"])
 		print("  Добавлена строка в popup: ", change["text"])
+
+func mark_room_as_collected() -> void:
+	# Находим комнату, в которой находится артефакт
+	var room = get_parent()
+	if room and "grid_x" in room and "grid_y" in room:
+		var room_pos = Vector2i(room.grid_x, room.grid_y)
+		SaveSystem.mark_treasure_collected(room_pos)
+		print("Комната ", room_pos, " отмечена как собранная")

@@ -23,5 +23,10 @@ func _on_texture_button_3_pressed() -> void:
 	# Сохраняем игру перед выходом
 	SaveSystem.save_game()
 
+	# Сохраняем состояние данжена
+	var map_manager = get_tree().get_first_node_in_group("map_manager")
+	if map_manager and map_manager.has_method("save_dungeon_state"):
+		map_manager.save_dungeon_state()
+
 	get_tree().paused = false
 	get_tree().change_scene_to_file(target_scene)

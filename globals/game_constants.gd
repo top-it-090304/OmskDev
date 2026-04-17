@@ -191,7 +191,7 @@ func on_room_cleared() -> void:
 	ROOMS_CLEARED += 1
 
 	# Каждые 2 комнаты - повышение уровня врагов
-	if ROOMS_CLEARED % 2 == 0:
+	if int(ROOMS_CLEARED) % 2 == 0:
 		ENEMY_LEVEL += 1
 		print("=== УРОВЕНЬ ВРАГОВ ПОВЫШЕН ===")
 		print("Новый уровень врагов: ", ENEMY_LEVEL)

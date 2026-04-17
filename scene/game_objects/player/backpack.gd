@@ -11,7 +11,26 @@ extends Control
 var collected_artefacts: Array = []
 
 func _ready():
+	add_to_group("backpack")
 	setup_grid()
+
+	# Восстанавливаем артефакты из сохранения
+	if SaveSystem.has_collected_artefacts():
+		var saved_artefacts = SaveSystem.get_collected_artefacts()
+		for artefact_data in saved_artefacts:
+			# Загружаем иконку из пути
+			var icon_texture = null
+			if artefact_data.get("icon_path", "") != "":
+				icon_texture = load(artefact_data["icon_path"])
+
+			var artefact_info = {
+				"name": artefact_data.get("name", "Unknown"),
+				"icon": icon_texture,
+				"description": artefact_data.get("description", "")
+			}
+			collected_artefacts.append(artefact_info)
+			create_icon(artefact_info)
+		print("Восстановлено артефактов: ", saved_artefacts.size())
 
 func setup_grid():
 	# Создаем GridContainer если его нет
@@ -32,6 +51,7 @@ func add_artefact(artefact_data) -> void:
 	var artefact_info = {
 		"name": artefact_data.artefact_name if "artefact_name" in artefact_data else "Unknown",
 		"icon": artefact_data.artefact_icon if "artefact_icon" in artefact_data else null,
+		"icon_path": artefact_data.artefact_icon.resource_path if (artefact_data.artefact_icon and "artefact_icon" in artefact_data) else "",
 		"description": artefact_data.artefact_description if "artefact_description" in artefact_data else ""
 	}
 
@@ -107,3 +127,13 @@ func clear_backpack() -> void:
 	collected_artefacts.clear()
 	for child in grid_container.get_children():
 		child.queue_free()
+
+func get_collected_artefact_names() -> Array:
+	var artefacts_data = []
+	for artefact in collected_artefacts:
+		artefacts_data.append({
+			"name": artefact["name"],
+			"icon_path": artefact.get("icon_path", ""),
+			"description": artefact.get("description", "")
+		})
+	return artefacts_data

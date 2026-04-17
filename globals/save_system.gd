@@ -1,11 +1,18 @@
 extends Node
 
 const SAVE_PATH = "user://save_game.dat"
+const DUNGEON_PATH = "user://dungeon_state.dat"
 
 # Флаг для определения, нужно ли восстанавливать состояние игрока
 var should_restore_player = false
 var saved_player_health = 0
 var saved_player_position = Vector2.ZERO
+
+# Собранные артефакты
+var collected_artefacts: Array = []
+
+# Комнаты, в которых артефакты уже собраны
+var collected_treasure_rooms: Array = []
 
 # Базовые значения для сброса
 const BASE_VALUES = {
@@ -90,6 +97,12 @@ func save_game() -> bool:
 		print("Сохранено здоровье игрока: ", player.health_int)
 		print("Сохранена позиция игрока: ", player.global_position)
 
+	# Сохраняем собранные артефакты
+	var backpack = get_tree().get_first_node_in_group("backpack")
+	if backpack and backpack.has_method("get_collected_artefact_names"):
+		save_data["collected_artefacts"] = backpack.get_collected_artefact_names()
+		print("Сохранено артефактов: ", save_data["collected_artefacts"].size())
+
 	var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file:
 		var json_string = JSON.stringify(save_data, "\t")
@@ -168,6 +181,11 @@ func load_game() -> bool:
 		var pos = save_data["player_position"]
 		saved_player_position = Vector2(pos.get("x", 0), pos.get("y", 0))
 
+	# Загружаем собранные артефакты
+	if "collected_artefacts" in save_data:
+		collected_artefacts = save_data["collected_artefacts"]
+		print("Загружено артефактов: ", collected_artefacts.size())
+
 	GameConstants.save_to_disk()
 
 	print("Игра успешно загружена")
@@ -192,6 +210,10 @@ func reset_to_base_values():
 	saved_player_health = 0
 	saved_player_position = Vector2.ZERO
 
+	# Очищаем собранные артефакты
+	clear_collected_artefacts()
+	clear_collected_treasure_rooms()
+
 	print("Все значения сброшены к базовым")
 	print("================================")
 
@@ -202,6 +224,9 @@ func delete_save():
 	if FileAccess.file_exists(SAVE_PATH):
 		DirAccess.remove_absolute(SAVE_PATH)
 		print("Файл сохранения удален")
+
+	# Также удаляем состояние данжена
+	delete_dungeon_state()
 
 # Восстановление здоровья игрока после загрузки
 func restore_player_state():
@@ -228,3 +253,76 @@ func restore_player_state():
 
 	# Сбрасываем флаг
 	should_restore_player = false
+
+# =====================================================================
+# СОХРАНЕНИЕ/ЗАГРУЗКА СОСТОЯНИЯ ДАНЖЕНА
+# =====================================================================
+
+func save_dungeon_data(dungeon_data: Dictionary) -> bool:
+	var file = FileAccess.open(DUNGEON_PATH, FileAccess.WRITE)
+	if file:
+		var json_string = JSON.stringify(dungeon_data, "\t")
+		file.store_string(json_string)
+		file.close()
+		print("Состояние данжена сохранено в: ", DUNGEON_PATH)
+		return true
+	else:
+		push_error("Не удалось сохранить состояние данжена: " + str(FileAccess.get_open_error()))
+		return false
+
+func load_dungeon_data() -> Dictionary:
+	if not FileAccess.file_exists(DUNGEON_PATH):
+		print("Файл состояния данжена не найден")
+		return {}
+
+	var file = FileAccess.open(DUNGEON_PATH, FileAccess.READ)
+	if not file:
+		push_error("Не удалось открыть файл состояния данжена: " + str(FileAccess.get_open_error()))
+		return {}
+
+	var json_string = file.get_as_text()
+	file.close()
+
+	var json = JSON.new()
+	var parse_result = json.parse(json_string)
+
+	if parse_result != OK:
+		push_error("Ошибка парсинга JSON состояния данжена: " + json.get_error_message())
+		return {}
+
+	return json.data
+
+func has_dungeon_state() -> bool:
+	return FileAccess.file_exists(DUNGEON_PATH)
+
+func delete_dungeon_state():
+	if FileAccess.file_exists(DUNGEON_PATH):
+		DirAccess.remove_absolute(DUNGEON_PATH)
+		print("Файл состояния данжена удален")
+
+# =====================================================================
+# РАБОТА С СОБРАННЫМИ АРТЕФАКТАМИ
+# =====================================================================
+
+func has_collected_artefacts() -> bool:
+	return collected_artefacts.size() > 0
+
+func get_collected_artefacts() -> Array:
+	return collected_artefacts
+
+func clear_collected_artefacts():
+	collected_artefacts.clear()
+
+func is_treasure_collected(room_pos: Vector2i) -> bool:
+	for pos in collected_treasure_rooms:
+		if pos["x"] == room_pos.x and pos["y"] == room_pos.y:
+			return true
+	return false
+
+func mark_treasure_collected(room_pos: Vector2i):
+	if not is_treasure_collected(room_pos):
+		collected_treasure_rooms.append({"x": room_pos.x, "y": room_pos.y})
+		print("Комната с сокровищем отмечена как собранная: ", room_pos)
+
+func clear_collected_treasure_rooms():
+	collected_treasure_rooms.clear()
