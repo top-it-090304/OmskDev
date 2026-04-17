@@ -166,6 +166,8 @@ func _on_can_take_damage_timeout() -> void:
 	can_take_damage = true
 
 func _ready() -> void:
+	add_to_group("player")
+
 	# Инициализация системы уровней СНАЧАЛА
 	current_level = GameConstants.PLAYER_LEVEL
 	current_exp = GameConstants.PLAYER_EXPERIENCE
@@ -179,6 +181,10 @@ func _ready() -> void:
 	# Эмитим сигналы ПОСЛЕ инициализации всех переменных
 	health_changed.emit(health_int, GameConstants.PLAYER_MAX_HEALTH)
 	exp_changed.emit(current_exp, exp_to_next_level)
+
+	# Если это загрузка сохранения, восстанавливаем состояние
+	if SaveSystem.should_restore_player:
+		SaveSystem.restore_player_state()
 
 func _on_constants_changed() -> void:
 	var new_max = GameConstants.PLAYER_MAX_HEALTH

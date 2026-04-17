@@ -18,6 +18,7 @@ boot_splash/bg_color=Color(0, 0.0418439, 0.0956349, 1)
 [autoload]
 
 GameConstants="*res://globals/game_constants.gd"
+SaveSystem="*res://globals/save_system.gd"
 
 [display]
 

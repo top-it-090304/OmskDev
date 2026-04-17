@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://bq40uiaugbfjq"]
+[gd_scene load_steps=38 format=3 uid="uid://bq40uiaugbfjq"]
 
 [ext_resource type="PackedScene" uid="uid://n6dhykg53x0b" path="res://World/map_manager.tscn" id="1_mln5v"]
 [ext_resource type="PackedScene" uid="uid://ec471alip6hl" path="res://scene/game_objects/player/exp_bar.tscn" id="2_jn37s"]
@@ -15,6 +15,28 @@
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/metal_shield.tscn" id="13_cueid"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/old_book.tscn" id="14_36tnp"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/red_potion.tscn" id="15_rhie0"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/bottle.tscn" id="16_art01"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/bongo.tscn" id="17_art02"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/button.tscn" id="18_art03"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/disco_ball.tscn" id="19_art04"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/electronic_key.tscn" id="20_art05"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/fairy_bottle.tscn" id="21_art06"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/flashlight.tscn" id="22_art07"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/golden_ball.tscn" id="23_art08"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/juice_box.tscn" id="24_art09"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/letter.tscn" id="25_art10"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/lime_juice.tscn" id="26_art11"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/milk_box.tscn" id="27_art12"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/pill.tscn" id="28_art13"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/pill_can.tscn" id="29_art14"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/ramen_bowl.tscn" id="30_art15"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/small_cactus.tscn" id="31_art16"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/snow_ball.tscn" id="32_art17"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/top_hat.tscn" id="33_art18"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/uno_reverse_card.tscn" id="34_art19"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/vhs_cassette.tscn" id="35_art20"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/waffle.tscn" id="36_art21"]
+[ext_resource type="PackedScene" uid="uid://mes1twfxfifa" path="res://scene/game_objects/player/player.tscn" id="37_nxgrl"]
 
 [node name="Layer" type="Node"]
 
@@ -43,4 +65,5 @@ offset_bottom = 325.0
 
 [node name="MapManager" parent="." node_paths=PackedStringArray("layer") instance=ExtResource("1_mln5v")]
 layer = NodePath("..")
-treasure_items = Array[PackedScene]([ExtResource("5_v7fgi"), ExtResource("6_ikq8h"), ExtResource("7_qpvvc"), ExtResource("8_shab0"), ExtResource("9_f2vw5"), ExtResource("10_ylsjx"), ExtResource("11_3hlwg"), ExtResource("12_0el4m"), ExtResource("13_cueid"), ExtResource("14_36tnp"), ExtResource("15_rhie0")])
+treasure_items = Array[PackedScene]([ExtResource("5_v7fgi"), ExtResource("6_ikq8h"), ExtResource("7_qpvvc"), ExtResource("8_shab0"), ExtResource("9_f2vw5"), ExtResource("10_ylsjx"), ExtResource("11_3hlwg"), ExtResource("12_0el4m"), ExtResource("13_cueid"), ExtResource("14_36tnp"), ExtResource("15_rhie0"), ExtResource("16_art01"), ExtResource("17_art02"), ExtResource("18_art03"), ExtResource("19_art04"), ExtResource("20_art05"), ExtResource("21_art06"), ExtResource("22_art07"), ExtResource("23_art08"), ExtResource("24_art09"), ExtResource("25_art10"), ExtResource("26_art11"), ExtResource("27_art12"), ExtResource("28_art13"), ExtResource("29_art14"), ExtResource("30_art15"), ExtResource("31_art16"), ExtResource("32_art17"), ExtResource("33_art18"), ExtResource("34_art19"), ExtResource("35_art20"), ExtResource("36_art21")])
+player_scene = ExtResource("37_nxgrl")

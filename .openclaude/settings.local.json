@@ -16,7 +16,12 @@
       "Bash(do sed:*)",
       "Bash(sed -i 's/scale = Vector2\\(0.8, 0.8\\)//g' \"$file\")",
       "Bash(done)",
-      "Bash(\"D:\\\\GIT WORK\\\\OmskDev\\\\scene\\\\ui\\\\enemy_level_display.tscn\":*)"
+      "Bash(\"D:\\\\GIT WORK\\\\OmskDev\\\\scene\\\\ui\\\\enemy_level_display.tscn\":*)",
+      "Bash(ls ./scene/pick_up/artefacts/*.gd)",
+      "Bash(find . -type d -name \"scene\" -exec find {} -maxdepth 2 -type d)",
+      "Bash(find . -name *map*manager* -o -name *MapManager*)",
+      "Bash(find . -name \"*.gd\" -type f -exec grep -l \"MapManager\\\\|treasure.*item\" {})",
+      "Bash(find ./scene/pick_up/artefacts/scene/pick_up/artefacts -name *.tscn -type f)"
     ]
   }
 }

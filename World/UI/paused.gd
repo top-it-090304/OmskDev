@@ -1,21 +1,27 @@
 extends Control
 @export var scene_to_open: PackedScene  # Перетащите сцену в инспекторе
-@export var target_scene="res://World/UI/menu.tscn"
+@export var target_scene = "res://World/UI/menu.tscn"
+
 func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	get_tree().paused=true
+	get_tree().paused = true
 
 func _on_texture_button_pressed() -> void:
-	get_tree().paused=false
+	# Продолжить игру
+	get_tree().paused = false
 	queue_free()
 
-
 func _on_texture_button_2_pressed() -> void:
+	# Настройки
 	var new_scene_instance = scene_to_open.instantiate()
 	add_child(new_scene_instance)
 
-
 func _on_texture_button_3_pressed() -> void:
-	get_tree().paused=false
-	
+	# Выход в главное меню
+	print("=== ВЫХОД В ГЛАВНОЕ МЕНЮ ===")
+
+	# Сохраняем игру перед выходом
+	SaveSystem.save_game()
+
+	get_tree().paused = false
 	get_tree().change_scene_to_file(target_scene)

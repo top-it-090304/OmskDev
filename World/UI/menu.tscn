@@ -5,7 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://duibchuhwk256" path="res://assets/Button/GenericButtonPressed.png" id="2_4lrdm"]
 [ext_resource type="Texture2D" uid="uid://b5yb01m7fu3xl" path="res://assets/Button/GenericButtonActive.png" id="3_aqj1r"]
 [ext_resource type="Script" uid="uid://dhcs8p31os612" path="res://World/UI/continue_button.gd" id="5_ngpfw"]
-[ext_resource type="Script" uid="uid://cc6m1ybqsmyrp" path="res://World/UI/texture_button_2.gd" id="6_g0kwj"]
+[ext_resource type="Script" uid="uid://cc6m1ybqsmyrp" path="res://World/UI/newgame.gd" id="6_g0kwj"]
 [ext_resource type="FontFile" uid="uid://wbjr6hf3uxdc" path="res://Font/PixelRpgFont-Regular.ttf" id="6_wtcg7"]
 [ext_resource type="Script" uid="uid://dffurlehwvm3c" path="res://World/UI/texture_button_3.gd" id="7_6s5qj"]
 [ext_resource type="PackedScene" uid="uid://bq40uiaugbfjq" path="res://World/layer.tscn" id="7_c5dx4"]
@@ -254,12 +254,12 @@ metadata/_edit_lock_ = true
 custom_minimum_size = Vector2(200, 40)
 layout_mode = 2
 size_flags_horizontal = 4
-disabled = true
 texture_normal = ExtResource("1_fiq8v")
 texture_pressed = ExtResource("2_4lrdm")
 texture_hover = ExtResource("3_aqj1r")
 stretch_mode = 0
 script = ExtResource("5_ngpfw")
+target_scene = ExtResource("7_c5dx4")
 metadata/_edit_use_anchors_ = true
 
 [node name="Label" type="Label" parent="VBoxContainer/ContinueButton"]
@@ -277,7 +277,7 @@ text = "Продолжить"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="TextureButton2" type="TextureButton" parent="VBoxContainer"]
+[node name="newgame" type="TextureButton" parent="VBoxContainer"]
 custom_minimum_size = Vector2(200, 40)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -289,7 +289,7 @@ script = ExtResource("6_g0kwj")
 target_scene1 = ExtResource("7_c5dx4")
 metadata/_edit_use_anchors_ = true
 
-[node name="Label" type="Label" parent="VBoxContainer/TextureButton2"]
+[node name="Label" type="Label" parent="VBoxContainer/newgame"]
 modulate = Color(1, 1, 1, 0.886275)
 self_modulate = Color(1, 1, 1, 0.929412)
 layout_mode = 1
@@ -427,6 +427,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
 
-[connection signal="pressed" from="VBoxContainer/TextureButton2" to="VBoxContainer/TextureButton2" method="_on_pressed"]
+[connection signal="pressed" from="VBoxContainer/ContinueButton" to="VBoxContainer/ContinueButton" method="_on_pressed"]
+[connection signal="pressed" from="VBoxContainer/newgame" to="VBoxContainer/newgame" method="_on_pressed"]
 [connection signal="pressed" from="VBoxContainer/TextureButton3" to="VBoxContainer/TextureButton3" method="_on_pressed"]
 [connection signal="pressed" from="VBoxContainer/TextureButton4" to="VBoxContainer/TextureButton4" method="_on_pressed"]
