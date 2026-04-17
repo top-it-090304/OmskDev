@@ -3,12 +3,11 @@ extends CharacterBody2D
 # Настройки из глобальных констант
 @export var hp = 0
 var max_speed = 0.0
-var damage = 20
+var damage = 15
 
 @onready var animP = $AnimationPlayer
 @onready var attack_timer = $attack_timer
 @onready var anim = $AnimatedSprite2D
-# --- НОВОЕ ---
 @onready var hp_bar = $TextureProgressBar
 
 # Ссылки на окружение
@@ -22,21 +21,20 @@ var current_dir = Dir.DOWN
 
 # Флаги состояний
 var can_move = true
-var can_attack = false 
+var can_attack = false
 var player_in_range = false
 var get_closer = true
-var is_dead = false 
-var can_anim = true 
+var is_dead = false
+var can_anim = true
 
 func _ready() -> void:
 	# Инициализация параметров с масштабированием
-	hp = GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_HP)
+	hp = GameConstants.get_scaled_enemy_stat(GameConstants.GOBLIN_SLINGER_HP)
 	max_speed = randf_range(
-		GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_SPEED_MIN),
-		GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_SPEED_MAX)
+		GameConstants.get_scaled_enemy_stat(GameConstants.GOBLIN_SLINGER_SPEED_MIN),
+		GameConstants.get_scaled_enemy_stat(GameConstants.GOBLIN_SLINGER_SPEED_MAX)
 	)
 
-	# --- НОВОЕ ---
 	hp_bar.update_hp(hp, hp)
 
 	player = get_tree().get_first_node_in_group("player") as Node2D
@@ -45,7 +43,7 @@ func _ready() -> void:
 	if parent_node:
 		room_node = parent_node.get_parent()
 
-	attack_timer.start(1.0) 
+	attack_timer.start(1.0)
 
 func _physics_process(_delta: float) -> void:
 	if is_dead: return
@@ -102,33 +100,33 @@ func play_idle_animation():
 func attack():
 	if not can_attack or not player_in_range or is_dead:
 		return
-		
+
 	can_move = false
 	can_attack = false
-	
+
 	match current_dir:
 		Dir.UP: animP.play("attack_up")
 		Dir.DOWN: animP.play("attack_down")
 		Dir.LEFT: animP.play("attack_left")
 		Dir.RIGHT: animP.play("attack_right")
-	
+
 	await animP.animation_finished
-	
+
 	if not is_dead:
 		can_move = true
 		attack_timer.start()
-		
+
 func take_damage(amount: int):
 	if is_dead: return
 
 	hp -= amount
-	var max_hp = GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_HP)
+	var max_hp = GameConstants.get_scaled_enemy_stat(GameConstants.GOBLIN_SLINGER_HP)
 	hp_bar.update_hp(hp, max_hp)
-	
-	can_anim = false 
-	can_move = false 
-	animP.stop()    
-	
+
+	can_anim = false
+	can_move = false
+	animP.stop()
+
 	if hp <= 0:
 		death()
 		return
@@ -138,29 +136,28 @@ func take_damage(amount: int):
 		Dir.DOWN: anim.play("hurt_down")
 		Dir.LEFT: anim.play("hurt_left")
 		Dir.RIGHT: anim.play("hurt_right")
-	
+
 	await anim.animation_finished
-	
+
 	if not is_dead:
-		can_anim = true 
-		can_move = true 
-		
-		# --- НОВОЕ: ПЕРЕЗАПУСК ТАЙМЕРА АТАКИ ---
-		# Если таймер стоит на месте (потому что мы оборвали атаку),
-		# запускаем его заново. Дадим скелету 0.5 сек передышки после урона.
+		can_anim = true
+		can_move = true
+
 		if attack_timer.is_stopped():
-			attack_timer.start(0.5) 
-func shoot():
+			attack_timer.start(0.5)
+
+func shoot_poison():
 	if not player or not is_instance_valid(player) or is_dead: return
-	
-	var arrow_instance = GameConstants.SKELETON_BOW_ARROW.instantiate()
-	arrow_instance.global_position = global_position
-	
+
+	var projectile_instance = GameConstants.GOBLIN_SLINGER_PROJECTILE.instantiate()
+	projectile_instance.global_position = global_position
+
 	var target_dir = (player.global_position - global_position).normalized()
-	arrow_instance.direction = target_dir
-	arrow_instance.rotation = target_dir.angle()
-	
-	get_tree().current_scene.add_child.call_deferred(arrow_instance)
+	projectile_instance.direction = target_dir
+	projectile_instance.rotation = target_dir.angle()
+
+	get_tree().current_scene.add_child.call_deferred(projectile_instance)
+	print("Goblin Slinger выстрелил ядовитым снарядом!")
 
 func death():
 	if is_dead: return
@@ -183,7 +180,6 @@ func death():
 
 	await anim.animation_finished
 
-	# Выдаем опыт игроку
 	_give_exp_to_player()
 
 	if randf() <= 0.25:
@@ -194,8 +190,8 @@ func death():
 func _give_exp_to_player():
 	var player_node = get_tree().get_first_node_in_group("player")
 	if player_node and player_node.has_method("add_experience"):
-		var exp_reward = GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_EXP_REWARD)
-		print("Skeleton Bow выдает опыт: ", exp_reward, " (уровень врагов: ", GameConstants.ENEMY_LEVEL, ")")
+		var exp_reward = GameConstants.get_scaled_enemy_stat(GameConstants.GOBLIN_SLINGER_EXP_REWARD)
+		print("Goblin Slinger выдает опыт: ", exp_reward, " (уровень врагов: ", GameConstants.ENEMY_LEVEL, ")")
 		player_node.add_experience(exp_reward)
 	else:
 		print("ОШИБКА: Игрок не найден или нет метода add_experience")
@@ -203,7 +199,6 @@ func _give_exp_to_player():
 func _spawn_loot():
 	var potion = GameConstants.HEALTH_POTION.instantiate()
 	potion.global_position = global_position
-	# Исправлено: добавляем в комнату, а не в Enemys node
 	if parent_node:
 		room_node.add_child(potion)
 	else:
@@ -213,16 +208,16 @@ func _on_detector_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player"):
 		player_in_range = true
-		get_closer = false 
-		
+		get_closer = false
+
 		if can_attack:
 			can_attack = false
-			attack_timer.start(0.4) 
+			attack_timer.start(0.4)
 
 func _on_detector_body_exited(body: Node2D) -> void:
 	if body.is_in_group("player"):
 		player_in_range = false
-		get_closer = true 
+		get_closer = true
 
 func _on_attack_timer_timeout():
 	if is_dead: return
@@ -231,5 +226,5 @@ func _on_attack_timer_timeout():
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player") and body.has_method("take_damage"):
-		var damage = GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_BODY_DAMAGE)
+		var damage = GameConstants.get_scaled_enemy_stat(GameConstants.GOBLIN_SLINGER_BODY_DAMAGE)
 		body.take_damage(damage)

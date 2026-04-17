@@ -25,7 +25,19 @@
       "Bash(find 'D:\\\\GIT WORK\\\\OmskDev' -name *enemy*.gd -type f)",
       "Bash(find 'D:\\\\GIT WORK\\\\OmskDev' -name *.tscn -path */ui/* -type f)",
       "Bash(find 'D:\\\\GIT WORK\\\\OmskDev' -name *backpack*.gd -o -name *inventory*.gd)",
-      "Bash(find 'D:\\\\GIT WORK\\\\OmskDev\\\\scene\\\\pick_up' -name *.gd -type f)"
+      "Bash(find 'D:\\\\GIT WORK\\\\OmskDev\\\\scene\\\\pick_up' -name *.gd -type f)",
+      "Bash(find 'D:\\\\GIT WORK\\\\OmskDev\\\\sprites' -name *skeleton* -o -name *arrow*)",
+      "Bash(find 'D:\\\\GIT WORK\\\\OmskDev\\\\sprites\\\\enemys' -name *stingler* -o -name *Stingler*)",
+      "Bash(for dir:*)",
+      "Bash(do echo:*)",
+      "Read(//d/GIT WORK/OmskDev/sprites/enemys/Goblin_Slinger$dir/**)",
+      "Bash(find ./scene/game_objects -type f -name *.gd)",
+      "Bash(find ./sprites -type d -name *skeleton* -o -name *bow* -o -name *arrow*)",
+      "Bash(find ./sprites/enemys -type f \\\\\\(-name *.png -o -name *.import \\\\\\))",
+      "Bash(ls:*)",
+      "Bash(python3:*)",
+      "Bash(wc:*)",
+      "Bash(\"D:\\\\GIT WORK\\\\OmskDev\\\\scene\\\\game_objects\\\\enemy\\\\goblin_slinger\\\\goblin_slinger.tscn\":*)"
     ]
   }
 }

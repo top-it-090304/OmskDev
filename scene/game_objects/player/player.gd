@@ -13,6 +13,14 @@ var can_take_damage = true
 @onready var attack_timer = $can_attack
 @onready var animP = $AnimationPlayer
 
+# Система отравления
+var is_poisoned = false
+var poison_timer = 0.0
+var poison_tick_timer = 0.0
+var poison_damage_per_tick = 0
+var poison_tick_rate = 0.5
+var original_modulate = Color(1, 1, 1, 1)
+
 # Система уровней
 var current_level = 1
 var current_exp = 0
@@ -38,7 +46,22 @@ func _physics_process(_delta: float) -> void:
 
 func _process(_delta: float) -> void:
 	if is_dead: return
-	
+
+	# Обработка яда
+	if is_poisoned:
+		poison_timer -= _delta
+		poison_tick_timer -= _delta
+
+		# Наносим урон каждый тик
+		if poison_tick_timer <= 0:
+			take_damage(poison_damage_per_tick)
+			poison_tick_timer = poison_tick_rate
+			print("Урон от яда: ", poison_damage_per_tick)
+
+		# Проверяем окончание яда
+		if poison_timer <= 0:
+			remove_poison()
+
 	if health_int <= 0:
 		die()
 		return
@@ -272,3 +295,33 @@ func _show_level_up_popup():
 	popup.global_position = global_position + Vector2(0, -50)
 	get_tree().current_scene.add_child(popup)
 	print("Popup добавлен в сцену")
+
+# =====================================================================
+# СИСТЕМА ОТРАВЛЕНИЯ
+# =====================================================================
+
+func apply_poison(duration: float, damage_per_tick: int, tick_rate: float):
+	if is_poisoned:
+		# Если уже отравлен, обновляем таймер (продлеваем яд)
+		poison_timer = max(poison_timer, duration)
+		print("Яд продлен! Новая длительность: ", poison_timer, "с")
+	else:
+		# Применяем новый яд
+		is_poisoned = true
+		poison_timer = duration
+		poison_tick_timer = tick_rate
+		poison_damage_per_tick = damage_per_tick
+		poison_tick_rate = tick_rate
+
+		# Делаем игрока зеленым
+		anim.modulate = Color(0.3, 1, 0.3, 1)
+		print("Игрок отравлен! Длительность: ", duration, "с, урон за тик: ", damage_per_tick)
+
+func remove_poison():
+	is_poisoned = false
+	poison_timer = 0.0
+	poison_tick_timer = 0.0
+
+	# Возвращаем нормальный цвет
+	anim.modulate = original_modulate
+	print("Яд прошел!")

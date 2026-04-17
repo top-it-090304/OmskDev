@@ -1,7 +1,14 @@
 extends Area2D
 
 var direction = Vector2.ZERO
-@export var speed = 400.0 # Можно использовать GameConstants.ARROW_SPEED
+var speed = GameConstants.ARROW_SPEED
+var lifetime = 5.0  # Автоудаление через 5 секунд
+
+func _ready() -> void:
+	# Автоудаление стрелы через 5 секунд
+	await get_tree().create_timer(lifetime).timeout
+	if is_instance_valid(self):
+		queue_free()
 
 func _process(delta: float) -> void:
 	# Если направление задано, летим строго по нему

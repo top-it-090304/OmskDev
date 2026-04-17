@@ -30,8 +30,20 @@ func pickup(player: Node) -> void:
 		if backpack.has_method("add_artefact"):
 			backpack.add_artefact(self)
 
+	# Отмечаем комнату как собранную
+	mark_room_as_collected()
+
 	# Удаляем с карты
 	queue_free()
+
+# Отмечает текущую комнату как собранную
+func mark_room_as_collected() -> void:
+	var map_manager = get_tree().get_first_node_in_group("map_manager")
+	if map_manager and map_manager.has_method("get_current_room_pos"):
+		var room_pos = map_manager.get("current_room_grid_pos")
+		if room_pos:
+			SaveSystem.mark_treasure_collected(room_pos)
+			print("Артефакт собран в комнате: ", room_pos)
 
 # Переопределяется в наследниках
 func apply_effect(player: Node) -> void:

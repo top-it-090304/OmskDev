@@ -27,7 +27,7 @@
 [ext_resource type="PackedScene" uid="uid://djw8n7hn0de6h" path="res://scene/ui/enemy_level_display.tscn" id="25_5u4vk"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_dfcc5"]
-radius = 240.133
+radius = 150.0
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_dfcc5"]
 radius = 11.0
@@ -1208,12 +1208,9 @@ tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0, 0.633333),
-"transitions": PackedFloat32Array(1, 1),
+"times": PackedFloat32Array(0.633333),
+"transitions": PackedFloat32Array(1),
 "values": [{
-"args": [],
-"method": &"shoot"
-}, {
 "args": [],
 "method": &"shoot"
 }]

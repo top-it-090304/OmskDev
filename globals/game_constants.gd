@@ -12,11 +12,12 @@ var MAP_MANAGER_GRID_SIZE = 8
 
 const SKELETON_BOW_ARROW = preload("res://scene/game_objects/enemy/skeleton_bow/arrow.tscn")
 const ENEMY_GOBLIN_AXE_SMITE = preload("res://scene/game_objects/enemy/goblin_axe/smite.tscn")
+const GOBLIN_SLINGER_PROJECTILE = preload("res://scene/game_objects/enemy/goblin_slinger/poison_projectile.tscn")
 const HEALTH_POTION = preload("res://scene/pick_up/Heal potion/heal_potion.tscn")
 
 # --- PLAYER STATS ---
 var PLAYER_MAX_SPEED = 200
-var PLAYER_MAX_HEALTH = 2000
+var PLAYER_MAX_HEALTH = 200
 var PLAYER_ENEMY_CONTACT_DAMAGE = 10
 var PLAYER_ATTACK_DAMAGE = 10
 var PLAYER_ARMOR = 0  # Блокирует фиксированное количество урона
@@ -55,9 +56,20 @@ var SKELETON_BOW_TAKE_DAMAGE = 10
 var SKELETON_BOW_BODY_DAMAGE = 10
 var SKELETON_BOW_EXP_REWARD = 18
 
+# --- ENEMY: GOBLIN SLINGER ---
+var GOBLIN_SLINGER_HP = 60
+var GOBLIN_SLINGER_SPEED_MIN = 80
+var GOBLIN_SLINGER_SPEED_MAX = 140
+var GOBLIN_SLINGER_BODY_DAMAGE = 12
+var GOBLIN_SLINGER_EXP_REWARD = 20
+
 # --- PROJECTILES ---
 var ARROW_DAMAGE = 20
-var ARROW_SPEED = 10
+var ARROW_SPEED = 400
+var POISON_PROJECTILE_DAMAGE = 2  # Урон за тик яда
+var POISON_PROJECTILE_SPEED = 350  # Скорость ядовитого снаряда
+var POISON_DURATION = 5.0  # Длительность яда в секундах
+var POISON_TICK_RATE = 0.5  # Частота тиков яда
 var SMITE_DAMAGE = 10
 var SMITE_RADIUS = 20
 var SMITE_SPEED = 2
@@ -137,6 +149,10 @@ func _stats_keys() -> PackedStringArray:
 		"SKELETON_BOW_EXP_REWARD",
 		"ARROW_DAMAGE",
 		"ARROW_SPEED",
+		"POISON_PROJECTILE_DAMAGE",
+		"POISON_PROJECTILE_SPEED",
+		"POISON_DURATION",
+		"POISON_TICK_RATE",
 		"SMITE_DAMAGE",
 		"SMITE_RADIUS",
 		"SMITE_SPEED",
@@ -160,6 +176,20 @@ func load_from_disk() -> void:
 	if err != OK:
 		save_to_disk()
 		return
+
+	# Проверяем, есть ли все ключи в конфиге
+	var needs_update = false
+	for key in _stats_keys():
+		if not cfg.has_section_key("stats", key):
+			needs_update = true
+			break
+
+	# Если каких-то ключей нет, сохраняем текущие значения
+	if needs_update:
+		save_to_disk()
+		return
+
+	# Загружаем значения из конфига
 	for key in _stats_keys():
 		if cfg.has_section_key("stats", key):
 			set(key, cfg.get_value("stats", key))

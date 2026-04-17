@@ -17,7 +17,7 @@ var collected_treasure_rooms: Array = []
 # Базовые значения для сброса
 const BASE_VALUES = {
 	"PLAYER_MAX_SPEED": 200,
-	"PLAYER_MAX_HEALTH": 2000,
+	"PLAYER_MAX_HEALTH": 200,
 	"PLAYER_ENEMY_CONTACT_DAMAGE": 10,
 	"PLAYER_ATTACK_DAMAGE": 10,
 	"PLAYER_ARMOR": 0,
@@ -103,6 +103,10 @@ func save_game() -> bool:
 		save_data["collected_artefacts"] = backpack.get_collected_artefact_names()
 		print("Сохранено артефактов: ", save_data["collected_artefacts"].size())
 
+	# Сохраняем комнаты с собранными сокровищами
+	save_data["collected_treasure_rooms"] = collected_treasure_rooms
+	print("Сохранено комнат с собранными сокровищами: ", collected_treasure_rooms.size())
+
 	var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file:
 		var json_string = JSON.stringify(save_data, "\t")
@@ -185,6 +189,11 @@ func load_game() -> bool:
 	if "collected_artefacts" in save_data:
 		collected_artefacts = save_data["collected_artefacts"]
 		print("Загружено артефактов: ", collected_artefacts.size())
+
+	# Загружаем комнаты с собранными сокровищами
+	if "collected_treasure_rooms" in save_data:
+		collected_treasure_rooms = save_data["collected_treasure_rooms"]
+		print("Загружено комнат с собранными сокровищами: ", collected_treasure_rooms.size())
 
 	GameConstants.save_to_disk()
 
