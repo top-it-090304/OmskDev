@@ -79,21 +79,11 @@ func attack(type: String):
 	var anim_name = type + "_" + _get_dir_string()
 	if animP.has_animation(anim_name):
 		animP.play(anim_name)
-		# Ждём завершения с таймаутом — если animation_finished не придёт, выходим через 3 сек
-		var timeout = get_tree().create_timer(3.0)
-		await _wait_for_attack_end(timeout)
+		await animP.animation_finished
 	else:
 		await get_tree().create_timer(0.5).timeout
 	animP.stop()
 	_reset_after_attack()
-
-func _wait_for_attack_end(timeout: SceneTreeTimer) -> void:
-	# Ждём первого из двух сигналов: конец анимации или таймаут
-	var done = false
-	animP.animation_finished.connect(func(_n): done = true, CONNECT_ONE_SHOT)
-	timeout.timeout.connect(func(): done = true, CONNECT_ONE_SHOT)
-	while not done:
-		await get_tree().process_frame
 
 func _reset_after_attack():
 	if is_instance_valid(smite_instance):
@@ -119,6 +109,10 @@ func spawn_bite_swing():
 		smite_instance.direction = target_dir
 	smite_instance.rotation = target_dir.angle()
 	smite_instance.global_position += target_dir * 35
+
+# Алиас — анимация bite_down вызывает spawn_bite_smite
+func spawn_bite_smite():
+	spawn_bite_swing()
 
 func activate_bite():
 	if is_instance_valid(smite_instance) and not is_dead:

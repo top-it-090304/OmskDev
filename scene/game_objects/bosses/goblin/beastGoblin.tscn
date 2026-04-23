@@ -31,11 +31,8 @@
 [ext_resource type="Script" uid="uid://osq5kv0630j2" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="29_wqun3"]
 [ext_resource type="PackedScene" uid="uid://djw8n7hn0de6h" path="res://scene/ui/enemy_level_display.tscn" id="30_boss_level"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_2u40x"]
-radius = 55.0
-
 [sub_resource type="CircleShape2D" id="CircleShape2D_ri15p"]
-radius = 50.0
+radius = 89.0225
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_t58vs"]
 radius = 15.0
@@ -2359,6 +2356,9 @@ radius = 30.0
 [sub_resource type="CircleShape2D" id="CircleShape2D_2a4ok"]
 radius = 150.0
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_2u40x"]
+radius = 81.0
+
 [node name="BossGoblin" type="CharacterBody2D" groups=["enemies", "enemys"]]
 z_index = 2
 collision_layer = 5
@@ -2366,15 +2366,7 @@ floor_max_angle = 0.0
 safe_margin = 0.001
 script = ExtResource("1_ri15p")
 
-[node name="detectorSlap" type="Area2D" parent="."]
-collision_mask = 2
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="detectorSlap"]
-shape = SubResource("CircleShape2D_2u40x")
-debug_color = Color(0.65713, 0.000222172, 0.626268, 0.0705882)
-
 [node name="slap" type="Area2D" parent="."]
-collision_layer = 0
 collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="slap"]
@@ -2434,8 +2426,18 @@ offset_top = 16.0
 offset_right = 18.0
 offset_bottom = 24.0
 
-[connection signal="body_entered" from="detectorSlap" to="." method="_on_detector_slap_body_entered"]
+[node name="detectorSlap" type="Area2D" parent="."]
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="detectorSlap"]
+shape = SubResource("CircleShape2D_2u40x")
+debug_color = Color(0.65713, 0.000222172, 0.626268, 0.0705882)
+
 [connection signal="body_entered" from="slap" to="." method="_on_slap_body_entered"]
 [connection signal="timeout" from="attack_timer" to="." method="_on_attack_timer_timeout"]
 [connection signal="body_entered" from="detectorBite" to="." method="_on_detector_bite_body_entered"]
+[connection signal="body_exited" from="detectorBite" to="." method="_on_detector_bite_body_exited"]
 [connection signal="body_entered" from="detectorShoot" to="." method="_on_detector_shoot_body_entered"]
+[connection signal="body_exited" from="detectorShoot" to="." method="_on_detector_shoot_body_exited"]
+[connection signal="body_entered" from="detectorSlap" to="." method="_on_detector_slap_body_entered"]
+[connection signal="body_exited" from="detectorSlap" to="." method="_on_detector_slap_body_exited"]
