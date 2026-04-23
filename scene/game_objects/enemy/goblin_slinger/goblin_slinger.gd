@@ -123,28 +123,14 @@ func take_damage(amount: int):
 	var max_hp = GameConstants.get_scaled_enemy_stat(GameConstants.GOBLIN_SLINGER_HP)
 	hp_bar.update_hp(hp, max_hp)
 
-	can_anim = false
-	can_move = false
-	animP.stop()
-
 	if hp <= 0:
 		death()
 		return
 
-	match current_dir:
-		Dir.UP: anim.play("hurt_up")
-		Dir.DOWN: anim.play("hurt_down")
-		Dir.LEFT: anim.play("hurt_left")
-		Dir.RIGHT: anim.play("hurt_right")
-
-	await anim.animation_finished
-
-	if not is_dead:
-		can_anim = true
-		can_move = true
-
-		if attack_timer.is_stopped():
-			attack_timer.start(1.0)
+	# Вспышка красным через modulate — не прерывает атаку
+	var tween = create_tween()
+	tween.tween_property(anim, "modulate", Color(1, 0, 0, 1), 0.0)
+	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.15)
 
 func shoot_poison():
 	if not player or not is_instance_valid(player) or is_dead: return

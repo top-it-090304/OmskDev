@@ -142,27 +142,22 @@ func apply_knockback(source_position: Vector2, force: float):
 func take_damage(amount: int):
 	if not can_take_damage or is_dead:
 		return
-	
-	can_anim = false 
+
 	can_take_damage = false
 	health_int -= amount
 	health_changed.emit(health_int, GameConstants.PLAYER_MAX_HEALTH)
-	
+
 	if health_int <= 0:
 		die()
 		return
 
-	match current_dir:
-		Dir.UP: anim.play("hurt_up")
-		Dir.DOWN: anim.play("hurt_down")
-		Dir.LEFT: anim.play("hurt_left")
-		Dir.RIGHT: anim.play("hurt_right")
-	
-	await anim.animation_finished
-	
-	if not is_dead:
-		can_anim = true
-		damage_timer.start()
+	# Вспышка красным — не прерывает движение и атаку
+	var restore_color = Color(0.3, 1, 0.3, 1) if is_poisoned else Color(1, 1, 1, 1)
+	var tween = create_tween()
+	tween.tween_property(anim, "modulate", Color(1, 0, 0, 1), 0.0)
+	tween.tween_property(anim, "modulate", restore_color, 0.15)
+
+	damage_timer.start()
 
 func die():
 	if is_dead: return
@@ -196,7 +191,7 @@ func _ready() -> void:
 	current_exp = GameConstants.PLAYER_EXPERIENCE
 	exp_to_next_level = _calculate_exp_for_level(current_level + 1)
 
-	health_int = GameConstants.PLAYER_MAX_HEALTH
+	health_int = SaveSystem.saved_player_health if SaveSystem.should_restore_player else GameConstants.PLAYER_MAX_HEALTH
 	last_known_max_health = GameConstants.PLAYER_MAX_HEALTH
 	if not GameConstants.constants_changed.is_connected(_on_constants_changed):
 		GameConstants.constants_changed.connect(_on_constants_changed)
@@ -273,8 +268,6 @@ func level_up_player() -> void:
 	GameConstants.PLAYER_MAX_SPEED += GameConstants.PLAYER_SPEED_PER_LEVEL
 	GameConstants.PLAYER_ATTACK_DAMAGE += GameConstants.PLAYER_DAMAGE_PER_LEVEL
 
-	# Восстанавливаем здоровье при повышении уровня
-	health_int = GameConstants.PLAYER_MAX_HEALTH
 	last_known_max_health = GameConstants.PLAYER_MAX_HEALTH
 
 	# Показываем popup
@@ -321,7 +314,5 @@ func remove_poison():
 	is_poisoned = false
 	poison_timer = 0.0
 	poison_tick_timer = 0.0
-
-	# Возвращаем нормальный цвет
-	anim.modulate = original_modulate
-	print("Яд прошел!")
+	var tween = create_tween()
+	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.3)

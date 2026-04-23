@@ -124,32 +124,14 @@ func take_damage(amount: int):
 	hp -= amount
 	var max_hp = GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_HP)
 	hp_bar.update_hp(hp, max_hp)
-	
-	can_anim = false 
-	can_move = false 
-	animP.stop()    
-	
+
 	if hp <= 0:
 		death()
 		return
 
-	match current_dir:
-		Dir.UP: anim.play("hurt_up")
-		Dir.DOWN: anim.play("hurt_down")
-		Dir.LEFT: anim.play("hurt_left")
-		Dir.RIGHT: anim.play("hurt_right")
-	
-	await anim.animation_finished
-	
-	if not is_dead:
-		can_anim = true 
-		can_move = true 
-		
-		# --- НОВОЕ: ПЕРЕЗАПУСК ТАЙМЕРА АТАКИ ---
-		# Если таймер стоит на месте (потому что мы оборвали атаку),
-		# запускаем его заново. Дадим скелету 0.5 сек передышки после урона.
-		if attack_timer.is_stopped():
-			attack_timer.start(0.5) 
+	var tween = create_tween()
+	tween.tween_property(anim, "modulate", Color(1, 0, 0, 1), 0.0)
+	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.15)
 func shoot():
 	if not player or not is_instance_valid(player) or is_dead: return
 	

@@ -169,23 +169,17 @@ func take_damage(amount: int):
 	if is_dead: return
 	hp -= amount
 
-	# --- НОВОЕ ---
 	var max_hp = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_HP)
 	hp_bar.update_hp(hp, max_hp)
-	
-	# Прерываем анимацию атаки, если гоблина ударили
-	animP.stop()
-	is_attacking = false
-	
+
 	if hp <= 0:
 		death()
 		return
 
-	can_anim = false
-	can_walk = false
-	anim.play("hurt_" + _get_dir_string())
-	await anim.animation_finished
-	_reset_after_attack()
+	# Вспышка красным через modulate — не прерывает атаку
+	var tween = create_tween()
+	tween.tween_property(anim, "modulate", Color(1, 0, 0, 1), 0.0)
+	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.15)
 
 # --- ПОДКЛЮЧЕНИЕ ДЕТЕКТОРОВ ---
 
@@ -264,10 +258,4 @@ func _give_exp_to_player():
 func _spawn_loot():
 	var potion = GameConstants.HEALTH_POTION.instantiate()
 	potion.global_position = global_position
-	# Добавляем в комнату, а не в Enemys node
-	if parent_node:
-		var room_node = parent_node.get_parent()
-		if room_node:
-			room_node.add_child(potion)
-	else:
-		get_parent().add_child(potion)
+	get_tree().current_scene.add_child(potion)

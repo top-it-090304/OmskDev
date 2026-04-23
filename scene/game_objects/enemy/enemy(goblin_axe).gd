@@ -117,31 +117,17 @@ func take_damage(amount: int):
 	if is_dead: return
 
 	hp -= amount
-	# --- НОВОЕ ---
-	# Обновляем полоску здоровья каждый раз, когда враг получает урон
 	var max_hp = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_GOBLIN_AXE_HP)
 	hp_bar.update_hp(hp, max_hp)
-	
-	can_walk = false
-	can_anim = false 
-	animP.stop()    
-	
+
 	if hp <= 0:
 		death()
 		return
 
-	match current_dir:
-		Dir.UP: anim.play("hurt_up")
-		Dir.DOWN: anim.play("hurt_down")
-		Dir.LEFT: anim.play("hurt_left")
-		Dir.RIGHT: anim.play("hurt_right")
-	
-	await anim.animation_finished
-	
-	if not is_dead:
-		can_anim = true
-		can_walk = true
-		can_attack = true
+	# Вспышка белым через modulate — не прерывает атаку
+	var tween = create_tween()
+	tween.tween_property(anim, "modulate", Color(1, 0, 0, 1), 0.0)
+	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.15)
 
 func death():
 	if is_dead: return
