@@ -14,6 +14,7 @@ class_name RoomBase
 
 var grid_x: int = 0
 var grid_y: int = 0
+var is_boss_room: bool = false
 
 func setup_room(has_left, has_right, has_top, has_bottom):
 	# Вызываем помощника для каждой стороны

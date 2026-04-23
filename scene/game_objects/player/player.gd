@@ -132,6 +132,8 @@ func attack():
 		Dir.LEFT: animP.play("attack_left")
 		Dir.RIGHT: animP.play("attack_right")
 
+	AudioManager.play_sfx("игрок_атака")
+
 	await animP.animation_finished
 
 	animP.speed_scale = 1.0
@@ -167,14 +169,15 @@ func take_damage(amount: int):
 	var tween = create_tween()
 	tween.tween_property(anim, "modulate", Color(1, 0, 0, 1), 0.0)
 	tween.tween_property(anim, "modulate", restore_color, 0.15)
-
+	AudioManager.play_sfx("игрок_урон")
 	damage_timer.start()
 
 func die():
 	if is_dead: return
 	is_dead = true
 	can_anim = false
-	velocity = Vector2.ZERO 
+	velocity = Vector2.ZERO
+	AudioManager.play_sfx("игрок_смерть")
 	
 	match current_dir:
 		Dir.UP: anim.play("death_up")
@@ -291,6 +294,7 @@ func level_up_player() -> void:
 
 	# Показываем popup
 	_show_level_up_popup()
+	AudioManager.play_sfx("игрок_левелап")
 
 	# Сигналы
 	level_up.emit(current_level)

@@ -6,7 +6,6 @@ var hp = 0
 @onready var anim = $AnimatedSprite2D
 @onready var animP = $AnimationPlayer
 @onready var attack_timer = $attack_timer
-# --- НОВОЕ ---
 @onready var hp_bar = $TextureProgressBar
 
 var speed = GameConstants.ENEMY_GOBLIN_AXE_MAX_SPEED
@@ -15,46 +14,37 @@ var current_dir = Dir.DOWN
 
 var player: Node2D = null
 var parent_node: Node = null
-var room_node: Node2D = null
 
 var can_walk = true
 var can_attack = true
-var can_anim = true 
+var can_anim = true
 var player_in_range = false
 var smite_instance: Node2D = null
-var is_dead = false 
+var is_dead = false
 
 func _ready() -> void:
-	# Применяем масштабирование по уровню врагов
+	add_to_group("enemys")
 	hp = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_GOBLIN_AXE_HP)
 	speed = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_GOBLIN_AXE_MAX_SPEED)
-
-	# --- НОВОЕ ---
-	# Инициализируем полоску здоровья при появлении врага
 	hp_bar.update_hp(hp, hp)
-
 	player = get_tree().get_first_node_in_group("player") as Node2D
 	parent_node = get_parent()
-	if parent_node:
-		room_node = parent_node.get_parent()
 
 func _physics_process(_delta: float) -> void:
-	if is_dead: return 
-	
+	if is_dead: return
+
 	if not can_walk:
 		velocity = Vector2.ZERO
 		move_and_slide()
 		return
 
 	var is_aggressive = parent_node and parent_node.get("aggression")
-	
+
 	if is_instance_valid(player) and is_aggressive:
 		var to_player = player.global_position - global_position
 		var direction = to_player.normalized()
-		
 		velocity = direction * speed
 		move_and_slide()
-		
 		if can_anim:
 			update_run_animation(direction)
 	else:
@@ -86,7 +76,6 @@ func _process(_delta):
 func attack():
 	if not can_attack or not player_in_range or is_dead:
 		return
-		
 	can_attack = false
 	can_anim = false
 	anim.stop()
@@ -96,35 +85,29 @@ func attack():
 		Dir.DOWN: animP.play("attack_down")
 		Dir.LEFT: animP.play("attack_left")
 		Dir.RIGHT: animP.play("attack_right")
-		
 	await animP.animation_finished
 	speed /= 1.5
 	can_anim = true
 	if is_instance_valid(smite_instance):
 		smite_instance.queue_free()
 		smite_instance = null
-		
 	if not is_dead and can_anim:
 		attack_timer.start()
 
 func play_idle_animation():
 	if is_dead: return
-	var target_idle = "idle_down"
-	if anim.animation != target_idle:
-		anim.play(target_idle)
+	if anim.animation != "idle_down":
+		anim.play("idle_down")
 
 func take_damage(amount: int):
 	if is_dead: return
-
 	hp -= amount
 	var max_hp = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_GOBLIN_AXE_HP)
 	hp_bar.update_hp(hp, max_hp)
-
 	if hp <= 0:
 		death()
 		return
-
-	# Вспышка белым через modulate — не прерывает атаку
+	AudioManager.play_sfx("враг_урон")
 	var tween = create_tween()
 	tween.tween_property(anim, "modulate", Color(1, 0, 0, 1), 0.0)
 	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.15)
@@ -132,63 +115,48 @@ func take_damage(amount: int):
 func death():
 	if is_dead: return
 	is_dead = true
+	AudioManager.play_sfx("враг_смерть")
 	can_walk = false
 	can_attack = false
 	velocity = Vector2.ZERO
-
 	anim.stop()
 	animP.stop()
-
 	set_collision_layer_value(1, false)
 	set_collision_mask_value(1, false)
-
 	match current_dir:
 		Dir.UP: anim.play("death_up")
 		Dir.DOWN: anim.play("death_down")
 		Dir.LEFT: anim.play("death_left")
 		Dir.RIGHT: anim.play("death_right")
-
 	await anim.animation_finished
-
-	# Выдаем опыт игроку
 	_give_exp_to_player()
-
 	if randf() <= 0.25:
 		_spawn_loot()
-
 	queue_free()
 
 func _give_exp_to_player():
 	var player_node = get_tree().get_first_node_in_group("player")
 	if player_node and player_node.has_method("add_experience"):
 		var exp_reward = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_GOBLIN_AXE_EXP_REWARD)
-		print("Goblin Axe выдает опыт: ", exp_reward, " (уровень врагов: ", GameConstants.ENEMY_LEVEL, ")")
 		player_node.add_experience(exp_reward)
-	else:
-		print("ОШИБКА: Игрок не найден или нет метода add_experience")
-	
+
 func _spawn_loot():
 	var potion = GameConstants.HEALTH_POTION.instantiate()
 	potion.global_position = global_position
-	# Добавляем в комнату, а не в Enemys node, чтобы не блокировать двери
-	if parent_node:
-		room_node.add_child(potion)
-	else:
-		get_parent().add_child(potion)
-	
+	get_tree().current_scene.add_child(potion)
+
 func swing():
 	if not is_instance_valid(player) or is_dead: return
 	smite_instance = GameConstants.ENEMY_GOBLIN_AXE_SMITE.instantiate()
 	add_child(smite_instance)
 	smite_instance.visible = false
 	smite_instance.monitoring = false
-	
 	var target_dir = (player.global_position - global_position).normalized()
 	if "direction" in smite_instance:
 		smite_instance.direction = target_dir
-		
-	smite_instance.position = target_dir * GameConstants.ENEMY_GOBLIN_AXE_SMITE_OFFSET 
+	smite_instance.position = target_dir * GameConstants.ENEMY_GOBLIN_AXE_SMITE_OFFSET
 	smite_instance.rotation = target_dir.angle()
+	AudioManager.play_sfx("враг_атака_ближний")
 
 func activate_smite():
 	if is_instance_valid(smite_instance) and not is_dead:
@@ -215,7 +183,7 @@ func _on_attack_timer_timeout():
 
 func _on_hitbox_area_entered(_area: Area2D) -> void:
 	take_damage(GameConstants.ENEMY_GOBLIN_AXE_TAKE_DAMAGE)
-			
+
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player") and body.has_method("take_damage"):

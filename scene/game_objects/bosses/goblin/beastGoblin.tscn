@@ -2367,12 +2367,15 @@ safe_margin = 0.001
 script = ExtResource("1_ri15p")
 
 [node name="detectorSlap" type="Area2D" parent="."]
+collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="detectorSlap"]
 shape = SubResource("CircleShape2D_2u40x")
 debug_color = Color(0.65713, 0.000222172, 0.626268, 0.0705882)
 
 [node name="slap" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="slap"]
 shape = SubResource("CircleShape2D_ri15p")
@@ -2400,12 +2403,14 @@ libraries = {
 [node name="attack_timer" type="Timer" parent="."]
 
 [node name="detectorBite" type="Area2D" parent="."]
+collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="detectorBite"]
 shape = SubResource("CircleShape2D_nw4g5")
 debug_color = Color(0.560784, 0.396078, 1, 0)
 
 [node name="detectorShoot" type="Area2D" parent="."]
+collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="detectorShoot"]
 shape = SubResource("CircleShape2D_2a4ok")

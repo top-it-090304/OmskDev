@@ -21,19 +21,13 @@ func _on_area_entered(area: Area2D) -> void:
 		pickup(player)
 
 func pickup(player: Node) -> void:
-	# Применяем эффект артефакта
 	apply_effect(player)
-
-	# Добавляем в рюкзак
 	if player.has_node("Backpack"):
 		var backpack = player.get_node("Backpack")
 		if backpack.has_method("add_artefact"):
 			backpack.add_artefact(self)
-
-	# Отмечаем комнату как собранную
+	AudioManager.play_sfx("игрок_артефакт")
 	mark_room_as_collected()
-
-	# Удаляем с карты
 	queue_free()
 
 # Отмечает текущую комнату как собранную

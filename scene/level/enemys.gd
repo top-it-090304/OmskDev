@@ -20,16 +20,23 @@ func _on_room_shape_area_exited(_area: Area2D) -> void:
 
 
 func _update_aggression() -> void:
-	# Считаем только живых врагов (у которых нет флага is_dead)
 	var alive_enemies = 0
 	for child in get_children():
 		if child.has_method("take_damage") and not child.get("is_dead"):
 			alive_enemies += 1
 
-	aggression = _player_in_room and alive_enemies > 0
+	var new_aggression = _player_in_room and alive_enemies > 0
+	if new_aggression != aggression:
+		aggression = new_aggression
+		if aggression:
+			var room = get_parent()
+			if room and room.get("is_boss_room"):
+				AudioManager.play_boss()
+			else:
+				AudioManager.play_combat()
+		else:
+			AudioManager.play_explore()
 
-	# Если все враги убиты и комната еще не была зачищена
 	if alive_enemies == 0 and not _room_was_cleared and get_child_count() > 0:
 		_room_was_cleared = true
 		GameConstants.on_room_cleared()
-		print("Комната зачищена! Уровень врагов: ", GameConstants.ENEMY_LEVEL)

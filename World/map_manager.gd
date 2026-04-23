@@ -276,6 +276,8 @@ func draw_map():
 				room_instance.position = room_pos
 				room_instance.grid_x = x
 				room_instance.grid_y = y
+				if layout[x][y] == RoomType.BOSS:
+					room_instance.is_boss_room = true
 
 				add_child(room_instance)
 
