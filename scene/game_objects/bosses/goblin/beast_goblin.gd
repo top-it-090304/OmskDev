@@ -1,5 +1,7 @@
 extends CharacterBody2D
 
+const HATCH_SCENE = preload("res://scene/pick_up/hatch.tscn")
+
 var hp = 0
 var speed = GameConstants.ENEMY_BEASTGOBLIN_MAX_SPEED
 
@@ -239,7 +241,16 @@ func death():
 	if randf() <= 0.75:
 		_spawn_loot()
 
+	# Спавним люк для перехода на следующий этаж
+	_spawn_hatch()
+
 	queue_free()
+
+func _spawn_hatch():
+	var hatch = HATCH_SCENE.instantiate()
+	hatch.global_position = global_position
+	get_tree().current_scene.add_child(hatch)
+	hatch.open_hatch()
 
 func _give_exp_to_player():
 	var player_node = get_tree().get_first_node_in_group("player")

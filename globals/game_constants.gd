@@ -18,8 +18,8 @@ const HEALTH_POTION = preload("res://scene/pick_up/Heal potion/heal_potion.tscn"
 # --- PLAYER STATS ---
 var PLAYER_MAX_SPEED = 200
 var PLAYER_MAX_HEALTH = 200
-var PLAYER_ENEMY_CONTACT_DAMAGE = 10
-var PLAYER_ATTACK_DAMAGE = 10
+var PLAYER_ENEMY_CONTACT_DAMAGE = 100
+var PLAYER_ATTACK_DAMAGE = 100
 var PLAYER_ARMOR = 0  # Блокирует фиксированное количество урона
 var PLAYER_DODGE_CHANCE = 0.0  # Шанс уклонения (0.0 - 1.0)
 var PLAYER_CRIT_CHANCE = 0.0  # Шанс критического удара (0.0 - 1.0)
@@ -81,6 +81,9 @@ var ENEMY_BEASTGOBLIN_BITE_DAMAGE = 30
 var ENEMY_BEASTGOBLIN_SLAP_DAMAGE = 15
 var ENEMY_BEASTGOBLIN_TAKE_DAMAGE = 10
 var ENEMY_BEASTGOBLIN_EXP_REWARD = 50
+
+# --- FLOOR ---
+var CURRENT_FLOOR = 1
 
 # --- PROGRESSION ---
 var ENEMIES_KILLED = 0
@@ -167,7 +170,8 @@ func _stats_keys() -> PackedStringArray:
 		"KILLS_FOR_HP_DOUBLE",
 		"ROOMS_CLEARED",
 		"ENEMY_LEVEL",
-		"ENEMY_LEVEL_SCALING"
+		"ENEMY_LEVEL_SCALING",
+		"CURRENT_FLOOR"
 	])
 
 func load_from_disk() -> void:

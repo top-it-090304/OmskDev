@@ -37,6 +37,7 @@ const BASE_VALUES = {
 	"ENEMIES_KILLED": 0,
 	"ROOMS_CLEARED": 0,
 	"ENEMY_LEVEL": 1,
+	"CURRENT_FLOOR": 1,
 }
 
 func save_game() -> bool:
@@ -77,6 +78,7 @@ func save_game() -> bool:
 			"enemies_killed": GameConstants.ENEMIES_KILLED,
 			"rooms_cleared": GameConstants.ROOMS_CLEARED,
 			"enemy_level": GameConstants.ENEMY_LEVEL,
+			"current_floor": GameConstants.CURRENT_FLOOR,
 		},
 
 		# Позиция игрока (будет добавлена позже)
@@ -175,6 +177,7 @@ func load_game() -> bool:
 		GameConstants.ENEMIES_KILLED = progress.get("enemies_killed", BASE_VALUES["ENEMIES_KILLED"])
 		GameConstants.ROOMS_CLEARED = progress.get("rooms_cleared", BASE_VALUES["ROOMS_CLEARED"])
 		GameConstants.ENEMY_LEVEL = progress.get("enemy_level", BASE_VALUES["ENEMY_LEVEL"])
+		GameConstants.CURRENT_FLOOR = progress.get("current_floor", BASE_VALUES["CURRENT_FLOOR"])
 
 	# Сохраняем данные для восстановления здоровья и позиции
 	if "player_current_health" in save_data:
