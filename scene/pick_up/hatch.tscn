@@ -1,0 +1,23 @@
+[gd_scene load_steps=2 format=3 uid="c0a8e3d3f5e6b4a2c9d8e7f6a5b4c3d2"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
+size = Vector2(24, 24)
+
+[node name="Hatch" type="Area2D"]
+collision_layer = 0
+collision_mask = 2
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = null
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_1")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+
+[node name="Light2D" type="Light2D" parent="."]
+texture = null
+color = Color(1, 0.8, 0.4, 1)
+energy = 2
+range = 150
+shadow_enabled = true

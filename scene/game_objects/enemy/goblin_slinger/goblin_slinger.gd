@@ -144,7 +144,7 @@ func take_damage(amount: int):
 		can_move = true
 
 		if attack_timer.is_stopped():
-			attack_timer.start(0.5)
+			attack_timer.start(1.0)
 
 func shoot_poison():
 	if not player or not is_instance_valid(player) or is_dead: return
@@ -212,7 +212,7 @@ func _on_detector_body_entered(body: Node2D) -> void:
 
 		if can_attack:
 			can_attack = false
-			attack_timer.start(0.4)
+			attack_timer.start(1.0)
 
 func _on_detector_body_exited(body: Node2D) -> void:
 	if body.is_in_group("player"):

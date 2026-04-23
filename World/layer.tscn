@@ -1,4 +1,4 @@
-[gd_scene load_steps=41 format=3 uid="uid://bq40uiaugbfjq"]
+[gd_scene load_steps=40 format=3 uid="uid://bq40uiaugbfjq"]
 
 [ext_resource type="PackedScene" uid="uid://n6dhykg53x0b" path="res://World/map_manager.tscn" id="1_mln5v"]
 [ext_resource type="PackedScene" uid="uid://ec471alip6hl" path="res://scene/game_objects/player/exp_bar.tscn" id="2_jn37s"]
@@ -39,7 +39,6 @@
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/uno_reverse_card.tscn" id="34_art19"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/vhs_cassette.tscn" id="35_art20"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/waffle.tscn" id="36_art21"]
-[ext_resource type="PackedScene" uid="uid://mes1twfxfifa" path="res://scene/game_objects/player/player.tscn" id="37_nxgrl"]
 
 [node name="Layer" type="Node"]
 
@@ -70,4 +69,3 @@ offset_bottom = 325.0
 layer = NodePath("..")
 enemy_variations = Array[PackedScene]([ExtResource("5_d0rex"), ExtResource("6_n4o4r"), ExtResource("7_1olng")])
 treasure_items = Array[PackedScene]([ExtResource("5_v7fgi"), ExtResource("6_ikq8h"), ExtResource("7_qpvvc"), ExtResource("8_shab0"), ExtResource("9_f2vw5"), ExtResource("10_ylsjx"), ExtResource("11_3hlwg"), ExtResource("12_0el4m"), ExtResource("13_cueid"), ExtResource("14_36tnp"), ExtResource("15_rhie0"), ExtResource("16_art01"), ExtResource("17_art02"), ExtResource("18_art03"), ExtResource("19_art04"), ExtResource("20_art05"), ExtResource("21_art06"), ExtResource("22_art07"), ExtResource("23_art08"), ExtResource("24_art09"), ExtResource("25_art10"), ExtResource("26_art11"), ExtResource("27_art12"), ExtResource("28_art13"), ExtResource("29_art14"), ExtResource("30_art15"), ExtResource("31_art16"), ExtResource("32_art17"), ExtResource("33_art18"), ExtResource("34_art19"), ExtResource("35_art20"), ExtResource("36_art21")])
-player_scene = ExtResource("37_nxgrl")
