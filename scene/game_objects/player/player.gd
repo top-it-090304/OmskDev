@@ -95,6 +95,8 @@ func movement_vector() -> Vector2:
 	return Input.get_vector("move_left", "move_right", "move_up", "move_down").normalized()
 
 func update_direction(dir_vec: Vector2):
+	if not can_anim:
+		return
 	if abs(dir_vec.x) > abs(dir_vec.y):
 		current_dir = Dir.LEFT if dir_vec.x < 0 else Dir.RIGHT
 	else:
@@ -117,22 +119,25 @@ func play_idle_animation():
 func attack():
 	if not can_attack or is_dead:
 		return
-	
+
 	can_anim = false
 	can_attack = false
-	
-	# Запускаем анимацию через AnimationPlayer
-	match current_dir:
+
+	var attack_dir = current_dir
+	animP.speed_scale = GameConstants.PLAYER_ATTACK_SPEED
+
+	match attack_dir:
 		Dir.UP: animP.play("attack_up")
 		Dir.DOWN: animP.play("attack_down")
 		Dir.LEFT: animP.play("attack_left")
 		Dir.RIGHT: animP.play("attack_right")
-	
-	# Ждем завершения анимации
+
 	await animP.animation_finished
-	
+
+	animP.speed_scale = 1.0
 	can_anim = true
-	attack_timer.start()
+	# PLAYER_ATTACK_SPEED: множитель > 1 = быстрее, делим wait_time на него
+	attack_timer.start(attack_timer.wait_time / GameConstants.PLAYER_ATTACK_SPEED)
 	
 func apply_knockback(source_position: Vector2, force: float):
 	if is_dead: return
@@ -143,15 +148,21 @@ func take_damage(amount: int):
 	if not can_take_damage or is_dead:
 		return
 
+	# Уклонение
+	if randf() < GameConstants.PLAYER_DODGE_CHANCE:
+		return
+
+	# Броня
+	var final_amount = max(1, amount - GameConstants.PLAYER_ARMOR)
+
 	can_take_damage = false
-	health_int -= amount
+	health_int -= final_amount
 	health_changed.emit(health_int, GameConstants.PLAYER_MAX_HEALTH)
 
 	if health_int <= 0:
 		die()
 		return
 
-	# Вспышка красным — не прерывает движение и атаку
 	var restore_color = Color(0.3, 1, 0.3, 1) if is_poisoned else Color(1, 1, 1, 1)
 	var tween = create_tween()
 	tween.tween_property(anim, "modulate", Color(1, 0, 0, 1), 0.0)
@@ -217,10 +228,18 @@ func _on_can_attack_timeout() -> void:
 	can_attack = true
 
 func _on_hitbox_attack_body_entered(body: Node2D) -> void:
-	print("Удар по объекту: ", body.name)
 	if is_dead: return
-	if body.is_in_group("enemies"):
-		body.take_damage(GameConstants.PLAYER_ENEMY_CONTACT_DAMAGE)
+	if body.is_in_group("enemys"):
+		var dmg = GameConstants.PLAYER_ATTACK_DAMAGE
+		# Крит
+		if randf() < GameConstants.PLAYER_CRIT_CHANCE:
+			dmg = int(dmg * GameConstants.PLAYER_CRIT_MULTIPLIER)
+		body.take_damage(dmg)
+		# Вампиризм
+		if GameConstants.PLAYER_LIFESTEAL > 0.0:
+			var steal = int(dmg * GameConstants.PLAYER_LIFESTEAL)
+			if steal > 0:
+				heal(steal)
 
 func heal(amount: int) -> void:
 	health_int += amount

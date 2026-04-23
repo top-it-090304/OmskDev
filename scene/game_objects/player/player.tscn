@@ -1687,10 +1687,10 @@ gameover = ExtResource("2_vv8lt")
 
 [node name="TextureProgressBar" type="TextureProgressBar" parent="."]
 z_index = 10
-offset_left = -304.0
-offset_top = -176.0
-offset_right = -224.0
-offset_bottom = -164.0
+offset_left = -262.0
+offset_top = -123.0
+offset_right = -181.0
+offset_bottom = -110.0
 scale = Vector2(2, 2)
 size_flags_horizontal = 0
 size_flags_vertical = 4
@@ -1699,7 +1699,6 @@ value = 20.0
 texture_under = ExtResource("2_gvguk")
 texture_progress = ExtResource("3_vv8lt")
 script = ExtResource("4_sfq4q")
-metadata/_edit_use_anchors_ = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, 8)
@@ -1730,10 +1729,10 @@ libraries = {
 
 [node name="TextureButton" type="TextureButton" parent="."]
 z_index = 4096
-offset_left = 128.0
-offset_top = -168.0
-offset_right = 168.0
-offset_bottom = -128.0
+offset_left = 222.0
+offset_top = -122.0
+offset_right = 262.0
+offset_bottom = -82.0
 texture_normal = ExtResource("26_nm7bo")
 texture_pressed = ExtResource("27_au6ap")
 stretch_mode = 0
@@ -1757,6 +1756,8 @@ wait_time = 0.3
 [node name="MobileController" parent="." instance=ExtResource("5_tigyi")]
 
 [node name="LevelUpPopup" parent="." instance=ExtResource("31_vv8lt")]
+offset_right = 538.0
+offset_bottom = 260.0
 
 [connection signal="child_exiting_tree" from="." to="TextureButton" method="_on_player_child_exiting_tree"]
 [connection signal="body_entered" from="hitbox" to="." method="_on_hitbox_body_entered"]

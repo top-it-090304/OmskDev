@@ -1,0 +1,72 @@
+[gd_scene load_steps=4 format=3 uid="uid://dgrj4xgrsvfdx"]
+
+[ext_resource type="Texture2D" uid="uid://cmsjmfnqwbhe5" path="res://assets/layers/Desert Tileset.png" id="1_aqayy"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6nf8j"]
+texture = ExtResource("1_aqayy")
+0:14/0 = 0
+1:14/0 = 0
+2:14/0 = 0
+3:14/0 = 0
+3:15/0 = 0
+2:15/0 = 0
+1:15/0 = 0
+0:15/0 = 0
+0:16/0 = 0
+1:16/0 = 0
+2:16/0 = 0
+3:16/0 = 0
+4:16/0 = 0
+5:16/0 = 0
+5:17/0 = 0
+5:18/0 = 0
+5:19/0 = 0
+5:20/0 = 0
+0:17/0 = 0
+1:17/0 = 0
+2:17/0 = 0
+3:17/0 = 0
+3:18/0 = 0
+2:18/0 = 0
+1:18/0 = 0
+0:18/0 = 0
+0:19/0 = 0
+1:19/0 = 0
+2:19/0 = 0
+1:20/0 = 0
+2:20/0 = 0
+3:20/0 = 0
+3:19/0 = 0
+4:17/0 = 0
+4:18/0 = 0
+4:20/0 = 0
+4:21/0 = 0
+4:19/0 = 0
+3:21/0 = 0
+2:21/0 = 0
+1:21/0 = 0
+0:21/0 = 0
+0:20/0 = 0
+0:22/0 = 0
+1:22/0 = 0
+5:21/0 = 0
+6:21/0 = 0
+6:16/0 = 0
+6:17/0 = 0
+6:18/0 = 0
+6:19/0 = 0
+6:20/0 = 0
+7:20/0 = 0
+7:19/0 = 0
+7:18/0 = 0
+7:17/0 = 0
+7:21/0 = 0
+7:16/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_by3mw"]
+sources/0 = SubResource("TileSetAtlasSource_6nf8j")
+
+[node name="sandbaseroom" type="Node2D"]
+
+[node name="TileMapLayer" type="TileMapLayer" parent="."]
+tile_set = SubResource("TileSet_by3mw")

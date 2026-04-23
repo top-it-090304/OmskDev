@@ -24,4 +24,12 @@ func _go_to_next_floor():
 	GameConstants.save_to_disk()
 	SaveSystem.save_game()
 	SaveSystem.delete_dungeon_state()
-	get_tree().change_scene_to_file("res://World/layer.tscn")
+	var floor = GameConstants.CURRENT_FLOOR
+	var scene: String
+	if floor <= 2:
+		scene = "res://World/layer.tscn"
+	elif floor <= 4:
+		scene = "res://World/layer_act2.tscn"
+	else:
+		scene = "res://World/layer.tscn"  # этажи 5-6 — снова первый акт (или замени на layer_act3)
+	get_tree().change_scene_to_file(scene)
