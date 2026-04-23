@@ -3,8 +3,7 @@ extends CharacterBody2D
 const HATCH_SCENE = preload("res://scene/pick_up/hatch.tscn")
 
 # Дистанции поведения
-const PREFERRED_DIST = 200.0   # комфортная дистанция — держится на ней
-const RETREAT_DIST   = 80.0    # ближе — отходит
+const APPROACH_DIST  = 118.0   # ближе — подходим
 const TELEPORT_INTERVAL = 8.0  # каждые N секунд телепортируется
 
 var hp = 0
@@ -73,20 +72,16 @@ func _physics_process(delta: float) -> void:
 		# В зоне ближней атаки — стоим
 		velocity = Vector2.ZERO
 		if can_anim: _play_idle_animation()
-	elif dist < RETREAT_DIST:
-		# Слишком близко — отходим
-		velocity = -direction * speed
-		move_and_slide()
-		if can_anim: update_run_animation(-direction)
-	elif dist > PREFERRED_DIST + 20.0:
-		# Далеко — подходим
+	elif dist <= APPROACH_DIST:
+		# Близко — подходим вплотную
 		velocity = direction * speed
 		move_and_slide()
 		if can_anim: update_run_animation(direction)
 	else:
-		# Комфортная дистанция — стоим
-		velocity = Vector2.ZERO
-		if can_anim: _play_idle_animation()
+		# Далеко — отходим от игрока
+		velocity = -direction * speed
+		move_and_slide()
+		if can_anim: update_run_animation(-direction)
 
 	# --- АТАКА ---
 	if can_attack and not is_attacking:
@@ -109,17 +104,38 @@ func _do_teleport():
 	can_walk = false
 	can_anim = false
 
-	# Вспышка исчезновения
 	var tween_out = create_tween()
 	tween_out.tween_property(anim, "modulate:a", 0.0, 0.2)
 	await tween_out.finished
 
-	# Телепортируемся на случайную позицию вокруг игрока
-	var angle = randf() * TAU
-	var offset = Vector2(cos(angle), sin(angle)) * randf_range(180.0, 280.0)
-	global_position = player.global_position + offset
+	# Получаем границы комнаты через room_shape
+	var room = get_parent().get_parent() if get_parent() else null
+	var room_rect: Rect2 = Rect2()
+	if room:
+		var room_shape_node = room.find_child("room_shape", true, false)
+		if room_shape_node:
+			var col = room_shape_node.get_child(0) as CollisionShape2D
+			if col and col.shape is RectangleShape2D:
+				var half = (col.shape as RectangleShape2D).size / 2.0
+				var center = room_shape_node.global_position + col.position
+				room_rect = Rect2(center - half, half * 2.0)
 
-	# Вспышка появления
+	var new_pos = global_position
+	if room_rect.size != Vector2.ZERO:
+		var margin = 60.0
+		var inner = room_rect.grow(-margin)
+		for _attempt in range(15):
+			var candidate = Vector2(
+				randf_range(inner.position.x, inner.end.x),
+				randf_range(inner.position.y, inner.end.y)
+			)
+			# Не телепортируемся прямо на игрока
+			if candidate.distance_to(player.global_position) > 100.0:
+				new_pos = candidate
+				break
+
+	global_position = new_pos
+
 	var tween_in = create_tween()
 	tween_in.tween_property(anim, "modulate:a", 1.0, 0.2)
 	await tween_in.finished
@@ -187,13 +203,13 @@ func activate_bite():
 
 func shoot():
 	if is_dead or not is_instance_valid(player): return
-	var arrow = GameConstants.SKELETON_BOW_ARROW.instantiate()
+	var proj = GameConstants.GOBLIN_SLINGER_PROJECTILE.instantiate()
 	var dir = (player.global_position - global_position).normalized()
-	if "direction" in arrow:
-		arrow.direction = dir
-	arrow.global_position = global_position
-	arrow.rotation = dir.angle()
-	get_tree().current_scene.add_child(arrow)
+	proj.direction = dir
+	proj.global_position = global_position
+	proj.rotation = dir.angle()
+	proj.scale = Vector2(2.5, 2.5)
+	get_tree().current_scene.add_child(proj)
 
 # Summon — спавн 8 снарядов goblin_slinger по кругу
 func summon_projectiles():
@@ -206,6 +222,7 @@ func summon_projectiles():
 		proj.global_position = global_position
 		proj.direction = dir
 		proj.rotation = angle
+		proj.scale = Vector2(2.5, 2.5)
 		get_tree().current_scene.add_child(proj)
 
 func _on_slap_body_entered(body: Node2D) -> void:

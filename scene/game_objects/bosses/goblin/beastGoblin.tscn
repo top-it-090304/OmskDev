@@ -32,7 +32,7 @@
 [ext_resource type="PackedScene" uid="uid://djw8n7hn0de6h" path="res://scene/ui/enemy_level_display.tscn" id="30_boss_level"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_ri15p"]
-radius = 89.0225
+radius = 53.6954
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_t58vs"]
 radius = 15.0
@@ -2354,13 +2354,14 @@ _data = {
 radius = 30.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_2a4ok"]
-radius = 150.0
+radius = 68.2044
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_2u40x"]
-radius = 81.0
+radius = 47.6067
 
 [node name="BossGoblin" type="CharacterBody2D" groups=["enemies", "enemys"]]
 z_index = 2
+scale = Vector2(2.5, 2.5)
 collision_layer = 5
 floor_max_angle = 0.0
 safe_margin = 0.001
