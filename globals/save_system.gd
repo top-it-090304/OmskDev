@@ -16,7 +16,7 @@ var collected_treasure_rooms: Array = []
 
 # Базовые значения для сброса
 const BASE_VALUES = {
-	"PLAYER_MAX_SPEED": 200,
+	"PLAYER_MAX_SPEED": 600,
 	"PLAYER_MAX_HEALTH": 200,
 	"PLAYER_ENEMY_CONTACT_DAMAGE": 10,
 	"PLAYER_ATTACK_DAMAGE": 10,

@@ -16,7 +16,8 @@ const GOBLIN_SLINGER_PROJECTILE = preload("res://scene/game_objects/enemy/goblin
 const HEALTH_POTION = preload("res://scene/pick_up/Heal potion/heal_potion.tscn")
 
 # --- PLAYER STATS ---
-var PLAYER_MAX_SPEED = 200
+var PLAYER_MAX_SPEED = 600
+
 var PLAYER_MAX_HEALTH = 200
 var PLAYER_ENEMY_CONTACT_DAMAGE = 100
 var PLAYER_ATTACK_DAMAGE = 100

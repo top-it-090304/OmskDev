@@ -2,6 +2,11 @@ extends CharacterBody2D
 
 const HATCH_SCENE = preload("res://scene/pick_up/hatch.tscn")
 
+# Дистанции поведения
+const PREFERRED_DIST = 200.0   # комфортная дистанция — держится на ней
+const RETREAT_DIST   = 80.0    # ближе — отходит
+const TELEPORT_INTERVAL = 8.0  # каждые N секунд телепортируется
+
 var hp = 0
 var speed = GameConstants.ENEMY_BEASTGOBLIN_MAX_SPEED
 
@@ -28,6 +33,8 @@ var is_dead = false
 var smite_instance: Node2D = null
 var is_attacking = false
 
+var _teleport_timer := 0.0
+
 func _ready() -> void:
 	add_to_group("enemys")
 	hp = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_HP)
@@ -38,48 +45,105 @@ func _ready() -> void:
 	attack_timer.one_shot = true
 	_play_idle_animation()
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	if is_dead: return
 
 	var is_aggressive = parent_node and parent_node.get("aggression")
-
-	if can_walk and is_instance_valid(player) and is_aggressive:
-		var to_player = player.global_position - global_position
-		var direction = to_player.normalized()
-
-		if player_in_bite_zone or player_in_slap_zone:
-			velocity = Vector2.ZERO
-			if can_anim: _play_idle_animation()
-		else:
-			velocity = direction * speed
-			move_and_slide()
-			if can_anim: update_run_animation(direction)
-
-		# Атака только если не атакуем прямо сейчас
-		if can_attack and not is_attacking:
-			can_attack = false  # блокируем сразу, до вызова coroutine
-			if player_in_bite_zone:
-				attack("bite")
-			elif player_in_slap_zone:
-				attack("slap")
-			elif player_in_shoot_zone:
-				attack("shoot")
-			else:
-				can_attack = true  # никто не в зоне — возвращаем
-	else:
+	if not is_aggressive or not is_instance_valid(player):
 		velocity = Vector2.ZERO
 		move_and_slide()
-		if can_anim and not is_dead and not is_attacking: _play_idle_animation()
+		if can_anim and not is_attacking: _play_idle_animation()
+		return
+
+	# --- ТЕЛЕПОРТ ---
+	_teleport_timer += delta
+	if _teleport_timer >= TELEPORT_INTERVAL and not is_attacking:
+		_teleport_timer = 0.0
+		_do_teleport()
+		return
+
+	if not can_walk: return
+
+	var to_player = player.global_position - global_position
+	var dist = to_player.length()
+	var direction = to_player.normalized()
+
+	# --- ДВИЖЕНИЕ ---
+	if player_in_bite_zone or player_in_slap_zone:
+		# В зоне ближней атаки — стоим
+		velocity = Vector2.ZERO
+		if can_anim: _play_idle_animation()
+	elif dist < RETREAT_DIST:
+		# Слишком близко — отходим
+		velocity = -direction * speed
+		move_and_slide()
+		if can_anim: update_run_animation(-direction)
+	elif dist > PREFERRED_DIST + 20.0:
+		# Далеко — подходим
+		velocity = direction * speed
+		move_and_slide()
+		if can_anim: update_run_animation(direction)
+	else:
+		# Комфортная дистанция — стоим
+		velocity = Vector2.ZERO
+		if can_anim: _play_idle_animation()
+
+	# --- АТАКА ---
+	if can_attack and not is_attacking:
+		can_attack = false
+		if player_in_bite_zone:
+			attack("bite")
+		elif player_in_slap_zone:
+			attack("slap")
+		elif player_in_shoot_zone:
+			# 40% шанс summon вместо обычного shoot
+			if randf() < 0.4:
+				attack("summon")
+			else:
+				attack("shoot")
+		else:
+			can_attack = true
+
+func _do_teleport():
+	if not is_instance_valid(player) or is_dead: return
+	can_walk = false
+	can_anim = false
+
+	# Вспышка исчезновения
+	var tween_out = create_tween()
+	tween_out.tween_property(anim, "modulate:a", 0.0, 0.2)
+	await tween_out.finished
+
+	# Телепортируемся на случайную позицию вокруг игрока
+	var angle = randf() * TAU
+	var offset = Vector2(cos(angle), sin(angle)) * randf_range(180.0, 280.0)
+	global_position = player.global_position + offset
+
+	# Вспышка появления
+	var tween_in = create_tween()
+	tween_in.tween_property(anim, "modulate:a", 1.0, 0.2)
+	await tween_in.finished
+
+	can_walk = true
+	can_anim = true
 
 func attack(type: String):
 	if is_dead or is_attacking: return
 	is_attacking = true
 	can_walk = false
 	can_anim = false
-	var anim_name = type + "_" + _get_dir_string()
+	# summon использует анимацию shoot
+	var anim_type = "shoot" if type == "summon" else type
+	var anim_name = anim_type + "_" + _get_dir_string()
 	if animP.has_animation(anim_name):
 		animP.play(anim_name)
-		await animP.animation_finished
+		# Для summon — спавним снаряды в середине анимации
+		if type == "summon":
+			await get_tree().create_timer(0.4).timeout
+			summon_projectiles()
+			await animP.animation_finished
+		else:
+			await animP.animation_finished
 	else:
 		await get_tree().create_timer(0.5).timeout
 	animP.stop()
@@ -97,6 +161,8 @@ func _reset_after_attack():
 		if attack_timer.is_stopped():
 			attack_timer.start()
 
+# --- АТАКИ ---
+
 func spawn_bite_swing():
 	if not is_instance_valid(player) or is_dead: return
 	smite_instance = GameConstants.ENEMY_GOBLIN_AXE_SMITE.instantiate()
@@ -110,7 +176,6 @@ func spawn_bite_swing():
 	smite_instance.rotation = target_dir.angle()
 	smite_instance.global_position += target_dir * 35
 
-# Алиас — анимация bite_down вызывает spawn_bite_smite
 func spawn_bite_smite():
 	spawn_bite_swing()
 
@@ -129,6 +194,19 @@ func shoot():
 	arrow.global_position = global_position
 	arrow.rotation = dir.angle()
 	get_tree().current_scene.add_child(arrow)
+
+# Summon — спавн 8 снарядов goblin_slinger по кругу
+func summon_projectiles():
+	if is_dead: return
+	var count = 8
+	for i in range(count):
+		var angle = (TAU / count) * i
+		var dir = Vector2(cos(angle), sin(angle))
+		var proj = GameConstants.GOBLIN_SLINGER_PROJECTILE.instantiate()
+		proj.global_position = global_position
+		proj.direction = dir
+		proj.rotation = angle
+		get_tree().current_scene.add_child(proj)
 
 func _on_slap_body_entered(body: Node2D) -> void:
 	if is_dead: return
