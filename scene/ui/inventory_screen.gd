@@ -23,9 +23,11 @@ var _stats_popup: Control
 
 func _ready() -> void:
 	add_to_group("inventory_screen")
+	add_to_group("backpack")
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build_ui()
 	hide_inventory()
+	call_deferred("_restore_from_save")
 
 func _build_ui() -> void:
 	var root = Control.new()
@@ -256,10 +258,21 @@ func _refresh_artefacts() -> void:
 	for art in _artefacts:
 		_add_artefact_icon(art)
 
-func add_artefact(artefact_info: Dictionary) -> void:
-	_artefacts.append(artefact_info)
+func add_artefact(artefact_info) -> void:
+	# Принимаем как Dictionary так и ArtefactBase объект
+	var info: Dictionary
+	if artefact_info is Dictionary:
+		info = artefact_info
+	else:
+		info = {
+			"name": artefact_info.get("artefact_name") if "artefact_name" in artefact_info else "?",
+			"icon": artefact_info.get("artefact_icon") if "artefact_icon" in artefact_info else null,
+			"icon_path": artefact_info.artefact_icon.resource_path if ("artefact_icon" in artefact_info and artefact_info.artefact_icon) else "",
+			"description": artefact_info.get("artefact_description") if "artefact_description" in artefact_info else ""
+		}
+	_artefacts.append(info)
 	if _visible:
-		_add_artefact_icon(artefact_info)
+		_add_artefact_icon(info)
 
 func _add_artefact_icon(art: Dictionary) -> void:
 	var btn = TextureButton.new()
@@ -273,3 +286,27 @@ func _add_artefact_icon(art: Dictionary) -> void:
 			_desc_label.text = "[%s]\n%s" % [art.get("name","?"), art.get("description","")]
 	)
 	_grid.add_child(btn)
+
+
+func get_collected_artefact_names() -> Array:
+	var result = []
+	for art in _artefacts:
+		result.append({
+			"name": art.get("name", ""),
+			"icon_path": art.get("icon_path", ""),
+			"description": art.get("description", "")
+		})
+	return result
+
+func _restore_from_save() -> void:
+	if not SaveSystem.has_collected_artefacts(): return
+	for data in SaveSystem.get_collected_artefacts():
+		var icon = null
+		if data.get("icon_path", "") != "":
+			icon = load(data["icon_path"])
+		add_artefact({
+			"name": data.get("name", ""),
+			"icon": icon,
+			"icon_path": data.get("icon_path", ""),
+			"description": data.get("description", "")
+		})

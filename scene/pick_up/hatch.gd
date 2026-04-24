@@ -34,4 +34,5 @@ func _go_to_next_floor():
 		scene = "res://World/layer_act2.tscn"
 	else:
 		scene = "res://World/layer.tscn"  # этажи 5-6 — снова первый акт (или замени на layer_act3)
+	AudioManager.stop_music()
 	get_tree().change_scene_to_file(scene)

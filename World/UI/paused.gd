@@ -29,4 +29,5 @@ func _on_texture_button_3_pressed() -> void:
 		map_manager.save_dungeon_state()
 
 	get_tree().paused = false
+	AudioManager.stop_music()
 	get_tree().change_scene_to_file(target_scene)

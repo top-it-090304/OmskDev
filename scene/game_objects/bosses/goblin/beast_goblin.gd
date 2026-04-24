@@ -239,6 +239,43 @@ func summon_projectiles():
 		proj.scale = Vector2(2.5, 2.5)
 		get_tree().current_scene.add_child(proj)
 
+func spawn_slap_effect():
+	if is_dead: return
+
+	# Видимый круг — повторяет форму коллизии slap (radius 48 * scale 2 = 96)
+	var circle = Polygon2D.new()
+	var pts = PackedVector2Array()
+	for i in 24:
+		var a = (TAU / 24.0) * i
+		pts.append(Vector2(cos(a), sin(a)) * 96.0)
+	circle.polygon = pts
+	circle.color = Color(0.78, 0.74, 0.70, 0.55)
+	circle.z_index = 10
+	circle.global_position = global_position
+	get_tree().current_scene.add_child(circle)
+
+	# Много частиц-осколков во все стороны
+	var particles = CPUParticles2D.new()
+	particles.emitting = true
+	particles.one_shot = true
+	particles.explosiveness = 1.0
+	particles.amount = 60
+	particles.lifetime = 0.5
+	particles.spread = 180.0
+	particles.initial_velocity_min = 90.0
+	particles.initial_velocity_max = 180.0
+	particles.scale_amount_min = 3.0
+	particles.scale_amount_max = 7.0
+	particles.color = Color(0.65, 0.62, 0.58, 1.0)
+	particles.gravity = Vector2(0, 60)
+	particles.z_index = 10
+	particles.global_position = global_position
+	get_tree().current_scene.add_child(particles)
+
+	var tween = create_tween()
+	tween.tween_property(circle, "color:a", 0.0, 0.3)
+	tween.tween_callback(circle.queue_free)
+
 func _on_slap_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player"):

@@ -10,8 +10,9 @@ func _on_pressed() -> void:
 	await get_tree().process_frame
 	
 	# 3. Переходим в меню
+	AudioManager.stop_music()
 	get_tree().change_scene_to_file(target_scene)
 
 func _on_timer_timeout() -> void:
-	# Вызываем ту же логику
+	AudioManager.stop_music()
 	get_tree().change_scene_to_file(target_scene)

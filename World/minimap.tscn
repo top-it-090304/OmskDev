@@ -13,19 +13,20 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 8
 size_flags_vertical = 0
+mouse_filter = 2
 script = ExtResource("1_vdnj7")
 
 [node name="MarginContainer" type="Control" parent="."]
 z_index = 15
 clip_contents = true
 layout_mode = 1
-anchor_left = 0.748
+anchor_left = 0.807
 anchor_top = 0.104
-anchor_right = 0.896
+anchor_right = 0.956
 anchor_bottom = 0.412
-offset_left = 0.0799866
+offset_left = 0.220062
 offset_top = -0.0400009
-offset_right = 0.159973
+offset_right = -0.239868
 offset_bottom = -0.12001
 mouse_filter = 2
 
@@ -43,12 +44,12 @@ theme_override_constants/v_separation = 2
 
 [node name="BackgroundRumka" type="Sprite2D" parent="."]
 z_index = 10
-position = Vector2(444, 64)
+position = Vector2(476, 64)
 scale = Vector2(2.16667, 2)
 texture = ExtResource("2_06ype")
 
 [node name="Rumka" type="Sprite2D" parent="."]
 z_index = 300
-position = Vector2(444, 64)
+position = Vector2(476, 64)
 scale = Vector2(2.16667, 2)
 texture = ExtResource("3_c3dq0")
