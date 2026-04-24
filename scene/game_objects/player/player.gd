@@ -293,9 +293,9 @@ func level_up_player() -> void:
 	exp_to_next_level = _calculate_exp_for_level(current_level + 1)
 
 	# Увеличиваем характеристики
-	GameConstants.PLAYER_MAX_HEALTH += GameConstants.PLAYER_HEALTH_PER_LEVEL
-	GameConstants.PLAYER_MAX_SPEED += GameConstants.PLAYER_SPEED_PER_LEVEL
-	GameConstants.PLAYER_ATTACK_DAMAGE += GameConstants.PLAYER_DAMAGE_PER_LEVEL
+	GameConstants.PLAYER_MAX_HEALTH  = min(GameConstants.PLAYER_MAX_HEALTH  + GameConstants.PLAYER_HEALTH_PER_LEVEL, 9999)
+	GameConstants.PLAYER_MAX_SPEED   = min(GameConstants.PLAYER_MAX_SPEED   + GameConstants.PLAYER_SPEED_PER_LEVEL,  600)
+	GameConstants.PLAYER_ATTACK_DAMAGE = min(GameConstants.PLAYER_ATTACK_DAMAGE + GameConstants.PLAYER_DAMAGE_PER_LEVEL, 999)
 
 	last_known_max_health = GameConstants.PLAYER_MAX_HEALTH
 

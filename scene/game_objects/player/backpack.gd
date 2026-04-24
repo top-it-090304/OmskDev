@@ -31,6 +31,8 @@ func _ready():
 			collected_artefacts.append(artefact_info)
 			create_icon(artefact_info)
 		print("Восстановлено артефактов: ", saved_artefacts.size())
+		# Синхронизируем с инвентарём (он может ещё не быть готов — откладываем на следующий кадр)
+		call_deferred("_sync_inventory_on_load")
 
 func setup_grid():
 	# Создаем GridContainer если его нет
@@ -59,6 +61,11 @@ func add_artefact(artefact_data) -> void:
 
 	# Создаем иконку
 	create_icon(artefact_info)
+
+	# Уведомляем инвентарь
+	var inventory = get_tree().get_first_node_in_group("inventory_screen")
+	if inventory:
+		inventory.add_artefact(artefact_info)
 
 	print("Артефакт добавлен в рюкзак: ", artefact_info["name"])
 
@@ -137,3 +144,10 @@ func get_collected_artefact_names() -> Array:
 			"description": artefact.get("description", "")
 		})
 	return artefacts_data
+
+
+func _sync_inventory_on_load() -> void:
+	var inventory = get_tree().get_first_node_in_group("inventory_screen")
+	if inventory:
+		for artefact_info in collected_artefacts:
+			inventory.add_artefact(artefact_info)

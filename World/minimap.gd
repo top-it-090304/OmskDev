@@ -5,7 +5,7 @@ extends Control
 
 # НОВОЕ: Укажи здесь размер твоего окна миникарты в пикселях (например, 150 на 150).
 # Это нужно, чтобы математика не ломалась, пока Godot грузит интерфейс.
-@export var minimap_window_size: Vector2 = Vector2(108, 108) 
+@export var minimap_window_size: Vector2 = Vector2(80, 80) 
 
 var room_cells = []
 var show_full_map = false
@@ -19,22 +19,16 @@ func _ready():
 		push_error("MapManager не найден!")
 		return
 		
-	# Отключаем обрезку границ
-	
-		
 	build_grid()
 	
-	# ИСПРАВЛЕНИЕ 1: Считаем шаг ячейки НАПРЯМУЮ из константы.
-	# Мы сами задали размер 12x12 в build_grid(), поэтому нам не нужно спрашивать 
-	# у Godot размер ребенка (на первом кадре он всегда возвращает 0, из-за чего и был баг).
 	var cell_size = Vector2(12, 12) 
 	var separation = grid_container.get_theme_constant("separation")
-	if separation == 0: separation = 2 # Запасной отступ, если в теме пусто
+	if separation == 0: separation = 2
 	
 	cell_step = cell_size.x + separation
 	grid_total_size.x = cell_step * GameConstants.MAP_MANAGER_GRID_SIZE
 	grid_total_size.y = cell_step * GameConstants.MAP_MANAGER_GRID_SIZE
-		
+
 	map_manager.room_changed.connect(_on_room_changed)
 	_on_room_changed(map_manager.current_room_grid_pos)
 
