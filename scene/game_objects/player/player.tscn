@@ -1,4 +1,4 @@
-[gd_scene load_steps=170 format=3 uid="uid://mes1twfxfifa"]
+[gd_scene load_steps=171 format=3 uid="uid://mes1twfxfifa"]
 
 [ext_resource type="Script" uid="uid://b4d56hcuiwhmy" path="res://scene/game_objects/player/player.gd" id="1_ktjk3"]
 [ext_resource type="Texture2D" uid="uid://pagggpic45vn" path="res://sprites/player/Health/Health_progressbar_sprite_under.png" id="2_gvguk"]
@@ -31,6 +31,7 @@
 [ext_resource type="Script" uid="uid://br0543vshmkp4" path="res://scene/game_objects/player/texture_button.gd" id="28_jjj0s"]
 [ext_resource type="PackedScene" uid="uid://cgrlwgdgbo186" path="res://World/UI/paused.tscn" id="29_l6dqq"]
 [ext_resource type="PackedScene" uid="uid://tqdnqu04xabq" path="res://scene/ui/level_up_popup.tscn" id="31_vv8lt"]
+[ext_resource type="Script" path="res://scene/game_objects/player/inventory_button.gd" id="32_invbtn"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_plpdn"]
 radius = 9.0
@@ -1739,6 +1740,17 @@ stretch_mode = 0
 script = ExtResource("28_jjj0s")
 scene_to_open = ExtResource("29_l6dqq")
 
+[node name="InventoryButton" type="TextureButton" parent="."]
+z_index = 4096
+offset_left = 174.0
+offset_top = -122.0
+offset_right = 214.0
+offset_bottom = -82.0
+texture_normal = ExtResource("26_nm7bo")
+texture_pressed = ExtResource("27_au6ap")
+stretch_mode = 0
+script = ExtResource("32_invbtn")
+
 [node name="can_take_damage" type="Timer" parent="."]
 wait_time = 0.05
 
@@ -1762,6 +1774,7 @@ offset_bottom = 260.0
 [connection signal="child_exiting_tree" from="." to="TextureButton" method="_on_player_child_exiting_tree"]
 [connection signal="body_entered" from="hitbox" to="." method="_on_hitbox_body_entered"]
 [connection signal="pressed" from="TextureButton" to="TextureButton" method="_on_pressed"]
+[connection signal="pressed" from="InventoryButton" to="InventoryButton" method="_on_pressed"]
 [connection signal="timeout" from="can_take_damage" to="." method="_on_can_take_damage_timeout"]
 [connection signal="body_entered" from="hitbox_attack" to="." method="_on_hitbox_attack_body_entered"]
 [connection signal="timeout" from="can_attack" to="." method="_on_can_attack_timeout"]

@@ -204,6 +204,17 @@ func save_to_disk() -> void:
 func set_stat(key: String, value: Variant, persist := true) -> void:
 	if not _stats_keys().has(key):
 		return
+	# Балансные ограничения (Isaac-like)
+	match key:
+		"PLAYER_MAX_SPEED":       value = clamp(value, 50,   600)
+		"PLAYER_ATTACK_DAMAGE":   value = clamp(value, 1,    999)
+		"PLAYER_ATTACK_SPEED":    value = clamp(value, 0.5,  10.0)
+		"PLAYER_ARMOR":           value = clamp(value, 0,    99)
+		"PLAYER_DODGE_CHANCE":    value = clamp(value, 0.0,  0.9)   # макс 90%
+		"PLAYER_CRIT_CHANCE":     value = clamp(value, 0.0,  1.0)
+		"PLAYER_CRIT_MULTIPLIER": value = clamp(value, 1.0,  10.0)
+		"PLAYER_LIFESTEAL":       value = clamp(value, 0.0,  1.0)   # макс 100%
+		"PLAYER_MAX_HEALTH":      value = clamp(value, 1,    9999)
 	set(key, value)
 	if persist:
 		save_to_disk()

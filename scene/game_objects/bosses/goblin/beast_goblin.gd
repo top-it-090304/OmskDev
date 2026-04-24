@@ -201,6 +201,7 @@ func spawn_bite_swing():
 	smite_instance.global_position = global_position
 	smite_instance.visible = false
 	smite_instance.monitoring = false
+	smite_instance.scale = Vector2(2.5, 2.5)
 	var target_dir = (player.global_position - global_position).normalized()
 	if "direction" in smite_instance:
 		smite_instance.direction = target_dir
