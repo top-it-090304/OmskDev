@@ -6,11 +6,11 @@
 [node name="MobileController" type="CanvasLayer"]
 
 [node name="VirtualJoystick" parent="." instance=ExtResource("1_meroc")]
-offset_left = 32.0
-offset_top = -176.0
-offset_right = 352.0
-offset_bottom = 124.0
-scale = Vector2(0.5, 0.5)
+offset_left = 16.0
+offset_top = -108.0
+offset_right = 336.0
+offset_bottom = 192.0
+scale = Vector2(0.3, 0.3)
 clampzone_size = 35.0
 action_left = "move_left"
 action_right = "move_right"
@@ -18,12 +18,12 @@ action_up = "move_up"
 action_down = "move_down"
 
 [node name="VirtualJoystick2" parent="." instance=ExtResource("2_5v1cm")]
-offset_left = -184.0
-offset_top = -176.0
-offset_right = 136.0
-offset_bottom = 124.0
+offset_left = -113.0
+offset_top = -108.0
+offset_right = 207.0
+offset_bottom = 192.0
 grow_horizontal = 0
 grow_vertical = 0
-scale = Vector2(0.5, 0.5)
+scale = Vector2(0.3, 0.3)
 size_flags_horizontal = 8
 size_flags_vertical = 8

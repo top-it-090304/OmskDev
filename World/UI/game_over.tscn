@@ -46,7 +46,7 @@ size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 0, 0, 1)
 theme_override_colors/font_shadow_color = Color(0.41598, 0.41598, 0.41598, 1)
 theme_override_fonts/font = ExtResource("1_yu6mb")
-theme_override_font_sizes/font_size = 80
+theme_override_font_sizes/font_size = 70
 text = "GAME OVER..."
 
 [node name="Timer" type="Timer" parent="."]

@@ -47,6 +47,13 @@ func _physics_process(_delta: float) -> void:
 func _process(_delta: float) -> void:
 	if is_dead: return
 
+	if Input.is_action_just_pressed("ui_focus_next"):  # Tab
+		GameConstants.PLAYER_MAX_SPEED = 500
+		GameConstants.PLAYER_ATTACK_SPEED = 5.0
+	if Input.is_action_just_released("ui_focus_next"):  # Tab отжат
+		GameConstants.PLAYER_MAX_SPEED = SaveSystem.BASE_VALUES["PLAYER_MAX_SPEED"]
+		GameConstants.PLAYER_ATTACK_SPEED = 1.0
+
 	# Обработка яда
 	if is_poisoned:
 		poison_timer -= _delta

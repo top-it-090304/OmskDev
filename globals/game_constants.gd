@@ -16,9 +16,10 @@ const GOBLIN_SLINGER_PROJECTILE = preload("res://scene/game_objects/enemy/goblin
 const HEALTH_POTION = preload("res://scene/pick_up/Heal potion/heal_potion.tscn")
 
 # --- PLAYER STATS ---
-var PLAYER_MAX_SPEED = 600
+var PLAYER_MAX_SPEED = 200
 
-var PLAYER_MAX_HEALTH = 200
+
+var PLAYER_MAX_HEALTH = 400
 var PLAYER_ENEMY_CONTACT_DAMAGE = 100
 var PLAYER_ATTACK_DAMAGE = 100
 var PLAYER_ARMOR = 0  # Блокирует фиксированное количество урона
@@ -76,10 +77,10 @@ var SMITE_RADIUS = 20
 var SMITE_SPEED = 2
 
 # --- BOSS: BEAST GOBLIN ---
-var ENEMY_BEASTGOBLIN_HP = 150
-var ENEMY_BEASTGOBLIN_MAX_SPEED = 120
+var ENEMY_BEASTGOBLIN_HP = 450
+var ENEMY_BEASTGOBLIN_MAX_SPEED = 180
 var ENEMY_BEASTGOBLIN_BITE_DAMAGE = 30
-var ENEMY_BEASTGOBLIN_SLAP_DAMAGE = 15
+var ENEMY_BEASTGOBLIN_SLAP_DAMAGE = 25
 var ENEMY_BEASTGOBLIN_TAKE_DAMAGE = 10
 var ENEMY_BEASTGOBLIN_EXP_REWARD = 50
 
@@ -182,20 +183,12 @@ func load_from_disk() -> void:
 		save_to_disk()
 		return
 
-	# Проверяем, есть ли все ключи в конфиге
-	var needs_update = false
-	for key in _stats_keys():
-		if not cfg.has_section_key("stats", key):
-			needs_update = true
-			break
-
-	# Если каких-то ключей нет, сохраняем текущие значения
-	if needs_update:
-		save_to_disk()
-		return
-
-	# Загружаем значения из конфига
-	for key in _stats_keys():
+	# Загружаем ТОЛЬКО прогрессию — статы берём из кода
+	var progression_keys = [
+		"PLAYER_LEVEL", "PLAYER_EXPERIENCE", "ENEMIES_KILLED",
+		"ROOMS_CLEARED", "ENEMY_LEVEL", "CURRENT_FLOOR"
+	]
+	for key in progression_keys:
 		if cfg.has_section_key("stats", key):
 			set(key, cfg.get_value("stats", key))
 	constants_changed.emit()
