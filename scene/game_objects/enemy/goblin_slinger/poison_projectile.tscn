@@ -1,0 +1,36 @@
+[gd_scene load_steps=4 format=3 uid="uid://c8vx7n2m3qp4k"]
+
+[ext_resource type="Texture2D" uid="uid://dyc2aerjsy0i4" path="res://sprites/enemys/Goblin_Slinger/projectile.png" id="1_projectile"]
+[ext_resource type="Script" uid="uid://d28fnp7015t3c" path="res://scene/game_objects/enemy/goblin_slinger/poison_projectile.gd" id="1_script"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_poison"]
+radius = 6.0
+
+[node name="PoisonProjectile" type="Area2D"]
+z_index = 2
+collision_mask = 130
+priority = 1
+script = ExtResource("1_script")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_poison")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(0.5, 1, 0.3, 1)
+texture = ExtResource("1_projectile")
+
+[node name="PoisonParticles" type="CPUParticles2D" parent="."]
+lifetime = 0.5
+speed_scale = 1.5
+emission_shape = 1
+emission_sphere_radius = 4.0
+direction = Vector2(0, 0)
+spread = 180.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 20.0
+initial_velocity_max = 40.0
+scale_amount_min = 2.0
+scale_amount_max = 4.0
+color = Color(0.3, 0.8, 0.2, 0.6)
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]

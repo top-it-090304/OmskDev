@@ -18,11 +18,13 @@ boot_splash/bg_color=Color(0, 0.0418439, 0.0956349, 1)
 [autoload]
 
 GameConstants="*res://globals/game_constants.gd"
+SaveSystem="*res://globals/save_system.gd"
+AudioManager="*res://globals/audio_manager.gd"
 
 [display]
 
-window/size/viewport_width=640
-window/size/viewport_height=360
+window/size/viewport_width=540
+window/size/viewport_height=260
 window/size/window_width_override=1600
 window/size/window_height_override=800
 window/stretch/mode="viewport"

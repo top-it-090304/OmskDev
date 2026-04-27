@@ -1,15 +1,105 @@
-[gd_scene load_steps=3 format=3 uid="uid://bq40uiaugbfjq"]
+[gd_scene load_steps=43 format=3 uid="uid://bq40uiaugbfjq"]
 
 [ext_resource type="PackedScene" uid="uid://n6dhykg53x0b" path="res://World/map_manager.tscn" id="1_mln5v"]
+[ext_resource type="PackedScene" uid="uid://ec471alip6hl" path="res://scene/game_objects/player/exp_bar.tscn" id="2_jn37s"]
 [ext_resource type="PackedScene" uid="uid://capqga0p285u0" path="res://World/minimap.tscn" id="3_o2u7n"]
+[ext_resource type="PackedScene" uid="uid://d00qjcqxvua3o" path="res://scene/game_objects/player/backpack.tscn" id="4_backpack"]
+[ext_resource type="PackedScene" uid="uid://djme8hqe5u87s" path="res://scene/game_objects/enemy/goblin_axe/enemy(goblin_axe).tscn" id="5_d0rex"]
+[ext_resource type="PackedScene" uid="uid://bbelva8io0yft" path="res://scene/pick_up/artefacts/artefact(boots_of_travel).tscn" id="5_v7fgi"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/blue_shroom.tscn" id="6_ikq8h"]
+[ext_resource type="PackedScene" uid="uid://ot1bjrnddml7" path="res://scene/game_objects/enemy/skeleton_bow/skeleton_bow.tscn" id="6_n4o4r"]
+[ext_resource type="PackedScene" uid="uid://bx8m4n7p2qlar" path="res://scene/game_objects/enemy/goblin_slinger/goblin_slinger.tscn" id="7_1olng"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/clock.tscn" id="7_qpvvc"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/coffee_mug.tscn" id="8_shab0"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/crown.tscn" id="9_f2vw5"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/diamond.tscn" id="10_ylsjx"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/golden_cup.tscn" id="11_3hlwg"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/injector.tscn" id="12_0el4m"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/metal_shield.tscn" id="13_cueid"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/old_book.tscn" id="14_36tnp"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/red_potion.tscn" id="15_rhie0"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/bottle.tscn" id="16_art01"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/bongo.tscn" id="17_art02"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/button.tscn" id="18_art03"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/disco_ball.tscn" id="19_art04"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/electronic_key.tscn" id="20_art05"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/fairy_bottle.tscn" id="21_art06"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/flashlight.tscn" id="22_art07"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/golden_ball.tscn" id="23_art08"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/juice_box.tscn" id="24_art09"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/letter.tscn" id="25_art10"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/lime_juice.tscn" id="26_art11"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/milk_box.tscn" id="27_art12"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/pill.tscn" id="28_art13"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/pill_can.tscn" id="29_art14"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/ramen_bowl.tscn" id="30_art15"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/small_cactus.tscn" id="31_art16"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/snow_ball.tscn" id="32_art17"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/top_hat.tscn" id="33_art18"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/uno_reverse_card.tscn" id="34_art19"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/vhs_cassette.tscn" id="35_art20"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/scene/pick_up/artefacts/waffle.tscn" id="36_art21"]
+[ext_resource type="Script" uid="uid://dsey46gvbv6sr" path="res://scene/ui/floor_label.gd" id="37_floor"]
+[ext_resource type="FontFile" uid="uid://wbjr6hf3uxdc" path="res://Font/PixelRpgFont-Regular.ttf" id="38_font"]
+[ext_resource type="Script" uid="uid://b6lp37p7qsno" path="res://scene/ui/inventory_screen.gd" id="39_inv"]
 
 [node name="Layer" type="Node"]
 
 [node name="UI" type="CanvasLayer" parent="."]
 
+[node name="InventoryScreen" type="CanvasLayer" parent="UI"]
+layer = 2
+script = ExtResource("39_inv")
+
+[node name="FloorLabel" type="Label" parent="UI"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -150.0
+offset_top = 26.0
+offset_right = 150.0
+offset_bottom = 86.0
+grow_horizontal = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("38_font")
+theme_override_font_sizes/font_size = 48
+text = "Floor 1"
+horizontal_alignment = 1
+vertical_alignment = 1
+script = ExtResource("37_floor")
+
 [node name="minimap" parent="UI" node_paths=PackedStringArray("map_manager") instance=ExtResource("3_o2u7n")]
-mouse_filter = 2
 map_manager = NodePath("../../MapManager")
+
+[node name="ExpBar" parent="UI" instance=ExtResource("2_jn37s")]
+anchor_left = 0.785
+anchor_top = 0.462
+anchor_right = 0.978
+anchor_bottom = 0.551
+offset_left = 0.0999756
+offset_top = -0.120003
+offset_right = -0.119995
+offset_bottom = -1.25999
+grow_horizontal = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+
+[node name="Backpack" parent="UI" instance=ExtResource("4_backpack")]
+anchors_preset = -1
+anchor_left = 1.185
+anchor_top = -0.062
+anchor_right = 1.185
+anchor_bottom = -0.062
+offset_left = 0.0999756
+offset_top = 0.120001
+offset_right = 0.0999756
+offset_bottom = 0.120001
 
 [node name="MapManager" parent="." node_paths=PackedStringArray("layer") instance=ExtResource("1_mln5v")]
 layer = NodePath("..")
+enemy_variations = Array[PackedScene]([ExtResource("5_d0rex"), ExtResource("6_n4o4r"), ExtResource("7_1olng")])
+treasure_items = Array[PackedScene]([ExtResource("5_v7fgi"), ExtResource("6_ikq8h"), ExtResource("7_qpvvc"), ExtResource("8_shab0"), ExtResource("9_f2vw5"), ExtResource("10_ylsjx"), ExtResource("11_3hlwg"), ExtResource("12_0el4m"), ExtResource("13_cueid"), ExtResource("14_36tnp"), ExtResource("15_rhie0"), ExtResource("16_art01"), ExtResource("17_art02"), ExtResource("18_art03"), ExtResource("19_art04"), ExtResource("20_art05"), ExtResource("21_art06"), ExtResource("22_art07"), ExtResource("23_art08"), ExtResource("24_art09"), ExtResource("25_art10"), ExtResource("26_art11"), ExtResource("27_art12"), ExtResource("28_art13"), ExtResource("29_art14"), ExtResource("30_art15"), ExtResource("31_art16"), ExtResource("32_art17"), ExtResource("33_art18"), ExtResource("34_art19"), ExtResource("35_art20"), ExtResource("36_art21")])

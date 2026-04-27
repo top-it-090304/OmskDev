@@ -35,6 +35,9 @@ var spawned_rooms = []
 # НОВОЕ: "Текущая колода" предметов для выдачи
 var item_draw_pile: Array[PackedScene] = []
 
+# Seed для генерации (для сохранения/загрузки)
+var generation_seed: int = 0
+
 #minimap
 var current_room_grid_pos = Vector2i(GameConstants.MAP_MANAGER_GRID_SIZE / 2, GameConstants.MAP_MANAGER_GRID_SIZE / 2)
 signal room_changed(new_grid_pos)
@@ -43,22 +46,37 @@ var seen_rooms = []
 
 
 func _ready():
+	add_to_group("map_manager")
+
 	if start_room_variations.is_empty() or normal_room_variations.is_empty() or boss_room_variations.is_empty():
 		push_error("ОШИБКА: Добавь хотя бы по одной сцене для Start, Normal и Boss комнат!")
 		return
-		
-	generate_layout()
-	draw_map()
-	await get_tree().create_timer(0).timeout
-	_spawn_player()
-	await _spawn_obstacles_after_physics()
-	await _spawn_enemies_after_physics()
-	
-	# НОВОЕ: Спавним предметы в комнатах сокровищ (делаем это последним)
-	_spawn_treasure_items()
-	
-	
-	change_current_room(current_room_grid_pos.x, current_room_grid_pos.y)
+
+	# Проверяем, есть ли сохраненный seed
+	if SaveSystem.has_dungeon_state():
+		print("=== ЗАГРУЗКА СОХРАНЕННОГО ДАНЖЕНА ===")
+		load_dungeon_state()
+	else:
+		print("=== ГЕНЕРАЦИЯ НОВОГО ДАНЖЕНА ===")
+		# Генерируем новый seed
+		generation_seed = randi()
+		seed(generation_seed)
+		print("Seed генерации: ", generation_seed)
+
+		generate_layout()
+		draw_map()
+		await get_tree().create_timer(0).timeout
+		_spawn_player()
+		await _spawn_obstacles_after_physics()
+		await _spawn_enemies_after_physics()
+
+		# НОВОЕ: Спавним предметы в комнатах сокровищ (делаем это последним)
+		_spawn_treasure_items()
+
+		change_current_room(current_room_grid_pos.x, current_room_grid_pos.y)
+
+		# Сохраняем состояние данжена
+		save_dungeon_state()
 
 # =====================================================================
 # НОВОЕ: ЛОГИКА "КОЛОДЫ КАРТ" ДЛЯ ПРЕДМЕТОВ
@@ -114,18 +132,25 @@ func _get_next_treasure_item() -> PackedScene:
 func _spawn_treasure_items():
 	for room_data in spawned_rooms:
 		if room_data["type"] == RoomType.TREASURE:
+			var room_pos = room_data["grid_pos"]
+
+			# Проверяем, был ли артефакт уже собран в этой комнате
+			if SaveSystem.is_treasure_collected(room_pos):
+				print("Артефакт в комнате ", room_pos, " уже собран, пропускаем")
+				continue
+
 			var item_scene = _get_next_treasure_item()
-			
+
 			if item_scene == null:
 				push_warning("Массив treasure_items пуст, предмет не заспавнен.")
 				continue
-				
+
 			var room_node = room_data["node"]
 			var item_instance = item_scene.instantiate()
-			
+
 			# Добавляем предмет напрямую в корень комнаты
 			room_node.add_child(item_instance)
-			
+
 			# Строго по центру комнаты
 			var local_center = Vector2(GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2.0, GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2.0)
 			item_instance.global_position = room_node.to_global(local_center)
@@ -171,7 +196,7 @@ func generate_layout():
 		if is_valid_pos(new_pos) and layout[new_pos.x][new_pos.y] == RoomType.EMPTY:
 			layout[new_pos.x][new_pos.y] = RoomType.NORMAL
 
-	var treasure_count = randi_range(1, 2)
+	var treasure_count = randi_range(4, 6)
 	var treasures_placed = 0
 	
 	# Даем 15 попыток (вместо 2), чтобы точно найти свободное место на карте
@@ -251,12 +276,15 @@ func draw_map():
 				room_instance.position = room_pos
 				room_instance.grid_x = x
 				room_instance.grid_y = y
+				if layout[x][y] == RoomType.BOSS:
+					room_instance.is_boss_room = true
 
 				add_child(room_instance)
-				
+
 				spawned_rooms.append({
 					"node": room_instance,
-					"type": layout[x][y]
+					"type": layout[x][y],
+					"grid_pos": Vector2i(x, y)
 				})
 				
 				var has_left = check_neighbor(x - 1, y)
@@ -458,16 +486,113 @@ func _spawn_single_enemy(space_state, room_node):
 
 func change_current_room(new_x, new_y):
 	var new_pos = Vector2i(new_x, new_y)
-	
+
 	if not visited_rooms.has(new_pos):
 		visited_rooms.append(new_pos)
-		
+
 	var directions = [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]
 	for dir in directions:
 		var neighbor_pos = new_pos + dir
 		if is_valid_pos(neighbor_pos) and layout[neighbor_pos.x][neighbor_pos.y] != RoomType.EMPTY:
 			if not seen_rooms.has(neighbor_pos):
 				seen_rooms.append(neighbor_pos)
-				
+
 	current_room_grid_pos = new_pos
 	room_changed.emit(current_room_grid_pos)
+
+# =====================================================================
+# СИСТЕМА СОХРАНЕНИЯ/ЗАГРУЗКИ СОСТОЯНИЯ ДАНЖЕНА
+# =====================================================================
+
+func save_dungeon_state():
+	var dungeon_data = {
+		"generation_seed": generation_seed,
+		"current_room_pos": {
+			"x": current_room_grid_pos.x,
+			"y": current_room_grid_pos.y
+		},
+		"visited_rooms": [],
+		"seen_rooms": [],
+		"cleared_rooms": [],
+		"collected_treasure_rooms": []
+	}
+
+	# Сохраняем посещенные комнаты
+	for room_pos in visited_rooms:
+		dungeon_data["visited_rooms"].append({"x": room_pos.x, "y": room_pos.y})
+
+	# Сохраняем увиденные комнаты
+	for room_pos in seen_rooms:
+		dungeon_data["seen_rooms"].append({"x": room_pos.x, "y": room_pos.y})
+
+	# Сохраняем зачищенные комнаты (комнаты без врагов)
+	for room_data in spawned_rooms:
+		var room_node = room_data["node"]
+		var enemys_node = room_node.find_child("Enemys")
+		if enemys_node and enemys_node.get_child_count() == 0:
+			var grid_pos = room_data["grid_pos"]
+			dungeon_data["cleared_rooms"].append({"x": grid_pos.x, "y": grid_pos.y})
+
+	# Сохраняем комнаты с собранными артефактами
+	dungeon_data["collected_treasure_rooms"] = SaveSystem.collected_treasure_rooms
+
+	SaveSystem.save_dungeon_data(dungeon_data)
+	print("Состояние данжена сохранено (seed: ", generation_seed, ")")
+
+func load_dungeon_state():
+	var dungeon_data = SaveSystem.load_dungeon_data()
+	if not dungeon_data:
+		print("Ошибка загрузки состояния данжена")
+		return
+
+	# Восстанавливаем seed и генерируем тот же данжен
+	generation_seed = dungeon_data.get("generation_seed", 0)
+	seed(generation_seed)
+	print("Загружен seed: ", generation_seed)
+
+	# Генерируем данжен с тем же seed
+	generate_layout()
+	draw_map()
+	await get_tree().create_timer(0).timeout
+	_spawn_player()
+	await _spawn_obstacles_after_physics()
+	await _spawn_enemies_after_physics()
+	_spawn_treasure_items()
+
+	# Восстанавливаем посещенные комнаты
+	visited_rooms.clear()
+	if "visited_rooms" in dungeon_data:
+		for room_pos in dungeon_data["visited_rooms"]:
+			visited_rooms.append(Vector2i(room_pos["x"], room_pos["y"]))
+
+	# Восстанавливаем увиденные комнаты
+	seen_rooms.clear()
+	if "seen_rooms" in dungeon_data:
+		for room_pos in dungeon_data["seen_rooms"]:
+			seen_rooms.append(Vector2i(room_pos["x"], room_pos["y"]))
+
+	# Удаляем врагов из зачищенных комнат
+	if "cleared_rooms" in dungeon_data:
+		for cleared_pos in dungeon_data["cleared_rooms"]:
+			var cleared_vec = Vector2i(cleared_pos["x"], cleared_pos["y"])
+			for room_data in spawned_rooms:
+				if room_data["grid_pos"] == cleared_vec:
+					var room_node = room_data["node"]
+					var enemys_node = room_node.find_child("Enemys")
+					if enemys_node:
+						for enemy in enemys_node.get_children():
+							enemy.queue_free()
+					break
+
+	# Восстанавливаем собранные комнаты с сокровищами
+	if "collected_treasure_rooms" in dungeon_data:
+		SaveSystem.collected_treasure_rooms = dungeon_data["collected_treasure_rooms"]
+		print("Восстановлено собранных комнат с сокровищами: ", SaveSystem.collected_treasure_rooms.size())
+
+	# Восстанавливаем текущую комнату
+	if "current_room_pos" in dungeon_data:
+		var room_pos = dungeon_data["current_room_pos"]
+		current_room_grid_pos = Vector2i(room_pos["x"], room_pos["y"])
+		change_current_room(current_room_grid_pos.x, current_room_grid_pos.y)
+
+	print("Состояние данжена восстановлено")

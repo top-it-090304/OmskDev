@@ -1,0 +1,80 @@
+[gd_scene load_steps=3 format=3 uid="uid://ec471alip6hl"]
+
+[ext_resource type="Script" uid="uid://6uhrhl344ujh" path="res://scene/game_objects/player/exp_bar.gd" id="1"]
+[ext_resource type="FontFile" uid="uid://wbjr6hf3uxdc" path="res://Font/PixelRpgFont-Regular.ttf" id="2_inafd"]
+
+[node name="ExpBar" type="Control"]
+z_index = 200
+layout_mode = 3
+anchor_left = 0.015625
+anchor_top = 0.0277778
+anchor_right = 0.314063
+anchor_bottom = 0.147222
+mouse_filter = 2
+script = ExtResource("1")
+metadata/_edit_use_anchors_ = true
+
+[node name="Background" type="ColorRect" parent="."]
+z_index = 5
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.0232558
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.99, 0.718575, 0.6435, 0.607843)
+metadata/_edit_use_anchors_ = true
+
+[node name="LevelLabel" type="Label" parent="."]
+z_index = 10
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.139535
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_fonts/font = ExtResource("2_inafd")
+theme_override_font_sizes/font_size = 10
+text = "Level: 1"
+horizontal_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="ProgressBar" type="ProgressBar" parent="."]
+z_index = 10
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.55814
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+show_percentage = false
+metadata/_edit_use_anchors_ = true
+
+[node name="ExpLabel" type="Label" parent="."]
+z_index = 10
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.651163
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 1
+theme_override_fonts/font = ExtResource("2_inafd")
+theme_override_font_sizes/font_size = 10
+text = "0 / 100"
+horizontal_alignment = 1
+metadata/_edit_use_anchors_ = true

@@ -1,6 +1,9 @@
 extends Node2D
+
 func _on_area_2d_area_entered(area: Area2D) -> void:
-	# Получаем первого игрока в группе (более прямой способ)
-	var player_node = get_tree().get_first_node_in_group("player")
-	player_node.heal(20)
-	queue_free() # Replace with function body.
+	var parent = area.get_parent()
+	if not parent.is_in_group("player"):
+		return
+	parent.heal(20)
+	AudioManager.play_sfx("игрок_зелье")
+	queue_free()

@@ -1,7 +1,7 @@
 extends Button
 
 @onready var timer = $Timer
-var target_scene="res://world/ui/menu.tscn"
+@export var target_scene="res://World/UI/menu.tscn"
 func _on_pressed() -> void:
 	# 1. Отключаем кнопку, чтобы не было двойного нажатия при лаге
 	set_deferred("disabled", true)
@@ -10,8 +10,9 @@ func _on_pressed() -> void:
 	await get_tree().process_frame
 	
 	# 3. Переходим в меню
+	AudioManager.stop_music()
 	get_tree().change_scene_to_file(target_scene)
 
 func _on_timer_timeout() -> void:
-	# Вызываем ту же логику
+	AudioManager.stop_music()
 	get_tree().change_scene_to_file(target_scene)

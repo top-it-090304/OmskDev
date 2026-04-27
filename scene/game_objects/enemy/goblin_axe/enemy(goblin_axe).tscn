@@ -1,4 +1,4 @@
-[gd_scene load_steps=159 format=3 uid="uid://djme8hqe5u87s"]
+[gd_scene load_steps=160 format=3 uid="uid://djme8hqe5u87s"]
 
 [ext_resource type="Script" uid="uid://d2kkculxvdxu5" path="res://scene/game_objects/enemy/enemy(goblin_axe).gd" id="1_2xi4h"]
 [ext_resource type="Texture2D" uid="uid://3iftfbt86hrh" path="res://sprites/enemys/axeGoblin/Down/Png/GoblinDownAttack01.png" id="2_jcyvn"]
@@ -22,6 +22,7 @@
 [ext_resource type="Script" uid="uid://osq5kv0630j2" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="20_enwt8"]
 [ext_resource type="Texture2D" uid="uid://8o1hatxsh21y" path="res://assets/hpUnderEnemy.png" id="20_kdo45"]
 [ext_resource type="Texture2D" uid="uid://bu1d3dqfv283u" path="res://assets/hpProgressEnemy.png" id="21_ersmr"]
+[ext_resource type="PackedScene" uid="uid://djw8n7hn0de6h" path="res://scene/ui/enemy_level_display.tscn" id="23_ersmr"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_0e6ua"]
 atlas = ExtResource("2_jcyvn")
@@ -1357,6 +1358,12 @@ value = 10.0
 texture_under = ExtResource("20_kdo45")
 texture_progress = ExtResource("21_ersmr")
 script = ExtResource("20_enwt8")
+
+[node name="EnemyLevelDisplay" parent="." instance=ExtResource("23_ersmr")]
+offset_left = 10.0
+offset_top = 16.0
+offset_right = 18.0
+offset_bottom = 24.0
 
 [connection signal="area_entered" from="hitbox" to="." method="_on_hitbox_area_entered"]
 [connection signal="body_entered" from="hitbox" to="." method="_on_hitbox_body_entered"]

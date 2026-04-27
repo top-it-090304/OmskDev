@@ -1,0 +1,242 @@
+
+> окей теперь ты должен создать нового врага goblin_stingler по подобию skeleton bow его спрайты лежат там же где и
+спрйты skeleton bow и называются goblin stingler и спрайт его проджектайла которым он будет стрелять, но у него будет
+отличие то что его снаряд будет отравлять игрока, а игрок во время яда становится зеленым, не бойся много кодить и
+создавать главное чтобы все было идеально
+
+● Отлично! Создам нового врага Goblin Stingler с ядовитыми снарядами. Начнем с проверки спрайтов:
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● ...
+
+  Listed 1 directory (ctrl+o to expand)
+
+● Нашел! Это Goblin_Slinger (не stingler). Давай посмотрим структуру:
+
+  Listed 1 directory (ctrl+o to expand)
+
+  Listed 1 directory (ctrl+o to expand)
+
+● Отлично! Начинаем создание. Сначала создам скрипт ядовитого снаряда:
+
+● Write(scene\game_objects\enemy\goblin_slinger\poison_projectile.gd)
+  ⎿  Wrote 25 lines to scene\game_objects\enemy\goblin_slinger\poison_projectile.gd
+       1 extends Area2D
+       2
+       3 var direction = Vector2.ZERO
+       4 @export var speed = 350.0
+       5 @export var poison_duration = 5.0  # Длительность яда в секундах
+       6 @export var poison_damage_per_tick = 2  # Урон за тик
+       7 @export var poison_tick_rate = 0.5  # Частота тиков (каждые 0.5 сек)
+       8
+       9 func _process(delta: float) -> void:
+      10        if direction != Vector2.ZERO:
+     … +15 lines (ctrl+o to expand)
+
+● Теперь создам сцену для ядовитого снаряда:
+
+● Write(scene\game_objects\enemy\goblin_slinger\poison_projectile.tscn)
+  ⎿  Wrote 36 lines to scene\game_objects\enemy\goblin_slinger\poison_projectile.tscn
+       1 [gd_scene load_steps=4 format=3 uid="uid://c8vx7n2m3qp4k"]
+       2
+       3 [ext_resource type="Texture2D" path="res://sprites/enemys/Goblin_Slinger/projectile.png" id="1_projectil
+         e"]
+       4 [ext_resource type="Script" path="res://scene/game_objects/enemy/goblin_slinger/poison_projectile.gd" id
+         ="1_script"]
+       5
+       6 [sub_resource type="CircleShape2D" id="CircleShape2D_poison"]
+       7 radius = 6.0
+       8
+       9 [node name="PoisonProjectile" type="Area2D"]
+      10 collision_mask = 130
+     … +26 lines (ctrl+o to expand)
+
+● Теперь создам скрипт для Goblin Slinger (на основе skeleton_bow):
+
+● Write(scene\game_objects\enemy\goblin_slinger\goblin_slinger.gd)
+  ⎿  Wrote 230 lines to scene\game_objects\enemy\goblin_slinger\goblin_slinger.gd
+       1 extends CharacterBody2D
+       2
+       3 # Настройки из глобальных констант
+       4 @export var hp = 0
+       5 var max_speed = 0.0
+       6 var damage = 15
+       7
+       8 @onready var animP = $AnimationPlayer
+       9 @onready var attack_timer = $attack_timer
+      10 @onready var anim = $AnimatedSprite2D
+     … +220 lines (ctrl+o to expand)
+
+● Теперь нужно проверить какие спрайты есть для анимаций:
+
+  Read 1 file, listed 1 directory (ctrl+o to expand)
+
+● Отлично! Теперь добавлю константы в GameConstants:
+
+  Read 1 file (ctrl+o to expand)
+
+● ...
+
+● Update(globals\game_constants.gd)
+  ⎿  Added 1 line
+      12
+      13  const SKELETON_BOW_ARROW = preload("res://scene/game_objects/enemy/skeleton_bow/arrow.tscn")
+      14  const ENEMY_GOBLIN_AXE_SMITE = preload("res://scene/game_objects/enemy/goblin_axe/smite.tscn")
+      15 +const GOBLIN_SLINGER_PROJECTILE = preload("res://scene/game_objects/enemy/goblin_slinger/poison_project
+         +ile.tscn")
+      16  const HEALTH_POTION = preload("res://scene/pick_up/Heal potion/heal_potion.tscn")
+      17
+      18  # --- PLAYER STATS ---
+
+● ...
+
+● Update(globals\game_constants.gd)
+  ⎿  Added 10 lines
+      56  var SKELETON_BOW_BODY_DAMAGE = 10
+      57  var SKELETON_BOW_EXP_REWARD = 18
+      58
+      59 +# --- ENEMY: GOBLIN SLINGER ---
+      60 +var GOBLIN_SLINGER_HP = 60
+      61 +var GOBLIN_SLINGER_SPEED_MIN = 80
+      62 +var GOBLIN_SLINGER_SPEED_MAX = 140
+      63 +var GOBLIN_SLINGER_BODY_DAMAGE = 12
+      64 +var GOBLIN_SLINGER_EXP_REWARD = 20
+      65 +
+      66  # --- PROJECTILES ---
+      67  var ARROW_DAMAGE = 20
+      68  var ARROW_SPEED = 10
+      69 +var POISON_PROJECTILE_DAMAGE = 2  # Урон за тик яда
+      70 +var POISON_DURATION = 5.0  # Длительность яда в секундах
+      71 +var POISON_TICK_RATE = 0.5  # Частота тиков яда
+      72  var SMITE_DAMAGE = 10
+      73  var SMITE_RADIUS = 20
+      74  var SMITE_SPEED = 2
+
+● Теперь добавлю систему отравления в игрока:
+
+  Read 1 file (ctrl+o to expand)
+
+● ...
+
+● Update(scene\game_objects\player\player.gd)
+  ⎿  Added 8 lines
+      13  @onready var attack_timer = $can_attack
+      14  @onready var animP = $AnimationPlayer
+      15
+      16 +# Система отравления                                                                                                17 +var is_poisoned = false
+      18 +var poison_timer = 0.0                                                                                              19 +var poison_tick_timer = 0.0
+      20 +var poison_damage_per_tick = 0
+      21 +var poison_tick_rate = 0.5
+      22 +var original_modulate = Color(1, 1, 1, 1)
+      23 +
+      24  # Система уровней
+      25  var current_level = 1
+      26  var current_exp = 0
+
+● Теперь добавлю логику обработки яда в _process:
+
+● Update(scene\game_objects\player\player.gd)
+  ⎿  Added 16 lines, removed 1 line
+      46
+      47  func _process(_delta: float) -> void:
+      48    if is_dead: return
+      49 -                                                                                                                    49 +
+      50 +  # Обработка яда                                                                                                   51 +  if is_poisoned:
+      52 +    poison_timer -= _delta
+      53 +    poison_tick_timer -= _delta
+      54 +
+      55 +    # Наносим урон каждый тик
+      56 +    if poison_tick_timer <= 0:
+      57 +      take_damage(poison_damage_per_tick)
+      58 +      poison_tick_timer = poison_tick_rate
+      59 +      print("Урон от яда: ", poison_damage_per_tick)
+      60 +
+      61 +    # Проверяем окончание яда
+      62 +    if poison_timer <= 0:
+      63 +      remove_poison()
+      64 +
+      65    if health_int <= 0:
+      66      die()
+      67      return
+
+● Теперь добавлю функции для применения и снятия яда в конец файла player.gd:
+
+  Read 1 file (ctrl+o to expand)
+
+● ...
+
+  Read 2 files (ctrl+o to expand)
+
+● ...
+
+  Read 1 file (ctrl+o to expand)
+
+● ...
+
+● Update(scene\game_objects\player\player.gd)
+  ⎿  Added 30 lines
+      295    popup.global_position = global_position + Vector2(0, -50)
+      296    get_tree().current_scene.add_child(popup)
+      297    print("Popup добавлен в сцену")
+      298 +                                                                                                                   299 +# =====================================================================
+      300 +# СИСТЕМА ОТРАВЛЕНИЯ                                                                                               301 +# =====================================================================
+      302 +
+      303 +func apply_poison(duration: float, damage_per_tick: int, tick_rate: float):
+      304 +  if is_poisoned:
+      305 +    # Если уже отравлен, обновляем таймер (продлеваем яд)
+      306 +    poison_timer = max(poison_timer, duration)
+      307 +    print("Яд продлен! Новая длительность: ", poison_timer, "с")
+      308 +  else:
+      309 +    # Применяем новый яд
+      310 +    is_poisoned = true
+      311 +    poison_timer = duration
+      312 +    poison_tick_timer = tick_rate
+      313 +    poison_damage_per_tick = damage_per_tick
+      314 +    poison_tick_rate = tick_rate
+      315 +
+      316 +    # Делаем игрока зеленым
+      317 +    anim.modulate = Color(0.3, 1, 0.3, 1)
+      318 +    print("Игрок отравлен! Длительность: ", duration, "с, урон за тик: ", damage_per_tick)
+      319 +
+      320 +func remove_poison():
+      321 +  is_poisoned = false
+      322 +  poison_timer = 0.0
+      323 +  poison_tick_timer = 0.0
+      324 +
+      325 +  # Возвращаем нормальный цвет
+      326 +  anim.modulate = original_modulate
+      327 +  print("Яд прошел!")
+
+● Отлично! Теперь создам сцену для Goblin Slinger. Сначала проверю все доступные спрайты:
+
+● Bash(for dir in Down Up Left Right; do echo "=== $dir ==="; ls "D:\GIT
+      WORK\OmskDev\sprites\enemys\Goblin_Slinger\$dir\Png" 2>/dev/null; done)
+  ⎿  Error: Exit code 2
+
+● Создам сцену Goblin Slinger с анимациями. Это будет большой файл, как у skeleton_bow:
+
+● Write(scene\game_objects\enemy\goblin_slinger\goblin_slinger.tscn)
+  ⎿  Wrote 252 lines to scene\game_objects\enemy\goblin_slinger\goblin_slinger.tscn
+       1 [gd_scene load_steps=10 format=3 uid="uid://bx8m4n7p2qk9r"]
+       2                                                                                                                       3 [ext_resource type="Script" path="res://scene/game_objects/enemy/goblin_slinger/goblin_slinger.gd" id="1
+         _script"]                                                                                                             4 [ext_resource type="Texture2D" path="res://sprites/enemys/Goblin_Slinger/Down/Png/GoblinSlingerDownAttac
+         k01.png" id="2_down_attack"]
+       5 [ext_resource type="Texture2D" path="res://sprites/enemys/Goblin_Slinger/Down/Png/GoblinSlingerDownIdle.
+         png" id="3_down_idle"]
+       6 [ext_resource type="Texture2D" path="res://sprites/enemys/Goblin_Slinger/Down/Png/GoblinSlingerDownRun.p
+         ng" id="4_down_run"]
+       7 [ext_resource type="Texture2D" path="res://sprites/enemys/Goblin_Slinger/Down/Png/GoblinSlingerDownHurt.
+         png" id="5_down_hurt"]
+       8 [ext_resource type="Texture2D" path="res://sprites/enemys/Goblin_Slinger/Down/Png/GoblinSlingerDownDeath
+         .png" id="6_down_death"]
+       9 [ext_resource type="Texture2D" path="res://assets/hpUnderEnemy.png" id="7_hp_under"]
+      10 [ext_resource type="Texture2D" path="res://assets/hpProgressEnemy.png" id="8_hp_progress"]
+     … +242 lines (ctrl+o to expand)
+  ⎿  API Error: 503 {"error":{"message":"Model kiro/claude-sonnet-4.5 is temporarily unavailable (cooldown)"}}
+
+✻ Cogitated for 3m 59s
+
+> продолжай работу                                                                                                        ⎿  API Error: 503 {"error":{"message":"Model kiro/claude-sonnet-4.5 is temporarily unavailable (cooldown)"}}          
+  1 tasks (0 done, 1 in progress, 0 open)
+  ■ Создать Goblin Slinger врага с ядовитыми снарядами

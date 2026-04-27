@@ -1,3 +1,16 @@
-[gd_scene format=3 uid="uid://d00qjcqxvua3o"]
+[gd_scene load_steps=2 format=3 uid="uid://d00qjcqxvua3o"]
 
-[node name="Backpack" type="Node2D"]
+[ext_resource type="Script" uid="uid://dhrys8efi6agp" path="res://scene/game_objects/player/backpack.gd" id="1"]
+
+[node name="Backpack" type="Control" groups=["backpack"]]
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 10.0
+grow_horizontal = 0
+script = ExtResource("1")
+grid_columns = 4

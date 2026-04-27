@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://qh32eahenbed" path="res://scene/game_objects/enemy/skeleton_bow/arrow.gd" id="1_uset8"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6s48d"]
-size = Vector2(10, 5)
+size = Vector2(14, 6)
 
 [node name="hitbox" type="Area2D"]
 collision_mask = 130

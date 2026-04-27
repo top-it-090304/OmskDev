@@ -1,0 +1,378 @@
+ добавь чтобы характеристики персонажа показывались слева и там были красивые иконкии сделай балансные ограничения этих
+  характеристик как в айзек
+
+  Сначала смотрю что есть в UI и какие иконки доступны:
+● Read (2 files)
+    ui, assets
+
+  Своих иконок нет — буду использовать Unicode emoji как иконки (работает с пиксельным шрифтом через Label). Создаю
+  скрипт и добавляю в layer.tscn:
+● Task list created
+
+  Шаг 1 — создаю stats_panel.gd:
+● Write D:\GIT WORK\OmskDev\scene\ui\stats_panel.gd
+  added 54 lines in D:\GIT WORK\OmskDev\scene\ui\stats_panel.gd
+     1+  extends VBoxContainer
+     2+
+     3+  # Иконки и названия статов
+     4+  const STATS = [
+     5+    {"key": "PLAYER_MAX_SPEED",      "icon": "👟", "label": "SPD"},
+     6+    {"key": "PLAYER_ATTACK_DAMAGE",  "icon": "⚔️",  "label": "DMG"},
+     7+    {"key": "PLAYER_ATTACK_SPEED",   "icon": "⚡",  "label": "ATK"},
+     8+    {"key": "PLAYER_ARMOR",          "icon": "🛡️",  "label": "ARM"},
+
+     9+    {"key": "PLAYER_DODGE_CHANCE",   "icon": "💨",  "label": "DDG"},
+    10+    {"key": "PLAYER_CRIT_CHANCE",    "icon": "🎯",  "label": "CRT"},
+    11+    {"key": "PLAYER_LIFESTEAL",      "icon": "🩸",  "label": "VMP"},
+    12+  ]
+    13+
+    14+  var _rows: Array = []
+    15+
+    16+  func _ready() -> void:
+    17+    for stat in STATS:
+    18+      var row = HBoxContainer.new()
+    19+      row.add_theme_constant_override("separation", 4)
+    20+
+    21+      var icon_label = Label.new()
+    22+      icon_label.text = stat["icon"]
+    23+      icon_label.custom_minimum_size = Vector2(20, 0)
+    24+      row.add_child(icon_label)
+    25+
+    26+      var name_label = Label.new()
+    27+      name_label.text = stat["label"]
+    28+      name_label.custom_minimum_size = Vector2(28, 0)
+    29+      name_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+    30+      row.add_child(name_label)
+    31+
+    32+      var val_label = Label.new()
+    33+      val_label.custom_minimum_size = Vector2(40, 0)
+    34+      val_label.add_theme_color_override("font_color", Color(1, 1, 1))
+    35+      row.add_child(val_label)
+    36+
+    37+      add_child(row)
+    38+      _rows.append({"stat": stat, "val": val_label})
+    39+
+    40+    GameConstants.constants_changed.connect(_refresh)
+    41+    _refresh()
+    42+
+    43+  func _refresh() -> void:
+    44+    for row in _rows:
+    45+      var key = row["stat"]["key"]
+    46+      var val = GameConstants.get(key)
+    47+      var label: Label = row["val"]
+    48+      if val is float:
+    49+        if key in ["PLAYER_DODGE_CHANCE", "PLAYER_CRIT_CHANCE", "PLAYER_LIFESTEAL"]:
+    50+          label.text = "%d%%" % int(val * 100)
+    51+        else:
+    52+          label.text = "%.1f" % val
+    53+      else:
+    54+        label.text = str(val)
+● Tasks updated
+
+  Шаг 2 — добавляю в layer.tscn:
+● Read D:/GIT WORK/OmskDev/World/layer.tscn (L39-58)
+● Write \\?\D:\GIT WORK\OmskDev\World\layer.tscn
+  added 14 lines, removed 1 line at L42 in \\?\D:\GIT WORK\OmskDev\World\layer.tscn
+    42   [ext_resource type="Script" uid="uid://dsey46gvbv6sr" path="res://scene/ui/floor_label.gd" id="37_floor"]
+    43   [ext_resource type="FontFile" uid="uid://wbjr6hf3uxdc" path="res://Font/PixelRpgFont-Regular.ttf" id="38_font"]
+    44+  [ext_resource type="Script" path="res://scene/ui/stats_panel.gd" id="39_stats"]
+    44
+    45   [node name="Layer" type="Node"]
+    46
+    47-  [node name="UI" type="CanvasLayer" parent="."]
+    48+  [node name="UI" type="CanvasLayer" parent="."]
+    49+
+    50+  [node name="StatsPanel" type="VBoxContainer" parent="UI"]
+    51+  script = ExtResource("39_stats")
+    52+  anchors_preset = 1
+    53+  anchor_top = 1.0
+    54+  anchor_bottom = 1.0
+    55+  offset_left = 6.0
+    56+  offset_top = -220.0
+    57+  offset_right = 100.0
+    58+  offset_bottom = -10.0
+    59+  grow_vertical = 0
+    60+  add_theme_constant_override("separation") = 4
+● Write \\?\D:\GIT WORK\OmskDev\World\layer.tscn
+  added 1 line, removed 1 line in \\?\D:\GIT WORK\OmskDev\World\layer.tscn
+     1-  [gd_scene load_steps=42 format=3 uid="uid://bq40uiaugbfjq"]
+     1+  [gd_scene load_steps=43 format=3 uid="uid://bq40uiaugbfjq"]
+● Tasks updated
+
+  Шаг 3 — ограничения статов в GameConstants как в Isaac:
+● Write \\?\D:\GIT WORK\OmskDev\globals\game_constants.gd
+  added 11 lines at L204 in \\?\D:\GIT WORK\OmskDev\globals\game_constants.gd
+   204   func set_stat(key: String, value: Variant, persist := true) -> void:
+   205     if not _stats_keys().has(key):
+   206       return
+   207+    # Ограничения как в Isaac
+   208+    match key:
+   209+      "PLAYER_MAX_SPEED":     value = clamp(value, 50,   600)
+   210+      "PLAYER_ATTACK_DAMAGE": value = clamp(value, 1,    999)
+   211+      "PLAYER_ATTACK_SPEED":  value = clamp(value, 0.5,  10.0)
+   212+      "PLAYER_ARMOR":         value = clamp(value, 0,    99)
+   213+      "PLAYER_DODGE_CHANCE":  value = clamp(value, 0.0,  0.9)   # макс 90%
+   214+      "PLAYER_CRIT_CHANCE":   value = clamp(value, 0.0,  1.0)
+   215+      "PLAYER_CRIT_MULTIPLIER": value = clamp(value, 1.0, 10.0)
+   216+      "PLAYER_LIFESTEAL":     value = clamp(value, 0.0,  1.0)   # макс 100%
+   217+      "PLAYER_MAX_HEALTH":    value = clamp(value, 1,    9999)
+   207     set(key, value)
+   208     if persist:
+   209       save_to_disk()
+   210     constants_changed.emit()
+
+  Также добавляю клэмп при левелапе в player.gd чтобы статы не выходили за пределы:
+● Write \\?\D:\GIT WORK\OmskDev\scene\game_objects\player\player.gd
+  added 3 lines, removed 3 lines at L296 in \\?\D:\GIT WORK\OmskDev\scene\game_objects\player\player.gd
+   296-    GameConstants.PLAYER_MAX_HEALTH += GameConstants.PLAYER_HEALTH_PER_LEVEL
+   297-    GameConstants.PLAYER_MAX_SPEED += GameConstants.PLAYER_SPEED_PER_LEVEL
+   298-    GameConstants.PLAYER_ATTACK_DAMAGE += GameConstants.PLAYER_DAMAGE_PER_LEVEL
+   29+    GameConstants.PLAYER_MAX_HEALTH  = min(GameConstants.PLAYER_MAX_HEALTH  +
+     GameConstants.PLAYER_HEALTH_PER_LEVEL, 9999)
+   29+    GameConstants.PLAYER_MAX_SPEED   = min(GameConstants.PLAYER_MAX_SPEED   +
+     GameConstants.PLAYER_SPEED_PER_LEVEL,  600)
+   298+    GameConstants.PLAYER_ATTACK_DAMAGE = min(GameConstants.PLAYER_ATTACK_DAMAGE +
+      GameConstants.PLAYER_DAMAGE_PER_LEVEL, 999)
+● Tasks updated
+
+  Готово. Что сделано:
+
+  Панель слева снизу — 7 строк с emoji иконками:
+
+  - 👟 SPD — скорость
+  - ⚔️ DMG — урон атаки
+  - ⚡ ATK — скорость атаки
+  - 🛡️ ARM — броня                                                                                                      
+  - 💨 DDG — уклонение (в %)
+  - 🎯 CRT — крит шанс (в %)
+  - 🩸 VMP — вампиризм (в %)
+
+  Обновляется автоматически при изменении GameConstants.
+
+  Ограничения как в Isaac:
+
+  ┌────────────────┬──────┬──────┐
+  │ Стат           │ Мин  │ Макс │
+  ├────────────────┼──────┼──────┤
+  │ Скорость       │ 50   │ 600  │
+  │ Урон           │ 1    │ 999  │
+  │ Скорость атаки │ 0.5x │ 10x  │
+  │ Броня          │ 0    │ 99   │
+  │ Уклонение      │ 0%   │ 90%  │
+  │ Крит           │ 0%   │ 100% │
+  │ Вампиризм      │ 0%   │ 100% │
+  │ HP             │ 1    │ 9999 │
+  └────────────────┴──────┴──────┘
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  сделай чтобы backpack открывался сделай одтельную кнопку инвенторя, который будет открываться там будут артефакты при
+  нажатии на них будет показываться их описание, и чтобы там же были статы персонажа
+
+  Читаю текущий backpack и artefact_popup:
+● Read (2 files)
+    backpack.gd, artefact_popup.gd
+
+  Теперь создаю полноценный инвентарь — отдельный экран с артефактами + статами, открывается по кнопке:
+● Task list created
+
+  Шаг 1 — inventory_screen.gd:
+● Write D:\GIT WORK\OmskDev\scene\ui\inventory_screen.gd
+  added 195 lines in D:\GIT WORK\OmskDev\scene\ui\inventory_screen.gd
+     1+  extends CanvasLayer
+     2+
+     3+  const STATS = [
+     4+    {"key": "PLAYER_MAX_HEALTH",     "icon": "❤️",  "label": "Здоровье"},
+     5+    {"key": "PLAYER_MAX_SPEED",      "icon": "👟", "label": "Скорость"},
+     6+    {"key": "PLAYER_ATTACK_DAMAGE",  "icon": "⚔️",  "label": "Урон"},
+     7+    {"key": "PLAYER_ATTACK_SPEED",   "icon": "⚡",  "label": "Скор. атаки"},
+     8+    {"key": "PLAYER_ARMOR",          "icon": "🛡️",  "label": "Броня"},
+
+     9+    {"key": "PLAYER_DODGE_CHANCE",   "icon": "💨",  "label": "Уклонение"},
+    10+    {"key": "PLAYER_CRIT_CHANCE",    "icon": "🎯",  "label": "Крит шанс"},
+    11+    {"key": "PLAYER_CRIT_MULTIPLIER","icon": "💥",  "label": "Крит урон"},
+    12+    {"key": "PLAYER_LIFESTEAL",      "icon": "🩸",  "label": "Вампиризм"},
+    13+    {"key": "PLAYER_LEVEL",          "icon": "⭐",  "label": "Уровень"},
+    14+  ]
+    15+
+    16+  var _visible := false
+    17+  var _panel: PanelContainer
+    18+  var _grid: GridContainer
+    19+  var _stats_container: VBoxContainer
+    20+  var _desc_label: Label
+    21+  var _artefacts: Array = []
+    22+
+    23+  func _ready() -> void:
+    24+    _build_ui()
+    25+    hide_inventory()
+    26+
+    27+  func _build_ui() -> void:
+    28+    # Затемнение фона
+    29+    var bg = ColorRect.new()
+    30+    bg.color = Color(0, 0, 0, 0.75)
+    31+    bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+    32+    add_child(bg)
+    33+
+    34+    # Центральная панель
+    35+    _panel = PanelContainer.new()
+    36+    _panel.set_anchors_preset(Control.PRESET_CENTER)
+    37+    _panel.custom_minimum_size = Vector2(600, 400)
+    38+    _panel.offset_left = -300
+    39+    _panel.offset_top  = -200
+    40+    _panel.offset_right = 300
+    41+    _panel.offset_bottom = 200
+    42+    var style = StyleBoxFlat.new()
+    43+    style.bg_color = Color(0.08, 0.08, 0.12, 0.97)
+    44+    style.border_color = Color(0.4, 0.3, 0.6, 1)
+    45+    style.set_border_width_all(2)
+    46+    style.set_corner_radius_all(6)
+    47+    _panel.add_theme_stylebox_override("panel", style)
+    48+    add_child(_panel)
+    49+
+    50+    var hbox = HBoxContainer.new()
+    51+    hbox.add_theme_constant_override("separation", 12)
+    52+    _panel.add_child(hbox)
+    53+
+    54+    # --- ЛЕВАЯ ЧАСТЬ: статы ---
+    55+    var left = VBoxContainer.new()
+    56+    left.custom_minimum_size = Vector2(200, 0)
+    57+    left.add_theme_constant_override("separation", 4)
+    58+    hbox.add_child(left)
+    59+
+    60+    var stats_title = Label.new()
+    61+    stats_title.text = "ХАРАКТЕРИСТИКИ"
+    62+    stats_title.add_theme_color_override("font_color", Color(0.8, 0.6, 1.0))
+    63+    left.add_child(stats_title)
+    64+
+    65+    var sep = HSeparator.new()
+    66+    left.add_child(sep)
+    67+
+    68+    _stats_container = VBoxContainer.new()
+    69+    _stats_container.add_theme_constant_override("separation", 3)
+    70+    left.add_child(_stats_container)
+    71+
+    72+    # --- ПРАВАЯ ЧАСТЬ: артефакты + описание ---
+    73+    var right = VBoxContainer.new()
+    74+    right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    75+    right.add_theme_constant_override("separation", 8)
+    76+    hbox.add_child(right)
+    77+
+    78+    var art_title = Label.new()
+    79+    art_title.text = "АРТЕФАКТЫ"
+    80+    art_title.add_theme_color_override("font_color", Color(1.0, 0.8, 0.3))
+    81+    right.add_child(art_title)
+    82+
+    83+    var sep2 = HSeparator.new()
+    84+    right.add_child(sep2)
+    85+
+    86+    var scroll = ScrollContainer.new()
+    87+    scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    88+    right.add_child(scroll)
+    89+
+    90+    _grid = GridContainer.new()
+    91+    _grid.columns = 6
+    92+    _grid.add_theme_constant_override("h_separation", 6)
+    93+    _grid.add_theme_constant_override("v_separation", 6)
+    94+    scroll.add_child(_grid)
+    95+
+    96+    # Описание артефакта
+    97+    var desc_bg = PanelContainer.new()
+    98+    desc_bg.custom_minimum_size = Vector2(0, 50)
+    99+    var desc_style = StyleBoxFlat.new()
+   100+    desc_style.bg_color = Color(0.05, 0.05, 0.1, 0.9)
+   101+    desc_style.set_border_width_all(1)
+   102+    desc_style.border_color = Color(0.3, 0.3, 0.5)
+   103+    desc_bg.add_theme_stylebox_override("panel", desc_style)
+   104+    right.add_child(desc_bg)
+   105+
+   106+    _desc_label = Label.new()
+   107+    _desc_label.text = "Нажми на артефакт"
+   108+    _desc_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+   109+    _desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+   110+    desc_bg.add_child(_desc_label)
+   111+
+   112+  func show_inventory() -> void:
+   113+    _visible = true
+   114+    show()
+   115+    get_tree().paused = true
+   116+    _refresh_stats()
+   117+    _refresh_artefacts()
+   118+
+   119+  func hide_inventory() -> void:
+   120+    _visible = false
+   121+    hide()
+   122+    get_tree().paused = false
+   123+
+   124+  func toggle() -> void:
+   125+    if _visible:
+   126+      hide_inventory()
+   127+    else:
+   128+      show_inventory()
+   129+
+   130+  func _input(event: InputEvent) -> void:
+   131+    if event.is_action_just_pressed("ui_cancel") and _visible:
+   132+      hide_inventory()
+   133+
+   134+  func _refresh_stats() -> void:
+   135+    for child in _stats_container.get_children():
+   136+      child.queue_free()
+   137+    for stat in STATS:
+   138+      var row = HBoxContainer.new()
+   139+      row.add_theme_constant_override("separation", 6)
+   140+      _stats_container.add_child(row)
+   141+
+   142+      var icon = Label.new()
+   143+      icon.text = stat["icon"]
+   144+      icon.custom_minimum_size = Vector2(22, 0)
+   145+      row.add_child(icon)
+   146+
+   147+      var name_l = Label.new()
+   148+      name_l.text = stat["label"]
+   149+      name_l.custom_minimum_size = Vector2(100, 0)
+   150+      name_l.add_theme_color_override("font_color", Color(0.75, 0.75, 0.75))
+   151+      row.add_child(name_l)
+   152+
+   153+      var val_l = Label.new()
+   154+      var val = GameConstants.get(stat["key"])
+   155+      if stat["key"] in ["PLAYER_DODGE_CHANCE", "PLAYER_CRIT_CHANCE", "PLAYER_LIFESTEAL"]:
+   156+        val_l.text = "%d%%" % int(val * 100)
+   157+      elif val is float:
+   158+        val_l.text = "%.1f" % val
+   159+      else:
+   160+        val_l.text = str(val)
+   161+      val_l.add_theme_color_override("font_color", Color(1, 1, 0.6))
+   162+      row.add_child(val_l)
+   163+
+   164+  func _refresh_artefacts() -> void:
+   165+    for child in _grid.get_children():
+   166+      child.queue_free()
+   167+    for art in _artefacts:
+   168+      _add_artefact_icon(art)
+   169+
+   170+  func add_artefact(artefact_info: Dictionary) -> void:
+   171+    _artefacts.append(artefact_info)
+   172+    if _visible:
+   173+      _add_artefact_icon(artefact_info)
+   174+
+   175+  func _add_artefact_icon(art: Dictionary) -> void:
+   176+    var btn = TextureButton.new()
+   177+    btn.custom_minimum_size = Vector2(48, 48)
+   178+    btn.ignore_texture_size = true
+   179+    btn.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+   180+    if art.get("icon"):
+   181+      btn.texture_normal = art["icon"]
+   182+    btn.pressed.connect(func():
+   183+      _desc_label.text = "[%s]\n%s" % [art.get("name","?"), art.get("description","")]
+   184+    )
+   185+
+   186+    var panel = PanelContainer.new()
+   187+    panel.custom_minimum_size = Vector2(48, 48)
+   188+    var s = StyleBoxFlat.new()
+   189+    s.bg_color = Color(0.12, 0.12, 0.18, 1)
+   190+    s.set_border_width_all(1)
+   191+    s.border_color = Color(0.4, 0.4, 0.6)
+   192+    s.set_corner_radius_all(3)
+   193+    panel.add_theme_stylebox_override("panel", s)
+   194+    panel.add_child(btn)
+   195+    _grid.add_child(panel)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  а где сама кнопка рюкзака которая должна быть рядом с кнопкой паузы, а также характеристики персонажа нужно перенести
+  туда
