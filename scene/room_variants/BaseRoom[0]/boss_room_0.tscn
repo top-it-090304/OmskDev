@@ -15,7 +15,6 @@ wall_right = null
 
 [node name="CollisionShape2D" parent="room_shape" index="0"]
 position = Vector2(200, 136)
-scale = Vector2(0.948, 1.006)
 
 [node name="DoorTop" parent="." index="5"]
 z_index = 0

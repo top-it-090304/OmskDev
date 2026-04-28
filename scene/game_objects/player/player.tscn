@@ -1,4 +1,4 @@
-[gd_scene load_steps=171 format=3 uid="uid://mes1twfxfifa"]
+[gd_scene load_steps=172 format=3 uid="uid://mes1twfxfifa"]
 
 [ext_resource type="Script" uid="uid://b4d56hcuiwhmy" path="res://scene/game_objects/player/player.gd" id="1_ktjk3"]
 [ext_resource type="Texture2D" uid="uid://pagggpic45vn" path="res://sprites/player/Health/Health_progressbar_sprite_under.png" id="2_gvguk"]
@@ -30,6 +30,7 @@
 [ext_resource type="Texture2D" uid="uid://bpq2iwihrypm8" path="res://assets/Button/SettingsButtonPressed.png" id="27_au6ap"]
 [ext_resource type="Script" uid="uid://br0543vshmkp4" path="res://scene/game_objects/player/texture_button.gd" id="28_jjj0s"]
 [ext_resource type="PackedScene" uid="uid://cgrlwgdgbo186" path="res://World/UI/paused.tscn" id="29_l6dqq"]
+[ext_resource type="Texture2D" uid="uid://dd2g7nk2qrl7h" path="res://assets/Button/InventoruButtonun.png" id="30_tigyi"]
 [ext_resource type="PackedScene" uid="uid://tqdnqu04xabq" path="res://scene/ui/level_up_popup.tscn" id="31_vv8lt"]
 [ext_resource type="Script" path="res://scene/game_objects/player/inventory_button.gd" id="32_invbtn"]
 
@@ -1730,26 +1731,28 @@ libraries = {
 
 [node name="TextureButton" type="TextureButton" parent="."]
 z_index = 4096
-offset_left = 222.0
-offset_top = -122.0
-offset_right = 262.0
-offset_bottom = -82.0
+offset_left = 112.0
+offset_top = -112.0
+offset_right = 144.0
+offset_bottom = -80.0
 texture_normal = ExtResource("26_nm7bo")
 texture_pressed = ExtResource("27_au6ap")
 stretch_mode = 0
 script = ExtResource("28_jjj0s")
 scene_to_open = ExtResource("29_l6dqq")
+metadata/_edit_use_anchors_ = true
 
 [node name="InventoryButton" type="TextureButton" parent="."]
 z_index = 4096
-offset_left = 174.0
-offset_top = -122.0
-offset_right = 214.0
-offset_bottom = -82.0
-texture_normal = ExtResource("26_nm7bo")
+offset_left = 72.0
+offset_top = -112.0
+offset_right = 104.0
+offset_bottom = -80.0
+texture_normal = ExtResource("30_tigyi")
 texture_pressed = ExtResource("27_au6ap")
 stretch_mode = 0
 script = ExtResource("32_invbtn")
+metadata/_edit_use_anchors_ = true
 
 [node name="can_take_damage" type="Timer" parent="."]
 wait_time = 0.05

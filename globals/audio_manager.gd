@@ -4,7 +4,7 @@ extends Node
 # Замените null на load("res://music/музыка_исследования.ogg") когда добавите файлы
 const MUSIC_EXPLORE = null  # load("res://music/музыка_исследования.ogg")
 const MUSIC_COMBAT  = null  # load("res://music/музыка_боя.ogg")
-const MUSIC_BOSS    = null  # load("res://music/музыка_босса.ogg")
+var MUSIC_BOSS    = load("res://music/music_boss.mp3")
 
 # --- SFX ---
 const SFX = {
@@ -76,6 +76,13 @@ func _crossfade(new_stream: AudioStream) -> void:
 	tween2.tween_property(_music_player, "volume_db", 0.0, 1.0)
 
 # --- SFX ---
+
+func stop_music() -> void:
+	var tween = create_tween()
+	tween.tween_property(_music_player, "volume_db", -40.0, 0.5)
+	await tween.finished
+	_music_player.stop()
+	_is_combat = false
 
 func play_sfx(name: String) -> void:
 	var stream = SFX.get(name)

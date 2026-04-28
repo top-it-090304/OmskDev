@@ -22,10 +22,9 @@ func _on_area_entered(area: Area2D) -> void:
 
 func pickup(player: Node) -> void:
 	apply_effect(player)
-	if player.has_node("Backpack"):
-		var backpack = player.get_node("Backpack")
-		if backpack.has_method("add_artefact"):
-			backpack.add_artefact(self)
+	var backpack = get_tree().get_first_node_in_group("backpack")
+	if backpack and backpack.has_method("add_artefact"):
+		backpack.add_artefact(self)
 	AudioManager.play_sfx("игрок_артефакт")
 	mark_room_as_collected()
 	queue_free()

@@ -73,29 +73,31 @@ vertical_alignment = 1
 script = ExtResource("37_floor")
 
 [node name="minimap" parent="UI" node_paths=PackedStringArray("map_manager") instance=ExtResource("3_o2u7n")]
-mouse_filter = 2
 map_manager = NodePath("../../MapManager")
 
 [node name="ExpBar" parent="UI" instance=ExtResource("2_jn37s")]
-anchor_left = 0.748
-anchor_top = 0.587
-anchor_right = 0.948
-anchor_bottom = 0.67
-offset_left = 0.0799866
-offset_top = -0.62001
-offset_right = -0.920044
-offset_bottom = -1.52588e-05
+anchor_left = 0.785
+anchor_top = 0.462
+anchor_right = 0.978
+anchor_bottom = 0.551
+offset_left = 0.0999756
+offset_top = -0.120003
+offset_right = -0.119995
+offset_bottom = -1.25999
 grow_horizontal = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
 
 [node name="Backpack" parent="UI" instance=ExtResource("4_backpack")]
-modulate = Color(1, 1, 1, 0.67451)
-z_index = 50
-offset_left = -540.0
-offset_top = 40.0
-offset_right = -402.0
-offset_bottom = 165.0
+anchors_preset = -1
+anchor_left = 1.185
+anchor_top = -0.062
+anchor_right = 1.185
+anchor_bottom = -0.062
+offset_left = 0.0999756
+offset_top = 0.120001
+offset_right = 0.0999756
+offset_bottom = 0.120001
 
 [node name="MapManager" parent="." node_paths=PackedStringArray("layer") instance=ExtResource("1_mln5v")]
 layer = NodePath("..")

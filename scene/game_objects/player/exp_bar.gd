@@ -30,12 +30,13 @@ func _on_exp_changed(current_exp: int, exp_needed: int):
 	_update_display(current_exp, exp_needed, player.current_level)
 
 func _on_level_up(new_level: int):
-	level_label.text = "Level: " + str(new_level)
-	# Анимация level up
+	_update_display(player.current_exp, player.exp_to_next_level, new_level)
 	_play_level_up_animation()
 
 func _update_display(current: int, needed: int, level: int):
-	var percentage = (float(current) / float(needed)) * 100.0
+	var percentage = 0.0
+	if needed > 0:
+		percentage = clampf((float(current) / float(needed)) * 100.0, 0.0, 100.0)
 	progress_bar.value = percentage
 
 	level_label.text = "Level: " + str(level)

@@ -19,7 +19,7 @@ const HEALTH_POTION = preload("res://scene/pick_up/Heal potion/heal_potion.tscn"
 var PLAYER_MAX_SPEED = 200
 
 
-var PLAYER_MAX_HEALTH = 400
+var PLAYER_MAX_HEALTH = 300
 var PLAYER_ENEMY_CONTACT_DAMAGE = 100
 var PLAYER_ATTACK_DAMAGE = 100
 var PLAYER_ARMOR = 0  # Блокирует фиксированное количество урона
@@ -27,7 +27,7 @@ var PLAYER_DODGE_CHANCE = 0.0  # Шанс уклонения (0.0 - 1.0)
 var PLAYER_CRIT_CHANCE = 0.0  # Шанс критического удара (0.0 - 1.0)
 var PLAYER_CRIT_MULTIPLIER = 2.0  # Множитель критического урона
 var PLAYER_LIFESTEAL = 0.0  # Вампиризм (0.0 - 1.0)
-var PLAYER_ATTACK_SPEED = 1.0  # Множитель скорости атаки
+var PLAYER_ATTACK_SPEED = 1.3  # Множитель скорости атаки
 
 # --- PLAYER LEVEL SYSTEM ---
 var PLAYER_LEVEL = 1
@@ -47,7 +47,7 @@ var ENEMY_GOBLIN_AXE_MAX_SPEED = 150
 var ENEMY_GOBLIN_AXE_DAMAGE = 10
 var ENEMY_GOBLIN_AXE_SMITE_OFFSET = 20
 var ENEMY_GOBLIN_AXE_TAKE_DAMAGE = 10
-var ENEMY_GOBLIN_AXE_EXP_REWARD = 100
+var ENEMY_GOBLIN_AXE_EXP_REWARD = 20
 
 # --- ENEMY: SKELETON BOW ---
 var SKELETON_BOW_HP = 50
@@ -77,12 +77,12 @@ var SMITE_RADIUS = 20
 var SMITE_SPEED = 2
 
 # --- BOSS: BEAST GOBLIN ---
-var ENEMY_BEASTGOBLIN_HP = 450
+var ENEMY_BEASTGOBLIN_HP = 400
 var ENEMY_BEASTGOBLIN_MAX_SPEED = 180
 var ENEMY_BEASTGOBLIN_BITE_DAMAGE = 30
 var ENEMY_BEASTGOBLIN_SLAP_DAMAGE = 25
 var ENEMY_BEASTGOBLIN_TAKE_DAMAGE = 10
-var ENEMY_BEASTGOBLIN_EXP_REWARD = 50
+var ENEMY_BEASTGOBLIN_EXP_REWARD = 200
 
 # --- FLOOR ---
 var CURRENT_FLOOR = 1

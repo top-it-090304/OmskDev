@@ -6,8 +6,8 @@ extends Control
 var stat_lines: Array = []
 
 func _ready():
-	print("ArtefactPopup _ready() вызван")
-	# Анимация появления
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	mouse_filter = Control.MOUSE_FILTER_STOP
 	modulate.a = 0.0
 	scale = Vector2(0.5, 0.5)
 
@@ -15,16 +15,18 @@ func _ready():
 	tween.set_parallel(true)
 	tween.set_ease(Tween.EASE_OUT)
 	tween.set_trans(Tween.TRANS_BACK)
-
 	tween.tween_property(self, "modulate:a", 1.0, 0.3)
 	tween.tween_property(self, "scale", Vector2(1.0, 1.0), 0.3)
 
-	print("Popup анимация запущена")
-
-	# Автоматически удаляем через 3 секунды
-	await get_tree().create_timer(3.0).timeout
-	print("Popup исчезает")
+	await get_tree().create_timer(3.0, true, false, true).timeout
 	fade_out()
+
+func _input(event: InputEvent) -> void:
+	if not visible: return
+	if event is InputEventScreenTouch and event.pressed:
+		fade_out()
+	elif event is InputEventMouseButton and event.pressed:
+		fade_out()
 
 func set_artefact_info(artefact_name: String, description: String):
 	print("set_artefact_info вызван: ", artefact_name)
