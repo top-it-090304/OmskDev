@@ -47,6 +47,7 @@ var seen_rooms = []
 
 func _ready():
 	add_to_group("map_manager")
+	get_tree().auto_accept_quit = false  # Перехватываем попытки выхода
 
 	if start_room_variations.is_empty() or normal_room_variations.is_empty() or boss_room_variations.is_empty():
 		push_error("ОШИБКА: Добавь хотя бы по одной сцене для Start, Normal и Boss комнат!")
@@ -77,6 +78,16 @@ func _ready():
 
 		# Сохраняем состояние данжена
 		save_dungeon_state()
+
+func _notification(what):
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		# Игрок закрывает игру через Alt+F4 или кнопку окна
+		get_tree().set_auto_accept_quit(false)
+		# Сохраняем всё перед выходом
+		SaveSystem.save_game()
+		save_dungeon_state()
+		print("=== ВЫХОД ИЗ ИГРЫ - СОХРАНЕНО ===")
+		get_tree().quit()
 
 # =====================================================================
 # НОВОЕ: ЛОГИКА "КОЛОДЫ КАРТ" ДЛЯ ПРЕДМЕТОВ

@@ -28,6 +28,11 @@ func _on_texture_button_3_pressed() -> void:
 	if map_manager and map_manager.has_method("save_dungeon_state"):
 		map_manager.save_dungeon_state()
 
+	# Сохраняем текущую позицию и комнату игрока
+	var player = get_tree().get_first_node_in_group("player")
+	if player and "global_position" in player:
+		SaveSystem.saved_player_position = player.global_position
+
 	get_tree().paused = false
 	AudioManager.stop_music()
 	get_tree().change_scene_to_file(target_scene)

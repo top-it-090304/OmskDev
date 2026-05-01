@@ -193,6 +193,12 @@ func die():
 		Dir.RIGHT: anim.play("death_right")
 	
 	await anim.animation_finished
+	# Сохраняем состояние при смерти
+	SaveSystem.save_game()
+	var map_manager = get_tree().get_first_node_in_group("map_manager")
+	if map_manager and map_manager.has_method("save_dungeon_state"):
+		map_manager.save_dungeon_state()
+	
 	var over = gameover.instantiate()
 	add_child(over)
 
