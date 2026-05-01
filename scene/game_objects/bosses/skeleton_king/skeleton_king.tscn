@@ -1,4 +1,4 @@
-[gd_scene load_steps=255 format=3 uid="uid://cqu11x06knfef"]
+[gd_scene load_steps=252 format=3 uid="uid://cqu11x06knfef"]
 
 [ext_resource type="Texture2D" uid="uid://d3ycw1nd8c1ns" path="res://sprites/bosses/Skeleton_King/Down/Png/SkeletonKingDownAttack01.png" id="1_0ux5b"]
 [ext_resource type="Texture2D" uid="uid://df8i7uuyy4olm" path="res://sprites/bosses/Skeleton_King/Left/Png/SkeletonKingLeftAttack01.png" id="2_yo5ug"]
@@ -26,11 +26,9 @@
 [ext_resource type="Texture2D" uid="uid://cygpfcflj6mlq" path="res://sprites/bosses/Skeleton_King/Right/Png/SkeletonKingRightWalk.png" id="24_5xis6"]
 [ext_resource type="Texture2D" uid="uid://cb4vabwjlvyvr" path="res://sprites/bosses/Skeleton_King/Up/Png/SkeletonKingUpWalk.png" id="25_vgyo8"]
 
-[ext_resource type="Texture2D" uid="uid://8o1hatxsh21y" path="res://assets/hpUnderEnemy.png" id="26_2a4ok"]
-[ext_resource type="Texture2D" uid="uid://b1d0qrnmw7udy" path="res://assets/hpProgressEnemy.png" id="27_o155f"]
-[ext_resource type="Script" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="28_hpbar"]
-[ext_resource type="PackedScene" uid="uid://djw8n7hn0de6h" path="res://scene/ui/enemy_level_display.tscn" id="29_boss_level"]
-[ext_resource type="Script" path="res://scene/game_objects/bosses/skeleton_king/skeleton_king.gd" id="30_skeleton_king"]
+[ext_resource type="Script" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="26_hpbar"]
+[ext_resource type="PackedScene" uid="uid://djw8n7hn0de6h" path="res://scene/ui/enemy_level_display.tscn" id="27_boss_level"]
+[ext_resource type="Script" path="res://scene/game_objects/bosses/skeleton_king/skeleton_king.gd" id="28_skeleton_king"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_xso2b"]
 atlas = ExtResource("1_0ux5b")
@@ -1698,9 +1696,8 @@ radius = 130.0
 radius = 190.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_hitbox"]
-radius = 10.0
 
-[node name="SkeletonKing" type="CharacterBody2D" groups=["enemies", "enemys"] script=ExtResource("30_skeleton_king")]
+[node name="SkeletonKing" type="CharacterBody2D" groups=["enemies", "enemys"] script=ExtResource("28_skeleton_king")]
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_ncstg")
@@ -1712,7 +1709,6 @@ shape = SubResource("CapsuleShape2D_7uwco")
 
 [node name="attack_timer" type="Timer" parent="."]
 one_shot = true
-wait_time = 1.0
 
 [node name="detector_melee" type="Area2D" parent="."]
 collision_mask = 2
@@ -1739,21 +1735,16 @@ collision_mask = 2
 shape = SubResource("CircleShape2D_hitbox")
 
 [node name="TextureProgressBar" type="TextureProgressBar" parent="."]
-offset_left = -32.0
-offset_top = -80.0
-offset_right = 32.0
-offset_bottom = -64.0
-value = 100.0
+offset_left = -18.0
+offset_top = 17.0
+offset_right = 26.0
+offset_bottom = 23.0
+scale = Vector2(0.8, 0.8)
 max_value = 100.0
-nine_patch_stretch = true
-stretch_mode = 1
-texture_under = ExtResource("26_2a4ok")
-texture_progress = ExtResource("27_o155f")
-script = ExtResource("28_hpbar")
+value = 100.0
+script = ExtResource("26_hpbar")
 
-[node name="EnemyLevelDisplay" parent="." instance=ExtResource("29_boss_level")]
-
-[node name="EnemyLevelDisplay" parent="." instance=ExtResource("29_boss_level")]
+[node name="EnemyLevelDisplay" parent="." instance=ExtResource("27_boss_level")]
 offset_left = 10.0
 offset_top = 16.0
 offset_right = 18.0
