@@ -510,6 +510,15 @@ func change_current_room(new_x, new_y):
 
 	current_room_grid_pos = new_pos
 	room_changed.emit(current_room_grid_pos)
+	
+	# [AUTO-SAVE] Сохраняем позицию при входе в комнату (особенно если это босс)
+	# Это позволит игроку выйти и загрузиться прямо в этой комнате
+	for room_data in spawned_rooms:
+		if room_data["grid_pos"] == new_pos and room_data["type"] >= 2: # BOSS or TREASURE
+			SaveSystem.save_game()
+			save_dungeon_state()
+			print("Автосейв: зашли в важную комнату (ID: ", new_pos, ")")
+			break
 
 # =====================================================================
 # СИСТЕМА СОХРАНЕНИЯ/ЗАГРУЗКИ СОСТОЯНИЯ ДАНЖЕНА
@@ -544,7 +553,7 @@ func save_dungeon_state():
 			var grid_pos = room_data["grid_pos"]
 			dungeon_data["cleared_rooms"].append({"x": grid_pos.x, "y": grid_pos.y})
 
-	# Сохраняем комнаты с собранными артефактами
+	# Сохраняем комнаты с собранными сокровищами
 	dungeon_data["collected_treasure_rooms"] = SaveSystem.collected_treasure_rooms
 
 	SaveSystem.save_dungeon_data(dungeon_data)
@@ -599,6 +608,9 @@ func load_dungeon_state():
 	if "collected_treasure_rooms" in dungeon_data:
 		SaveSystem.collected_treasure_rooms = dungeon_data["collected_treasure_rooms"]
 		print("Восстановлено собранных комнат с сокровищами: ", SaveSystem.collected_treasure_rooms.size())
+
+	# Очищаем "колоду" предметов, чтобы не было дубликатов
+	item_draw_pile.clear()
 
 	# Восстанавливаем текущую комнату
 	if "current_room_pos" in dungeon_data:
