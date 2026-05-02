@@ -521,8 +521,60 @@ func change_current_room(new_x, new_y):
 			break
 
 # =====================================================================
-# СИСТЕМА СОХРАНЕНИЯ/ЗАГРУЗКИ СОСТОЯНИЯ ДАНЖЕНА
+# ВОЗВРАТ ИГРОКА В БЕЗОПАСНУЮ КОМНАТУ
 # =====================================================================
+func get_safe_room_position() -> Vector2i:
+	# Ищем старт-комнату на текущем layout (этаже)
+	for x in range(GameConstants.MAP_MANAGER_GRID_SIZE):
+		for y in range(GameConstants.MAP_MANAGER_GRID_SIZE):
+			if layout[x][y] == RoomType.START:
+				return Vector2i(x, y)
+	# Если по какой-то причине нет старта — возвращаем текущую (fallback)
+	return current_room_grid_pos
+
+func teleport_player_to_safe_room():
+	var safe_pos = get_safe_room_position()
+	print("=== БЕЗОПАСНЫЙ ТЕЛЕПОРТ В КОМНАТУ: ", safe_pos, " ===")
+	
+	# Принудительно меняем текущую комнату
+	current_room_grid_pos = safe_pos
+	
+	# Перезагружаем комнату (игрок появится в спавне стартовой комнаты)
+	change_current_room(safe_pos.x, safe_pos.y)
+	
+	# Сбрасываем агрессию во всех комнатах (чтобы враги не атаковали сразу)
+	_reset_room_aggression()
+	
+	print("Игрок безопасно перемещён в стартовую комнату")
+
+func _reset_room_aggression():
+	# Прогоняем по всем комнатам и сбрасываем агрессию врагов
+	for room_data in spawned_rooms:
+		var room_node = room_data["node"]
+		var enemys_node = room_node.find_child("Enemys")
+		if enemys_node:
+			enemys_node.aggression = false
+	print("Агрессия во всех комнатах сброшена")
+
+# ДОПОЛНИТЕЛЬНО: Очищает текущую комнату от врагов и ставит игрока в её центр
+func respawn_player_in_current_room():
+	for room_data in spawned_rooms:
+		if room_data["grid_pos"] == current_room_grid_pos:
+			var room_node = room_data["node"]
+			var enemys_node = room_node.find_child("Enemys")
+			
+			# Убиваем всех врагов в комнате
+			if enemys_node:
+				for enemy in enemys_node.get_children():
+					enemy.queue_free()
+			
+			# Ставим игрока в центр комнаты
+			var player = get_tree().get_first_node_in_group("player")
+			if player:
+				var local_center = Vector2(GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2.0, GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2.0)
+				player.global_position = room_node.to_global(local_center)
+				print("Игрок респавнится в центре текущей комнаты (враги убиты)")
+			break
 
 func save_dungeon_state():
 	var dungeon_data = {
@@ -616,6 +668,18 @@ func load_dungeon_state():
 	if "current_room_pos" in dungeon_data:
 		var room_pos = dungeon_data["current_room_pos"]
 		current_room_grid_pos = Vector2i(room_pos["x"], room_pos["y"])
+		
+		# ПРОВЕРКА БЕЗОПАСНОСТИ: если в комнате ещё есть враги — отправляем в стартовую
+		for room_data in spawned_rooms:
+			if room_data["grid_pos"] == current_room_grid_pos:
+				var room_node = room_data["node"]
+				var enemys_node = room_node.find_child("Enemys")
+				if enemys_node and enemys_node.get_child_count() > 0:
+					print("ВНИМАНИЕ: Комната при загрузке не зачищена! Телепорт в безопасную зону.")
+					teleport_player_to_safe_room()
+					return  # Прерываем, чтобы не вызывать change_current_room дважды
+				break
+		
 		change_current_room(current_room_grid_pos.x, current_room_grid_pos.y)
 
 	print("Состояние данжена восстановлено")

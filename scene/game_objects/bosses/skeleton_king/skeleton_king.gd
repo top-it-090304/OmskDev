@@ -425,10 +425,21 @@ func death():
 	AudioManager.play_sfx("босс_смерть")
 	set_collision_layer_value(1, false)
 	set_collision_mask_value(1, false)
+	animP.stop()
 	if bone_projectile_instance and is_instance_valid(bone_projectile_instance):
 		bone_projectile_instance.queue_free()
 	var d_anim = "death_" + _get_dir_string()
 	anim.play(d_anim)
+	
+	# ТРЯСКА ЭКРАНА при смерти босса!
+	var shaker = get_tree().get_first_node_in_group("camera_shaker")
+	if not shaker:
+		# Пробуем найти просто по пути или имени
+		shaker = get_tree().root.find_child("CameraShaker", true, false)
+	if shaker and shaker.has_method("add_trauma"):
+		shaker.add_trauma(0.8)  # Сильная тряска (0.8 из 1.0)
+		print("Тряска камеры: 0.8")
+	
 	await anim.animation_finished
 	_give_exp_to_player()
 	_spawn_loot()

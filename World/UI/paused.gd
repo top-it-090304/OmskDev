@@ -20,11 +20,24 @@ func _on_texture_button_3_pressed() -> void:
 	# Выход в главное меню
 	print("=== ВЫХОД В ГЛАВНОЕ МЕНЮ ===")
 
+	# ПРОВЕРКА: если игрок в незачищенной комнате — телепортируем в безопасную зону
+	var map_manager = get_tree().get_first_node_in_group("map_manager")
+	if map_manager and map_manager.has_method("teleport_player_to_safe_room"):
+		# Проверяем текущую комнату на наличие врагов
+		var current_pos = map_manager.current_room_grid_pos
+		for room_data in map_manager.spawned_rooms:
+			if room_data["grid_pos"] == current_pos:
+				var room_node = room_data["node"]
+				var enemys_node = room_node.find_child("Enemys")
+				if enemys_node and enemys_node.get_child_count() > 0:
+					print("Комната не зачищена! Принудительный телепорт в стартовую комнату.")
+					map_manager.teleport_player_to_safe_room()
+					break
+
 	# Сохраняем игру перед выходом
 	SaveSystem.save_game()
 
 	# Сохраняем состояние данжена
-	var map_manager = get_tree().get_first_node_in_group("map_manager")
 	if map_manager and map_manager.has_method("save_dungeon_state"):
 		map_manager.save_dungeon_state()
 
