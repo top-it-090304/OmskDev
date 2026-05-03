@@ -94,16 +94,11 @@ func save_game() -> bool:
 	var player = get_tree().get_first_node_in_group("player")
 	if player and "health_int" in player:
 		save_data["player_current_health"] = player.health_int
-		save_data["player_position"]["x"] = player.global_position.x
-		save_data["player_position"]["y"] = player.global_position.y
 		print("Сохранено здоровье игрока: ", player.health_int)
-		print("Сохранена позиция игрока: ", player.global_position)
 	else:
-		# Если игрока нет на сцене, используем сохраненную позицию
+		# Если игрока нет на сцене, используем сохраненное здоровье
 		save_data["player_current_health"] = saved_player_health if saved_player_health > 0 else GameConstants.PLAYER_MAX_HEALTH
-		save_data["player_position"]["x"] = saved_player_position.x
-		save_data["player_position"]["y"] = saved_player_position.y
-		print("Используем сохраненные данные: health=", save_data["player_current_health"], " pos=", saved_player_position)
+		print("Используем сохраненные данные: health=", save_data["player_current_health"])
 
 	# Сохраняем собранные артефакты
 	var backpack = get_tree().get_first_node_in_group("backpack")
