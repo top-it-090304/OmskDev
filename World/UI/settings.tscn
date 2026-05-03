@@ -16,7 +16,7 @@ grow_vertical = 2
 script = ExtResource("1_fcveu")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
-custom_minimum_size = Vector2(220, 180)
+custom_minimum_size = Vector2(220, 220)
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.321875
@@ -32,16 +32,101 @@ position = Vector2(115, 117.5)
 scale = Vector2(5.375, 6.39584)
 texture = ExtResource("1_p77nn")
 
-[node name="TextureButton" type="TextureButton" parent="VBoxContainer"]
+[node name="HBoxContainer_Music" type="HBoxContainer" parent="VBoxContainer"]
+custom_minimum_size = Vector2(200, 30)
+layout_mode = 1
+anchors_preset = 15
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+margin_left = 20
+margin_top = 20
+margin_right = 20
+margin_bottom = 10
+
+[node name="Label_Music" type="Label" parent="VBoxContainer/HBoxContainer_Music"]
+text = "Music Volume"
+horizontal_alignment = 0
+vertical_alignment = 1
+custom_minimum_size = Vector2(80, 20)
+theme_override_fonts/font = ExtResource("5_o0o4q")
+
+[node name="MusicSlider" type="HSlider" parent="VBoxContainer/HBoxContainer_Music"]
+min_value = 0.0
+max_value = 1.0
+step = 0.01
+value = 0.75
+custom_minimum_size = Vector2(100, 20)
+
+[node name="HBoxContainer_SFX" type="HBoxContainer" parent="VBoxContainer"]
+custom_minimum_size = Vector2(200, 30)
+layout_mode = 1
+anchors_preset = 15
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+margin_left = 20
+margin_top = 10
+margin_right = 20
+margin_bottom = 10
+
+[node name="Label_SFX" type="Label" parent="VBoxContainer/HBoxContainer_SFX"]
+text = "SFX Volume"
+horizontal_alignment = 0
+vertical_alignment = 1
+custom_minimum_size = Vector2(80, 20)
+theme_override_fonts/font = ExtResource("5_o0o4q")
+
+[node name="SFXSlider" type="HSlider" parent="VBoxContainer/HBoxContainer_SFX"]
+min_value = 0.0
+max_value = 1.0
+step = 0.01
+value = 0.75
+custom_minimum_size = Vector2(100, 20)
+
+[node name="HBoxContainer_Language" type="HBoxContainer" parent="VBoxContainer"]
+custom_minimum_size = Vector2(200, 30)
+layout_mode = 1
+anchors_preset = 15
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+margin_left = 20
+margin_top = 10
+margin_right = 20
+margin_bottom = 10
+
+[node name="Label_Language" type="Label" parent="VBoxContainer/HBoxContainer_Language"]
+text = "Language"
+horizontal_alignment = 0
+vertical_alignment = 1
+custom_minimum_size = Vector2(80, 20)
+theme_override_fonts/font = ExtResource("5_o0o4q")
+
+[node name="LanguageOption" type="OptionButton" parent="VBoxContainer/HBoxContainer_Language"]
+custom_minimum_size = Vector2(100, 25)
+theme_override_fonts/font = ExtResource("5_o0o4q")
+# Items will be added via script
+
+[node name="TextureButton_Back" type="TextureButton" parent="VBoxContainer"]
 custom_minimum_size = Vector2(200, 40)
 layout_mode = 2
 size_flags_horizontal = 4
-disabled = true
 texture_normal = ExtResource("2_083ek")
 stretch_mode = 0
 metadata/_edit_use_anchors_ = true
+margin_top = 20
 
-[node name="Label" type="Label" parent="VBoxContainer/TextureButton"]
+[node name="Label_Back" type="Label" parent="VBoxContainer/TextureButton_Back"]
 modulate = Color(1, 1, 1, 0.886275)
 self_modulate = Color(1, 1, 1, 0.929412)
 layout_mode = 1
@@ -52,81 +137,6 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("5_o0o4q")
-text = "Управление"
+text = "Back"
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="TextureButton2" type="TextureButton" parent="VBoxContainer"]
-custom_minimum_size = Vector2(200, 40)
-layout_mode = 2
-size_flags_horizontal = 4
-disabled = true
-texture_normal = ExtResource("2_083ek")
-stretch_mode = 0
-metadata/_edit_use_anchors_ = true
-
-[node name="Label" type="Label" parent="VBoxContainer/TextureButton2"]
-modulate = Color(1, 1, 1, 0.886275)
-self_modulate = Color(1, 1, 1, 0.929412)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("5_o0o4q")
-text = "Звук"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="TextureButton3" type="TextureButton" parent="VBoxContainer"]
-custom_minimum_size = Vector2(200, 40)
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 8
-disabled = true
-texture_normal = ExtResource("2_083ek")
-stretch_mode = 0
-metadata/_edit_use_anchors_ = true
-
-[node name="Label" type="Label" parent="VBoxContainer/TextureButton3"]
-modulate = Color(1, 1, 1, 0.886275)
-self_modulate = Color(1, 1, 1, 0.929412)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("5_o0o4q")
-text = "Музыка"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="TextureButton4" type="TextureButton" parent="VBoxContainer"]
-custom_minimum_size = Vector2(200, 40)
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 8
-texture_normal = ExtResource("2_083ek")
-stretch_mode = 0
-metadata/_edit_use_anchors_ = true
-
-[node name="Label" type="Label" parent="VBoxContainer/TextureButton4"]
-modulate = Color(1, 1, 1, 0.886275)
-self_modulate = Color(1, 1, 1, 0.929412)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("5_o0o4q")
-text = "Назад"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[connection signal="pressed" from="VBoxContainer/TextureButton4" to="." method="_on_texture_button_4_pressed"]

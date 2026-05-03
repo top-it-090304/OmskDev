@@ -725,12 +725,12 @@ func _init_transition_ui() -> void:
 func show_floor_transition(new_floor: int) -> void:
 	# Fade out screen
 	var fade_out_tween = create_tween()
-	fade_out_tween.tween_property(fade_rect, "modulate:a", 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	fade_out_tween.tween_property(fade_rect, "modulate:a", 0.8, 0.3).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 	fade_out_tween.tween_callback(func() -> void:
 		# After fade out, show floor label and fade in
 		_show_floor_label(new_floor)
 		var fade_in_tween = create_tween()
-		fade_in_tween.tween_property(fade_rect, "modulate:a", 0.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		fade_in_tween.tween_property(fade_rect, "modulate:a", 0.0, 0.3).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 		fade_in_tween.tween_callback(func() -> void:
 			# After fade in, remove label (it will queue_free itself)
 			pass
