@@ -1,4 +1,0 @@
-[gd_scene load_steps=5 format=3 uid="uid://1"]
-[ext_resource type="Script" uid="uid://2" path="res://scene/ui/floor_label.gd"]
-[node name="FloorLabel" type="Label"]
-script = ExtResource("2")
