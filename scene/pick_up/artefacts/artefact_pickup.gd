@@ -24,6 +24,7 @@ class_name ArtefactPickup
 @export_group("Visual")
 @export var pickup_sound: AudioStream
 @export var glow_color: Color = Color(1, 1, 0, 0.5)
+@export var artefact_particles: PackedScene
 
 const ARTEFACT_POPUP = preload("res://scene/ui/artefact_popup.tscn")
 
@@ -69,6 +70,12 @@ func pickup(player: Node) -> void:
 
 	# Применяем эффекты
 	apply_effects()
+
+	# Particles on pickup
+	if artefact_particles:
+		var particles = artefact_particles.instantiate()
+		particles.global_position = global_position
+		get_tree().current_scene.add_child(particles)
 
 	# Показываем popup
 	show_stat_popup()

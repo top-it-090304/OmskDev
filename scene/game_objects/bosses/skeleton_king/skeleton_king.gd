@@ -425,7 +425,7 @@ func death():
 	AudioManager.play_sfx("босс_смерть")
 	set_collision_layer_value(1, false)
 	set_collision_mask_value(1, false)
-	animP.stop()
+	anim.stop()
 	if bone_projectile_instance and is_instance_valid(bone_projectile_instance):
 		bone_projectile_instance.queue_free()
 	var d_anim = "death_" + _get_dir_string()

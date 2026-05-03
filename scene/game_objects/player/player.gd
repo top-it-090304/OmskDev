@@ -2,6 +2,7 @@ extends CharacterBody2D
 
 @export var atack_spawn: Node
 @export var gameover: PackedScene
+@export var hit_particles: PackedScene
 @onready var attack_joystick = $MobileController/VirtualJoystick2
 
 const LEVEL_UP_POPUP = preload("res://scene/ui/level_up_popup.tscn")
@@ -177,6 +178,11 @@ func take_damage(amount: int):
 	tween.tween_property(anim, "modulate", Color(1, 0, 0, 1), 0.0)
 	tween.tween_property(anim, "modulate", restore_color, 0.15)
 	AudioManager.play_sfx("игрок_урон")
+	# Particles on hit
+	if hit_particles:
+		var particles = hit_particles.instantiate()
+		particles.global_position = global_position
+		get_tree().current_scene.add_child(particles)
 	damage_timer.start()
 
 func die():
@@ -251,6 +257,11 @@ func _on_hitbox_attack_body_entered(body: Node2D) -> void:
 		if randf() < GameConstants.PLAYER_CRIT_CHANCE:
 			dmg = int(dmg * GameConstants.PLAYER_CRIT_MULTIPLIER)
 		body.take_damage(dmg)
+		# Particles on hit enemy
+		if hit_particles:
+			var particles = hit_particles.instantiate()
+			particles.global_position = body.global_position
+			get_tree().current_scene.add_child(particles)
 		# Вампиризм
 		if GameConstants.PLAYER_LIFESTEAL > 0.0:
 			var steal = int(dmg * GameConstants.PLAYER_LIFESTEAL)
