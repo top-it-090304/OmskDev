@@ -27,7 +27,6 @@ extends Node2D
 ]
 
 # Размер комнаты и КОРидОРА в пикселях
-@export var fade_duration: float = 0.5
 
 enum RoomType { EMPTY, START, NORMAL, BOSS, TREASURE }
 var layout = []
@@ -44,14 +43,6 @@ var current_room_grid_pos = Vector2i(GameConstants.MAP_MANAGER_GRID_SIZE / 2, Ga
 signal room_changed(new_grid_pos)
 var visited_rooms = []
 var seen_rooms = []
-
-# Transition UI elements
-var fade_rect: ColorRect
-var floor_label: Label
-var _last_floor: int = 1
-
-const FLOOR_LABEL_SCENE = preload("res://scene/ui/floor_label.tscn")
-const FADE_COLOR = Color(0, 0, 0, 0.8)
 
 
 func _ready():
@@ -87,15 +78,6 @@ func _ready():
 
 		# Сохраняем состояние данжена
 		save_dungeon_state()
-	
-	# Initialize transition UI
-	_init_transition_ui()
-	
-	# Listen for floor changes
-	if not GameConstants.constants_changed.is_connected(_on_constants_changed):
-		GameConstants.constants_changed.connect(_on_constants_changed)
-		
-	_last_floor = GameConstants.CURRENT_FLOOR
 
 func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
@@ -701,43 +683,3 @@ func load_dungeon_state():
 		change_current_room(current_room_grid_pos.x, current_room_grid_pos.y)
 
 	print("Состояние данжена восстановлено")
-
-func _on_constants_changed() -> void:
-	# Check if floor has changed
-	if GameConstants.CURRENT_FLOOR > _last_floor:
-		var new_floor = GameConstants.CURRENT_FLOOR
-		_last_floor = new_floor
-		
-		# Show floor transition
-		show_floor_transition(new_floor)
-		
-		print("Floor changed to: ", new_floor)
-
-func _init_transition_ui() -> void:
-	# Create fade rect
-	fade_rect = ColorRect.new()
-	fade_rect.color = FADE_COLOR
-	fade_rect.size = get_viewport().size
-	fade_rect.modulate.a = 0.0  # Start transparent
-	add_child(fade_rect)
-	fade_rect.set_as_toplevel(true)  # Draw on top
-
-func show_floor_transition(new_floor: int) -> void:
-	# Fade out screen
-	var fade_out_tween = create_tween()
-	fade_out_tween.tween_property(fade_rect, "modulate:a", 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-	fade_out_tween.tween_callback(func() -> void:
-		# After fade out, show floor label and fade in
-		_show_floor_label(new_floor)
-		var fade_in_tween = create_tween()
-		fade_in_tween.tween_property(fade_rect, "modulate:a", 0.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		fade_in_tween.tween_callback(func() -> void:
-			# After fade in, remove label (it will queue_free itself)
-			pass
-		)
-	)
-
-func _show_floor_label(floor_num: int) -> void:
-	var label_instance = FLOOR_LABEL_SCENE.instantiate()
-	add_child(label_instance)
-	# Optional: you can set text here if needed, but floor_label.gd already sets it from GameConstants.CURRENT_FLOOR
