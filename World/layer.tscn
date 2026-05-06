@@ -1,4 +1,4 @@
-[gd_scene load_steps=43 format=3 uid="uid://bq40uiaugbfjq"]
+[gd_scene load_steps=44 format=3 uid="uid://bq40uiaugbfjq"]
 
 [ext_resource type="PackedScene" uid="uid://n6dhykg53x0b" path="res://World/map_manager.tscn" id="1_mln5v"]
 [ext_resource type="PackedScene" uid="uid://ec471alip6hl" path="res://scene/game_objects/player/exp_bar.tscn" id="2_jn37s"]
@@ -15,6 +15,7 @@
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/diamond.tscn" id="10_ylsjx"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/golden_cup.tscn" id="11_3hlwg"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/injector.tscn" id="12_0el4m"]
+[ext_resource type="PackedScene" uid="uid://d1brwqu0cwyx1" path="res://scene/game_objects/bosses/skeleton_king/skeleton_king.tscn" id="12_hhjyk"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/metal_shield.tscn" id="13_cueid"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/old_book.tscn" id="14_36tnp"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/red_potion.tscn" id="15_rhie0"]
@@ -102,4 +103,5 @@ offset_bottom = 0.120001
 [node name="MapManager" parent="." node_paths=PackedStringArray("layer") instance=ExtResource("1_mln5v")]
 layer = NodePath("..")
 enemy_variations = Array[PackedScene]([ExtResource("5_d0rex"), ExtResource("6_n4o4r"), ExtResource("7_1olng")])
+boss_variations = Array[PackedScene]([ExtResource("12_hhjyk")])
 treasure_items = Array[PackedScene]([ExtResource("5_v7fgi"), ExtResource("6_ikq8h"), ExtResource("7_qpvvc"), ExtResource("8_shab0"), ExtResource("9_f2vw5"), ExtResource("10_ylsjx"), ExtResource("11_3hlwg"), ExtResource("12_0el4m"), ExtResource("13_cueid"), ExtResource("14_36tnp"), ExtResource("15_rhie0"), ExtResource("16_art01"), ExtResource("17_art02"), ExtResource("18_art03"), ExtResource("19_art04"), ExtResource("20_art05"), ExtResource("21_art06"), ExtResource("22_art07"), ExtResource("23_art08"), ExtResource("24_art09"), ExtResource("25_art10"), ExtResource("26_art11"), ExtResource("27_art12"), ExtResource("28_art13"), ExtResource("29_art14"), ExtResource("30_art15"), ExtResource("31_art16"), ExtResource("32_art17"), ExtResource("33_art18"), ExtResource("34_art19"), ExtResource("35_art20"), ExtResource("36_art21")])

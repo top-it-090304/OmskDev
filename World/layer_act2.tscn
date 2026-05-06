@@ -1,6 +1,6 @@
-[gd_scene load_steps=8 format=3 uid="uid://layer_act2_floor34"]
+[gd_scene load_steps=7 format=3 uid="uid://xtd4steqwtno"]
 
-[ext_resource type="PackedScene" uid="uid://map_manager2_act2" path="res://World/map_manager2.tscn" id="1_mln5v"]
+[ext_resource type="PackedScene" uid="uid://kpybtxybty40" path="res://World/map_manager2.tscn" id="1_mln5v"]
 [ext_resource type="PackedScene" uid="uid://ec471alip6hl" path="res://scene/game_objects/player/exp_bar.tscn" id="2_jn37s"]
 [ext_resource type="PackedScene" uid="uid://capqga0p285u0" path="res://World/minimap.tscn" id="3_o2u7n"]
 [ext_resource type="PackedScene" uid="uid://d00qjcqxvua3o" path="res://scene/game_objects/player/backpack.tscn" id="4_backpack"]
@@ -12,7 +12,6 @@
 [node name="UI" type="CanvasLayer" parent="."]
 
 [node name="FloorLabel" type="Label" parent="UI"]
-script = ExtResource("5_floor")
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
@@ -30,9 +29,9 @@ theme_override_font_sizes/font_size = 48
 text = "Floor 3"
 horizontal_alignment = 1
 vertical_alignment = 1
+script = ExtResource("5_floor")
 
 [node name="minimap" parent="UI" node_paths=PackedStringArray("map_manager") instance=ExtResource("3_o2u7n")]
-mouse_filter = 2
 map_manager = NodePath("../../MapManager2")
 
 [node name="ExpBar" parent="UI" instance=ExtResource("2_jn37s")]
@@ -57,5 +56,3 @@ offset_bottom = 325.0
 
 [node name="MapManager2" parent="." node_paths=PackedStringArray("layer") instance=ExtResource("1_mln5v")]
 layer = NodePath("..")
-enemy_variations = Array[PackedScene]([])
-treasure_items = Array[PackedScene]([])
