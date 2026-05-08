@@ -116,20 +116,18 @@ func _spawn_player():
 	# Ищем стартовую комнату в списке заспавненных
 	for room_data in spawned_rooms:
 		if room_data["type"] == RoomType.START:
-			var room_node = room_data["node"]
-			
-			# Ищем маркер по имени (можно переименовать как угодно)
+			var room_node := room_data["node"] as Node2D
 			var spawn_marker = room_node.find_child("PlayerSpawn", true, false)
-			
+			var target_pos: Vector2
 			if spawn_marker:
-				# Если маркер найден — ставим игрока строго в него
-				Player.global_position = spawn_marker.global_position
+				target_pos = (spawn_marker as Node2D).global_position
 			else:
-				# Фолбэк (запасной вариант): если маркера нет, считаем центр математически
 				var local_center = Vector2(GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2.0, GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2.0)
-				Player.global_position = room_node.to_global(local_center)
-				
-			break # Стартовая комната всего одна, выходим из цикла
+				target_pos = room_node.to_global(local_center)
+			# Wait one frame so the node is fully in the scene tree
+			await get_tree().process_frame
+			Player.global_position = target_pos
+			break
 
 # =============
 func _get_next_treasure_item() -> PackedScene:
@@ -168,7 +166,15 @@ func _spawn_treasure_items():
 
 			# Строго по центру комнаты
 			var local_center = Vector2(GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2.0, GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2.0)
-			item_instance.global_position = room_node.to_global(local_center)
+			var world_pos: Vector2 = (room_node as Node2D).to_global(local_center)
+			item_instance.global_position = world_pos + Vector2(0, -10)
+
+			# Спавним подставку под артефактом
+			var pedestal_scene := preload("res://scene/pick_up/artefacts/artefact_pedestal.tscn")
+			var pedestal := pedestal_scene.instantiate()
+			room_node.add_child(pedestal)
+			pedestal.global_position = world_pos
+			pedestal.z_index = -1  # render behind artefact
 
 # --- Генерация скелета ---
 func generate_layout():

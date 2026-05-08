@@ -80,23 +80,18 @@ func save_game() -> bool:
 			"enemy_level": GameConstants.ENEMY_LEVEL,
 			"current_floor": GameConstants.CURRENT_FLOOR,
 		},
-
-		# Позиция игрока (будет добавлена позже)
-		"player_position": {
-			"x": 0,
-			"y": 0,
-			"room_x": 0,
-			"room_y": 0,
-		}
 	}
 
-	# Сохраняем текущее здоровье игрока
+	# Сохраняем текущее здоровье и позицию игрока
 	var player = get_tree().get_first_node_in_group("player")
 	if player and "health_int" in player:
 		save_data["player_current_health"] = player.health_int
+		save_data["player_position"] = {
+			"x": player.global_position.x,
+			"y": player.global_position.y,
+		}
 		print("Сохранено здоровье игрока: ", player.health_int)
 	else:
-		# Если игрока нет на сцене, используем сохраненное здоровье
 		save_data["player_current_health"] = saved_player_health if saved_player_health > 0 else GameConstants.PLAYER_MAX_HEALTH
 		print("Используем сохраненные данные: health=", save_data["player_current_health"])
 
