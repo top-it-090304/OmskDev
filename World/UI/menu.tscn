@@ -236,7 +236,7 @@ grow_vertical = 2
 
 [node name="Background" type="AnimatedSprite2D" parent="."]
 position = Vector2(270, 130)
-scale = Vector2(11.25, 5.42)
+scale = Vector2(1, 1)
 sprite_frames = SubResource("SpriteFrames_u7pht")
 animation = &"new_animation"
 autoplay = "new_animation"

@@ -96,6 +96,10 @@ func _notification(what):
 # НОВОЕ: СПАВН ИГРОКА
 # =====================================================================
 func _spawn_player():
+	# В мультиплеере игроков спавнит PlayerManager
+	if NetworkManager.connection_state != NetworkManager.ConnectionState.DISCONNECTED:
+		return
+
 	var Player = null
 
 	# 1. Если сцена игрока задана в инспекторе, создаем его

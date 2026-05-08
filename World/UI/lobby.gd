@@ -1,60 +1,83 @@
 extends Control
 
-@onready var status_label: Label = $VBoxContainer/status_label
-@onready var players_label: Label = $VBoxContainer/players_label
-@onready var start_button: Button = $VBoxContainer/start_button
-@onready var my_id_label: Label = $VBoxContainer/HBoxContainer/my_id_label
+@onready var code_label: Label = $Panel/VBoxContainer/CodeRow/code_label
+@onready var status_label: Label = $Panel/VBoxContainer/status_label
+@onready var player_list: VBoxContainer = $Panel/VBoxContainer/PlayerList
+@onready var start_button: TextureButton = $Panel/VBoxContainer/start_button
 
-var player_count: int = 0
-var is_host: bool = false
+var _peers: Array[int] = []
 
 func _ready() -> void:
-	is_host = NetworkManager.connection_state == NetworkManager.ConnectionState.HOSTING
-
-	my_id_label.text = str(NetworkManager.my_id)
-	start_button.visible = is_host
+	start_button.visible = NetworkManager.is_hosting()
 	start_button.disabled = true
 
-	NetworkManager.player_connected.connect(_on_player_connected)
-	NetworkManager.player_disconnected.connect(_on_player_disconnected)
-	NetworkManager.connection_failed.connect(_on_connection_failed)
+	NetworkManager.player_connected.connect(_on_peer_connected)
+	NetworkManager.player_disconnected.connect(_on_peer_disconnected)
 	NetworkManager.disconnected_from_server.connect(_on_disconnected)
 
-	if is_host:
-		player_count = 1  # сам хост
-		_update_ui("Статус: ожидание игроков...")
+	if NetworkManager.is_hosting():
+		_peers.append(NetworkManager.my_id)
+		code_label.text = NetworkManager.encode_ip(_get_local_ip())
+		_set_status("Ожидание игроков...")
 	else:
-		_update_ui("Статус: подключение...")
+		code_label.text = "——"
+		_set_status("Подключено. Ожидание хоста...")
 
-func _on_player_connected(_id: int) -> void:
-	player_count += 1
-	_update_ui("Статус: игрок подключился")
-	if is_host:
-		start_button.disabled = false
+	_rebuild_player_list()
 
-func _on_player_disconnected(_id: int) -> void:
-	player_count -= 1
-	_update_ui("Статус: игрок отключился")
-	if is_host:
-		start_button.disabled = player_count < 2
+func _get_local_ip() -> String:
+	for addr in IP.get_local_addresses():
+		if addr.begins_with("192.") or addr.begins_with("10.") or addr.begins_with("172."):
+			return addr
+	return "127.0.0.1"
 
-func _on_connection_failed() -> void:
-	_update_ui("Статус: ошибка подключения")
+func _on_copy_pressed() -> void:
+	DisplayServer.clipboard_set(code_label.text)
+
+func _on_peer_connected(id: int) -> void:
+	_peers.append(id)
+	_rebuild_player_list()
+	_set_status("Игрок подключился!")
+	start_button.disabled = false
+
+func _on_peer_disconnected(id: int) -> void:
+	_peers.erase(id)
+	_rebuild_player_list()
+	_set_status("Игрок отключился")
+	start_button.disabled = _peers.size() < 2
 
 func _on_disconnected() -> void:
-	_update_ui("Статус: отключено")
 	get_tree().change_scene_to_file("res://World/UI/multiplayer_menu.tscn")
 
-func _update_ui(status: String) -> void:
-	status_label.text = status
-	players_label.text = "Игроки: %d" % player_count
+func _on_back_pressed() -> void:
+	NetworkManager.disconnect_game()
+	get_tree().change_scene_to_file("res://World/UI/multiplayer_menu.tscn")
+
+func _set_status(text: String) -> void:
+	status_label.text = "Статус: " + text
+
+func _rebuild_player_list() -> void:
+	for child in player_list.get_children():
+		child.queue_free()
+	for i in _peers.size():
+		var lbl := Label.new()
+		var is_host := _peers[i] == NetworkManager.SERVER_ID
+		lbl.text = "Игрок %d%s" % [i + 1, " (хост)" if is_host else ""]
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.add_theme_font_size_override("font_size", 11)
+		player_list.add_child(lbl)
 
 func _on_start_button_pressed() -> void:
-	if not is_host:
+	if not NetworkManager.is_hosting():
 		return
-	rpc("_start_game")
-	_start_game()
+	var peers_to_spawn := _peers.duplicate()
+	rpc("_rpc_start_game")
+	_load_game(peers_to_spawn)
 
 @rpc("authority", "call_remote", "reliable")
-func _start_game() -> void:
+func _rpc_start_game() -> void:
+	_load_game([])
+
+func _load_game(peers_to_spawn: Array) -> void:
+	PlayerManager.pending_peers = peers_to_spawn
 	get_tree().change_scene_to_file("res://World/layer.tscn")

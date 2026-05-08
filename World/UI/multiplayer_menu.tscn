@@ -182,34 +182,34 @@ script = ExtResource("1_script")
 
 [node name="Background" type="AnimatedSprite2D" parent="."]
 position = Vector2(270, 130)
-scale = Vector2(11.25, 6.5)
+scale = Vector2(1, 1)
 sprite_frames = SubResource("SpriteFrames_bg")
 animation = &"new_animation"
 autoplay = "new_animation"
 
 [node name="Panel" type="Panel" parent="."]
 self_modulate = Color(0, 0, 0, 0.6)
-anchor_left = 0.3
-anchor_top = 0.2
-anchor_right = 0.7
-anchor_bottom = 0.85
+anchor_left = 0.32
+anchor_top = 0.25
+anchor_right = 0.68
+anchor_bottom = 0.78
 
 [node name="Border" type="Sprite2D" parent="Panel"]
-position = Vector2(108, 85)
-scale = Vector2(4.5, 4.0)
+position = Vector2(97, 70)
+scale = Vector2(4.2, 3.8)
 texture = ExtResource("5_panel")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
 anchor_right = 1.0
 anchor_bottom = 1.0
-theme_override_constants/separation = 12
+theme_override_constants/separation = 6
 alignment = 1
 
 [node name="Title" type="Label" parent="Panel/VBoxContainer"]
 horizontal_alignment = 1
 text = "Выберите режим игры"
 theme_override_fonts/font = ExtResource("6_font")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 14
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 
 [node name="HostButton" type="TextureButton" parent="Panel/VBoxContainer"]
@@ -260,18 +260,7 @@ text = "Подключиться к комнате"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="IPPanel" type="VBoxContainer" parent="Panel/VBoxContainer"]
-theme_override_constants/separation = 8
-visible = false
-
-[node name="IPInput" type="LineEdit" parent="Panel/VBoxContainer/IPPanel"]
-custom_minimum_size = Vector2(160, 24)
-placeholder_text = "IP (127.0.0.1)"
-text = "127.0.0.1"
-theme_override_fonts/font = ExtResource("6_font")
-theme_override_font_sizes/font_size = 13
-
-[node name="ConnectButton" type="TextureButton" parent="Panel/VBoxContainer/IPPanel"]
+[node name="BackButton" type="TextureButton" parent="Panel/VBoxContainer"]
 custom_minimum_size = Vector2(125, 24)
 size_flags_horizontal = 4
 texture_normal = ExtResource("2_btn")
@@ -279,7 +268,7 @@ texture_pressed = ExtResource("3_btnp")
 texture_hover = ExtResource("4_btnh")
 stretch_mode = 0
 
-[node name="Label" type="Label" parent="Panel/VBoxContainer/IPPanel/ConnectButton"]
+[node name="Label" type="Label" parent="Panel/VBoxContainer/BackButton"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -291,7 +280,13 @@ grow_vertical = 2
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 14
-text = "Подключиться"
+text = "Назад"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("6_font")
+theme_override_font_sizes/font_size = 14
+text = "Подключиться к комнате"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -321,5 +316,4 @@ vertical_alignment = 1
 
 [connection signal="pressed" from="Panel/VBoxContainer/HostButton" to="." method="_on_host_pressed"]
 [connection signal="pressed" from="Panel/VBoxContainer/JoinButton" to="." method="_on_join_pressed"]
-[connection signal="pressed" from="Panel/VBoxContainer/IPPanel/ConnectButton" to="." method="_on_connect_pressed"]
 [connection signal="pressed" from="Panel/VBoxContainer/BackButton" to="." method="_on_back_pressed"]

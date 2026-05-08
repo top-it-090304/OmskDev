@@ -1,0 +1,32 @@
+keys,ru,en,az
+MENU_CONTINUE,Продолжить,Continue,Davam et
+MENU_NEW_GAME,Новая игра,New Game,Yeni oyun
+MENU_MULTIPLAYER,Мультиплеер,Multiplayer,Çoxoyunçu
+MENU_SETTINGS,Настройки,Settings,Parametrlər
+MENU_EXIT,Выйти,Exit,Çıxış
+SETTINGS_TITLE,Настройки,Settings,Parametrlər
+SETTINGS_SOUND,Звук,Sound,Səs
+SETTINGS_MUSIC,Музыка,Music,Musiqi
+SETTINGS_LANGUAGE,Язык,Language,Dil
+SETTINGS_CONTROLS,Управление,Controls,İdarəetmə
+SETTINGS_BACK,Назад,Back,Geri
+SETTINGS_SAVE,Сохранить,Save,Saxla
+MP_TITLE,Выберите режим игры,Choose Game Mode,Oyun rejimini seçin
+MP_CREATE_ROOM,Создать комнату,Create Room,Otaq yarat
+MP_JOIN_ROOM,Подключиться к комнате,Join Room,Otağa qoşul
+MP_CONNECT,Подключиться,Connect,Qoşul
+MP_BACK,Назад,Back,Geri
+MP_IP_PLACEHOLDER,IP адрес хоста,Host IP address,Host IP ünvanı
+LOBBY_TITLE,Комната,Room,Otaq
+LOBBY_IP_PREFIX,IP: ,IP: ,IP: 
+LOBBY_STATUS_WAITING,Ожидание игроков...,Waiting for players...,Oyunçular gözlənilir...
+LOBBY_STATUS_CONNECTED,Подключено. Ожидание хоста...,Connected. Waiting for host...,Qoşuldu. Host gözlənilir...
+LOBBY_STATUS_JOINED,Игрок подключился!,Player joined!,Oyunçu qoşuldu!
+LOBBY_STATUS_LEFT,Игрок отключился,Player left,Oyunçu ayrıldı
+LOBBY_PLAYERS,Игроки: %d,Players: %d,Oyunçular: %d
+LOBBY_START,Начать игру,Start Game,Oyunu başlat
+LOBBY_LEAVE,Выйти из комнаты,Leave Room,Otaqdan çıx
+LOBBY_COPY_IP,Скопировать IP,Copy IP,IP-ni kopyala
+LOBBY_PASTE_IP,Вставить IP,Paste IP,IP-ni yapışdır
+MP_CONNECTING,Подключение...,Connecting...,Qoşulur...
+MP_FAILED,Не удалось подключиться,Failed to connect,Qoşulmaq alınmadı

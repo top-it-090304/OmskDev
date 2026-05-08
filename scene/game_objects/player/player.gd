@@ -111,7 +111,7 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 
 		# Отправляем позицию другим игрокам
-		if NetworkManager.net_multiplayer.get_multiplayer_peer():
+		if get_tree().get_multiplayer().get_multiplayer_peer():
 			rpc_set_position(
 				global_position,
 				current_dir
@@ -309,7 +309,7 @@ func attack(from_rpc: bool = false) -> void:
 
 	# Отправка RPC
 	if not from_rpc and is_local_player:
-		if NetworkManager.net_multiplayer.is_server():
+		if get_tree().get_multiplayer().is_server():
 			rpc_attack.rpc(true)
 		else:
 			rpc_attack.rpc_id(1, true)
@@ -451,10 +451,10 @@ func _on_can_attack_timeout() -> void:
 func _ready() -> void:
 	add_to_group("player")
 
-	if NetworkManager.net_multiplayer.get_multiplayer_peer() == null:
+	if get_tree().get_multiplayer().get_multiplayer_peer() == null:
 		is_local_player = true
 	else:
-		is_local_player = (get_multiplayer_authority() == NetworkManager.net_multiplayer.get_unique_id())
+		is_local_player = (get_multiplayer_authority() == get_tree().get_multiplayer().get_unique_id())
 
 	current_level = GameConstants.PLAYER_LEVEL
 	current_exp = GameConstants.PLAYER_EXPERIENCE
