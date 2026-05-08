@@ -16,7 +16,7 @@ signal player_disconnected(player_id)
 func _ready() -> void:
 	# Предзагружаем сцену игрока, если не установлена через экспорт
 	if not player_scene:
-		player_scene = preload("res://scene/game_objects/player/player.gd")
+		player_scene = preload("res://scene/game_objects/player/player.tscn")
 	
 	# Подписываемся на сигналы NetworkManager
 	if NetworkManager:
@@ -36,7 +36,7 @@ func _on_player_disconnected(player_id: int) -> void:
 	_despawn_player(player_id)
 
 func _on_connected() -> void:
-	my_id = NetworkManager.multiplayer.get_unique_id()
+	my_id = NetworkManager.net_multiplayer.get_unique_id()
 	print("Мы подключены как игрок ID: %d" % my_id)
 	# Если мы хостим, то мы уже создали своего игрока в _ready через групповое добавление?
 	# Нет, мы создаем всех игроков через этот менеджер.
@@ -58,6 +58,9 @@ func _spawn_player(player_id: int) -> void:
 	var player_instance = player_scene.instantiate()
 	# Устанавливаем уникальное имя, чтобы избежать конфликтов
 	player_instance.name = "Player_%d" % player_id
+	
+	# Устанавливаем сетевую авторизацию
+	player_instance.set_multiplayer_authority(player_id)
 	
 	# Добавляем в сцену (предполагаем, что текущая сцена - игровой мир)
 	var game_world = get_tree().current_scene

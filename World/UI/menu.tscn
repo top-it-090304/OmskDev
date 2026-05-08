@@ -53,6 +53,7 @@
 [ext_resource type="Texture2D" uid="uid://u6reet2bdjg7" path="res://assets/menu/Main Menu animated background 38.png" id="48_kwvq8"]
 [ext_resource type="Texture2D" uid="uid://bsfd2gitdnquq" path="res://assets/menu/Main Menu animated background 39.png" id="49_dxcqv"]
 [ext_resource type="Texture2D" uid="uid://c5x2kkafq3ial" path="res://assets/menu/Main Menu animated background 40.png" id="50_au5xu"]
+[ext_resource type="Script" path="res://World/UI/multiplayer_button.gd" id="51_mpbtn"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_u7pht"]
 animations = [{
@@ -380,7 +381,7 @@ texture_normal = ExtResource("1_fiq8v")
 texture_pressed = ExtResource("2_4lrdm")
 texture_hover = ExtResource("3_aqj1r")
 stretch_mode = 0
-script = ExtResource("multiplayer_button.gd")
+script = ExtResource("51_mpbtn")
 metadata/_edit_use_anchors_ = true
 
 [node name="Label" type="Label" parent="VBoxContainer/TextureButton5"]
@@ -409,7 +410,7 @@ texture_normal = ExtResource("1_fiq8v")
 texture_pressed = ExtResource("2_4lrdm")
 texture_hover = ExtResource("3_aqj1r")
 stretch_mode = 0
-script = ExtResource("online_button.gd")
+script = ExtResource("51_mpbtn")
 metadata/_edit_use_anchors_ = true
 
 [node name="Label" type="Label" parent="VBoxContainer/TextureButton6"]

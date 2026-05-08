@@ -20,7 +20,6 @@ const SUMMON_COUNT     = 4      # Количество скелетов-минё
 var hp: int = 0
 var speed: float = 0.0
 var player_took_damage: bool = false
-var player_took_damage: bool = false
 
 @onready var anim: AnimatedSprite2D = $AnimatedSprite2D
 @onready var attack_timer: Timer = $attack_timer

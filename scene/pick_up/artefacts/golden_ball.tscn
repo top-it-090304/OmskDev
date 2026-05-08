@@ -1,0 +1,4 @@
+[gd_scene load_steps=2 format=3 uid="uid://golden_ball123"]
+[ext_resource type="Script" path="res://scene/pick_up/artefacts/golden_ball.gd" id="1"]
+[node name="golden_ball" type="Node2D"]
+script = ExtResource("1")

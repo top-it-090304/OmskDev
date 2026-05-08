@@ -1,0 +1,74 @@
+[gd_scene load_steps=5 format=3 uid="uid://newmultiplayer"]
+
+[ext_resource type="Script" path="res://World/UI/multiplayer_menu.gd" id="1_abcde"]
+[ext_resource type="FontFile" uid="uid://wbjr6hf3uxdc" path="res://Font/PixelRpgFont-Regular.ttf" id="6_wtcg7"]
+[ext_resource type="Texture2D" uid="uid://dff2giud0k1da" path="res://assets/Button/GenericArrow.png" id="8_yliwy"]
+
+[node name="MultiplayerMenu" type="Control"]
+anchor_bottom = 1.0
+anchor_left = 0.0
+anchor_right = 1.0
+anchor_top = 0.0
+margin_bottom = 0
+margin_left = 0
+margin_right = 0
+margin_top = 0
+layout_anchor_right = 1.0
+layout_anchor_bottom = 1.0
+layout_anchor_left = 0.0
+layout_anchor_top = 0.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+anchor_bottom = 0.8
+anchor_left = 0.2
+anchor_right = 0.8
+anchor_top = 0.2
+margin_bottom = -180.0
+margin_left = -240.0
+margin_right = 240.0
+margin_top = -180.0
+alignment = 1
+custom_constants/separation = 20
+layout_anchor_right = 0.8
+layout_anchor_bottom = 0.8
+layout_anchor_left = 0.2
+layout_anchor_top = 0.2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Label" type="Label" parent="VBoxContainer"]
+horizontal_alignment = 1
+text = "Выберите режим игры"
+theme_override_fonts/font = ExtResource("6_wtcg7")
+theme_override_font_sizes/font_size = 24
+
+[node name="HostButton" type="TextureButton" parent="VBoxContainer"]
+custom_minimum_size = Vector2(200, 50)
+expanded_icon = ExtResource("8_yliwy")
+expand_icon = true
+expand_icon_position = 2
+text = "Хостинг игры"
+theme_override_fonts/font = ExtResource("6_wtcg7")
+theme_override_font_sizes/font_size = 20
+
+[node name="JoinButton" type="TextureButton" parent="VBoxContainer"]
+custom_minimum_size = Vector2(200, 50)
+expanded_icon = ExtResource("8_yliwy")
+expand_icon = true
+expand_icon_position = 2
+text = "Присоединиться к игре"
+theme_override_fonts/font = ExtResource("6_wtcg7")
+theme_override_font_sizes/font_size = 20
+
+[node name="BackButton" type="TextureButton" parent="VBoxContainer"]
+custom_minimum_size = Vector2(200, 50)
+expanded_icon = ExtResource("8_yliwy")
+expand_icon = true
+expand_icon_position = 2
+text = "Назад"
+theme_override_fonts/font = ExtResource("6_wtcg7")
+theme_override_font_sizes/font_size = 20
+
+[connection signal="pressed" from="HostButton" to="." method="_on_host_pressed"]
+[connection signal="pressed" from="JoinButton" to="." method="_on_join_pressed"]
+[connection signal="pressed" from="BackButton" to="." method="_on_back_pressed"]
