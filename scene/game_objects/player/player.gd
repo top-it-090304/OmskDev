@@ -72,29 +72,29 @@ signal level_up(new_level)
 # RPC
 # =========================================================
 
-@rpc("authority")
+@rpc("authority", "call_local", "unreliable_ordered")
 func rpc_set_position(pos: Vector2, dir: int) -> void:
 	if not is_local_player:
 		target_position = pos
 		target_direction = dir
 		interpolation_timer = 0.0
 
-@rpc("authority")
+@rpc("authority", "call_local")
 func rpc_take_damage(amount: int) -> void:
 	if not is_local_player and not is_dead:
 		take_damage(amount)
 
-@rpc("authority")
+@rpc("authority", "call_local")
 func rpc_die() -> void:
 	if not is_local_player:
 		die()
 
-@rpc("authority")
+@rpc("authority", "call_local")
 func rpc_heal(amount: int) -> void:
 	if not is_local_player:
 		heal(amount)
 
-@rpc("authority")
+@rpc("authority", "call_local")
 func rpc_attack(from_rpc: bool) -> void:
 	if not is_local_player and not is_dead:
 		attack(true)

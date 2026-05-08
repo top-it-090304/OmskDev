@@ -234,14 +234,28 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
+[node name="Background" type="AnimatedSprite2D" parent="."]
+position = Vector2(270, 130)
+scale = Vector2(11.25, 5.42)
+sprite_frames = SubResource("SpriteFrames_u7pht")
+animation = &"new_animation"
+autoplay = "new_animation"
+
+[node name="Character" type="AnimatedSprite2D" parent="."]
+position = Vector2(270, 55)
+scale = Vector2(3, 3)
+sprite_frames = SubResource("SpriteFrames_c6rb5")
+animation = &"Knight"
+autoplay = "Knight"
+
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 custom_minimum_size = Vector2(170, 80)
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.321875
-anchor_top = 0.380556
+anchor_top = 0.430556
 anchor_right = 0.68125
-anchor_bottom = 0.880556
+anchor_bottom = 0.980556
 offset_left = 10.1875
 offset_top = 5.05544
 offset_right = -13.875
@@ -250,8 +264,8 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="GenericPanel" type="Sprite2D" parent="VBoxContainer"]
-position = Vector2(86, 56)
-scale = Vector2(3.75, 2.66667)
+position = Vector2(86, 68)
+scale = Vector2(3.75, 3.2)
 texture = ExtResource("1_kiqlh")
 
 [node name="ContinueButton" type="TextureButton" parent="VBoxContainer"]
@@ -314,6 +328,35 @@ text = "Новая игра"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="TextureButton5" type="TextureButton" parent="VBoxContainer"]
+custom_minimum_size = Vector2(125, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+texture_normal = ExtResource("1_fiq8v")
+texture_pressed = ExtResource("2_4lrdm")
+texture_hover = ExtResource("3_aqj1r")
+stretch_mode = 0
+script = ExtResource("51_mpbtn")
+metadata/_edit_use_anchors_ = true
+
+[node name="Label" type="Label" parent="VBoxContainer/TextureButton5"]
+modulate = Color(1, 1, 1, 0.886275)
+self_modulate = Color(1, 1, 1, 0.929412)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("6_wtcg7")
+theme_override_font_sizes/font_size = 14
+text = "Мультиплеер"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="TextureButton3" type="TextureButton" parent="VBoxContainer"]
 custom_minimum_size = Vector2(125, 24)
 layout_mode = 2
@@ -373,71 +416,13 @@ text = "Выйти"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="TextureButton5" type="TextureButton" parent="VBoxContainer"]
-custom_minimum_size = Vector2(125, 24)
-layout_mode = 2
-size_flags_horizontal = 4
-texture_normal = ExtResource("1_fiq8v")
-texture_pressed = ExtResource("2_4lrdm")
-texture_hover = ExtResource("3_aqj1r")
-stretch_mode = 0
-script = ExtResource("51_mpbtn")
-metadata/_edit_use_anchors_ = true
-
-[node name="Label" type="Label" parent="VBoxContainer/TextureButton5"]
-modulate = Color(1, 1, 1, 0.886275)
-self_modulate = Color(1, 1, 1, 0.929412)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = -4.0
-offset_bottom = -4.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("6_wtcg7")
-theme_override_font_sizes/font_size = 14
-text = "Мультиплеер"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="TextureButton6" type="TextureButton" parent="VBoxContainer"]
-custom_minimum_size = Vector2(125, 24)
-layout_mode = 2
-size_flags_horizontal = 4
-texture_normal = ExtResource("1_fiq8v")
-texture_pressed = ExtResource("2_4lrdm")
-texture_hover = ExtResource("3_aqj1r")
-stretch_mode = 0
-script = ExtResource("51_mpbtn")
-metadata/_edit_use_anchors_ = true
-
-[node name="Label" type="Label" parent="VBoxContainer/TextureButton6"]
-modulate = Color(1, 1, 1, 0.886275)
-self_modulate = Color(1, 1, 1, 0.929412)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = -4.0
-offset_bottom = -4.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("6_wtcg7")
-theme_override_font_sizes/font_size = 14
-text = "Онлайн"
-horizontal_alignment = 1
-vertical_alignment = 1
-
 [node name="TextureButton" type="TextureButton" parent="."]
 custom_minimum_size = Vector2(25, 25)
 layout_mode = 0
 offset_left = 222.0
-offset_top = 88.0
+offset_top = 40.0
 offset_right = 247.0
-offset_bottom = 113.0
+offset_bottom = 65.0
 texture_normal = ExtResource("8_yliwy")
 stretch_mode = 0
 flip_h = true
@@ -446,32 +431,31 @@ flip_h = true
 custom_minimum_size = Vector2(25, 25)
 layout_mode = 0
 offset_left = 296.0
-offset_top = 88.0
+offset_top = 40.0
 offset_right = 321.0
-offset_bottom = 113.0
+offset_bottom = 65.0
 texture_normal = ExtResource("8_yliwy")
 stretch_mode = 0
 
 [node name="Label2" type="Label" parent="."]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.246296
+anchor_left = 0.15
 anchor_top = 0.0192308
-anchor_right = 0.583333
+anchor_right = 0.75
 anchor_bottom = 0.126923
 theme_override_colors/font_color = Color(0.975388, 0.745875, 0, 1)
 theme_override_colors/font_shadow_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.821911, 2.62313e-06, 7.70092e-07, 1)
 theme_override_fonts/font = ExtResource("6_wtcg7")
 theme_override_font_sizes/font_size = 19
-text = "Aurora's"
+text = "Aurora's Dungeon"
 horizontal_alignment = 1
 vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
 
 [connection signal="pressed" from="VBoxContainer/ContinueButton" to="VBoxContainer/ContinueButton" method="_on_pressed"]
 [connection signal="pressed" from="VBoxContainer/newgame" to="VBoxContainer/newgame" method="_on_pressed"]
+[connection signal="pressed" from="VBoxContainer/TextureButton5" to="VBoxContainer/TextureButton5" method="_on_pressed"]
 [connection signal="pressed" from="VBoxContainer/TextureButton3" to="VBoxContainer/TextureButton3" method="_on_pressed"]
 [connection signal="pressed" from="VBoxContainer/TextureButton4" to="VBoxContainer/TextureButton4" method="_on_pressed"]
-[connection signal="pressed" from="VBoxContainer/TextureButton5" to="VBoxContainer/TextureButton5" method="_on_pressed"]
-[connection signal="pressed" from="VBoxContainer/TextureButton6" to="VBoxContainer/TextureButton6" method="_on_pressed"]

@@ -1,74 +1,325 @@
-[gd_scene load_steps=5 format=3 uid="uid://newmultiplayer"]
+[gd_scene load_steps=57 format=3 uid="uid://newmultiplayer"]
 
-[ext_resource type="Script" path="res://World/UI/multiplayer_menu.gd" id="1_abcde"]
-[ext_resource type="FontFile" uid="uid://wbjr6hf3uxdc" path="res://Font/PixelRpgFont-Regular.ttf" id="6_wtcg7"]
-[ext_resource type="Texture2D" uid="uid://dff2giud0k1da" path="res://assets/Button/GenericArrow.png" id="8_yliwy"]
+[ext_resource type="Script" path="res://World/UI/multiplayer_menu.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://4oxwsurkv5fc" path="res://assets/Button/GenericButton.png" id="2_btn"]
+[ext_resource type="Texture2D" uid="uid://duibchuhwk256" path="res://assets/Button/GenericButtonPressed.png" id="3_btnp"]
+[ext_resource type="Texture2D" uid="uid://b5yb01m7fu3xl" path="res://assets/Button/GenericButtonActive.png" id="4_btnh"]
+[ext_resource type="Texture2D" uid="uid://b70s4hl2nftxd" path="res://assets/Button/GenericPanel.png" id="5_panel"]
+[ext_resource type="FontFile" uid="uid://wbjr6hf3uxdc" path="res://Font/PixelRpgFont-Regular.ttf" id="6_font"]
+[ext_resource type="Texture2D" uid="uid://dximqnf5n0poh" path="res://assets/menu/Main Menu animated background 1.png" id="11_bg"]
+[ext_resource type="Texture2D" uid="uid://dvodolln4qtu" path="res://assets/menu/Main Menu animated background 2.png" id="12_bg"]
+[ext_resource type="Texture2D" uid="uid://73iq3m2iy5t4" path="res://assets/menu/Main Menu animated background 3.png" id="13_bg"]
+[ext_resource type="Texture2D" uid="uid://cinu8mvbph3op" path="res://assets/menu/Main Menu animated background 4.png" id="14_bg"]
+[ext_resource type="Texture2D" uid="uid://33gvscx0qm4a" path="res://assets/menu/Main Menu animated background 5.png" id="15_bg"]
+[ext_resource type="Texture2D" uid="uid://baxjhdo1qi76w" path="res://assets/menu/Main Menu animated background 6.png" id="16_bg"]
+[ext_resource type="Texture2D" uid="uid://gaeu1k5oxxs8" path="res://assets/menu/Main Menu animated background 7.png" id="17_bg"]
+[ext_resource type="Texture2D" uid="uid://bsguec8lm17q" path="res://assets/menu/Main Menu animated background 8.png" id="18_bg"]
+[ext_resource type="Texture2D" uid="uid://cnf0tg3nh0vw4" path="res://assets/menu/Main Menu animated background 9.png" id="19_bg"]
+[ext_resource type="Texture2D" uid="uid://cgl2f5bh3erdm" path="res://assets/menu/Main Menu animated background 10.png" id="20_bg"]
+[ext_resource type="Texture2D" uid="uid://b1eimchahapec" path="res://assets/menu/Main Menu animated background 11.png" id="21_bg"]
+[ext_resource type="Texture2D" uid="uid://chiqlol7pbys4" path="res://assets/menu/Main Menu animated background 12.png" id="22_bg"]
+[ext_resource type="Texture2D" uid="uid://blktn2i613kaq" path="res://assets/menu/Main Menu animated background 13.png" id="23_bg"]
+[ext_resource type="Texture2D" uid="uid://h4wh5muks46k" path="res://assets/menu/Main Menu animated background 14.png" id="24_bg"]
+[ext_resource type="Texture2D" uid="uid://bf4tm4ro1gg1m" path="res://assets/menu/Main Menu animated background 15.png" id="25_bg"]
+[ext_resource type="Texture2D" uid="uid://d0bqxaeg5mpji" path="res://assets/menu/Main Menu animated background 16.png" id="26_bg"]
+[ext_resource type="Texture2D" uid="uid://b0olwalrgohwe" path="res://assets/menu/Main Menu animated background 17.png" id="27_bg"]
+[ext_resource type="Texture2D" uid="uid://b8db1plngt3a" path="res://assets/menu/Main Menu animated background 18.png" id="28_bg"]
+[ext_resource type="Texture2D" uid="uid://bq3r1c2u610aa" path="res://assets/menu/Main Menu animated background 19.png" id="29_bg"]
+[ext_resource type="Texture2D" uid="uid://cdr7tkq3f0j6w" path="res://assets/menu/Main Menu animated background 20.png" id="30_bg"]
+[ext_resource type="Texture2D" uid="uid://qph0e66ew5x" path="res://assets/menu/Main Menu animated background 21.png" id="31_bg"]
+[ext_resource type="Texture2D" uid="uid://dgnyx5uavn0v3" path="res://assets/menu/Main Menu animated background 22.png" id="32_bg"]
+[ext_resource type="Texture2D" uid="uid://8wju5qg0ed62" path="res://assets/menu/Main Menu animated background 23.png" id="33_bg"]
+[ext_resource type="Texture2D" uid="uid://cy86rtf7ahl5u" path="res://assets/menu/Main Menu animated background 24.png" id="34_bg"]
+[ext_resource type="Texture2D" uid="uid://owbndifyt3sj" path="res://assets/menu/Main Menu animated background 25.png" id="35_bg"]
+[ext_resource type="Texture2D" uid="uid://dtj2nbru5dsas" path="res://assets/menu/Main Menu animated background 26.png" id="36_bg"]
+[ext_resource type="Texture2D" uid="uid://j841pt6pf32q" path="res://assets/menu/Main Menu animated background 27.png" id="37_bg"]
+[ext_resource type="Texture2D" uid="uid://d1efsnq16s612" path="res://assets/menu/Main Menu animated background 28.png" id="38_bg"]
+[ext_resource type="Texture2D" uid="uid://bae0du7u1onwd" path="res://assets/menu/Main Menu animated background 29.png" id="39_bg"]
+[ext_resource type="Texture2D" uid="uid://drf6dnml85isl" path="res://assets/menu/Main Menu animated background 30.png" id="40_bg"]
+[ext_resource type="Texture2D" uid="uid://supyhdobc32d" path="res://assets/menu/Main Menu animated background 31.png" id="41_bg"]
+[ext_resource type="Texture2D" uid="uid://dugo8ol4rkdoj" path="res://assets/menu/Main Menu animated background 32.png" id="42_bg"]
+[ext_resource type="Texture2D" uid="uid://b5v0kjx5hi108" path="res://assets/menu/Main Menu animated background 33.png" id="43_bg"]
+[ext_resource type="Texture2D" uid="uid://ckscsufx0w7hu" path="res://assets/menu/Main Menu animated background 34.png" id="44_bg"]
+[ext_resource type="Texture2D" uid="uid://obh8yeu476ti" path="res://assets/menu/Main Menu animated background 35.png" id="45_bg"]
+[ext_resource type="Texture2D" uid="uid://la1lt8o7xma4" path="res://assets/menu/Main Menu animated background 36.png" id="46_bg"]
+[ext_resource type="Texture2D" uid="uid://c7qbd5284x4ef" path="res://assets/menu/Main Menu animated background 37.png" id="47_bg"]
+[ext_resource type="Texture2D" uid="uid://u6reet2bdjg7" path="res://assets/menu/Main Menu animated background 38.png" id="48_bg"]
+[ext_resource type="Texture2D" uid="uid://bsfd2gitdnquq" path="res://assets/menu/Main Menu animated background 39.png" id="49_bg"]
+[ext_resource type="Texture2D" uid="uid://c5x2kkafq3ial" path="res://assets/menu/Main Menu animated background 40.png" id="50_bg"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_bg"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("11_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("12_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("13_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("14_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("15_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("16_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("17_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("18_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("19_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("20_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("21_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("22_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("24_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("25_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("26_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("27_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("28_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("29_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("30_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("31_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("32_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("33_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("34_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("35_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("36_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("37_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("38_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("39_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("40_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("41_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("42_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("43_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("44_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("45_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("46_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("47_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("48_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("49_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("50_bg")
+}],
+"loop": true,
+"name": &"new_animation",
+"speed": 8.0
+}]
 
 [node name="MultiplayerMenu" type="Control"]
-anchor_bottom = 1.0
-anchor_left = 0.0
 anchor_right = 1.0
-anchor_top = 0.0
-margin_bottom = 0
-margin_left = 0
-margin_right = 0
-margin_top = 0
-layout_anchor_right = 1.0
-layout_anchor_bottom = 1.0
-layout_anchor_left = 0.0
-layout_anchor_top = 0.0
+anchor_bottom = 1.0
+script = ExtResource("1_script")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
-anchor_bottom = 0.8
-anchor_left = 0.2
-anchor_right = 0.8
+[node name="Background" type="AnimatedSprite2D" parent="."]
+position = Vector2(270, 130)
+scale = Vector2(11.25, 6.5)
+sprite_frames = SubResource("SpriteFrames_bg")
+animation = &"new_animation"
+autoplay = "new_animation"
+
+[node name="Panel" type="Panel" parent="."]
+self_modulate = Color(0, 0, 0, 0.6)
+anchor_left = 0.3
 anchor_top = 0.2
-margin_bottom = -180.0
-margin_left = -240.0
-margin_right = 240.0
-margin_top = -180.0
-alignment = 1
-custom_constants/separation = 20
-layout_anchor_right = 0.8
-layout_anchor_bottom = 0.8
-layout_anchor_left = 0.2
-layout_anchor_top = 0.2
-size_flags_horizontal = 3
-size_flags_vertical = 3
+anchor_right = 0.7
+anchor_bottom = 0.85
 
-[node name="Label" type="Label" parent="VBoxContainer"]
+[node name="Border" type="Sprite2D" parent="Panel"]
+position = Vector2(108, 85)
+scale = Vector2(4.5, 4.0)
+texture = ExtResource("5_panel")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="Title" type="Label" parent="Panel/VBoxContainer"]
 horizontal_alignment = 1
 text = "Выберите режим игры"
-theme_override_fonts/font = ExtResource("6_wtcg7")
-theme_override_font_sizes/font_size = 24
+theme_override_fonts/font = ExtResource("6_font")
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 
-[node name="HostButton" type="TextureButton" parent="VBoxContainer"]
-custom_minimum_size = Vector2(200, 50)
-expanded_icon = ExtResource("8_yliwy")
-expand_icon = true
-expand_icon_position = 2
-text = "Хостинг игры"
-theme_override_fonts/font = ExtResource("6_wtcg7")
-theme_override_font_sizes/font_size = 20
+[node name="HostButton" type="TextureButton" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(125, 24)
+size_flags_horizontal = 4
+texture_normal = ExtResource("2_btn")
+texture_pressed = ExtResource("3_btnp")
+texture_hover = ExtResource("4_btnh")
+stretch_mode = 0
 
-[node name="JoinButton" type="TextureButton" parent="VBoxContainer"]
-custom_minimum_size = Vector2(200, 50)
-expanded_icon = ExtResource("8_yliwy")
-expand_icon = true
-expand_icon_position = 2
-text = "Присоединиться к игре"
-theme_override_fonts/font = ExtResource("6_wtcg7")
-theme_override_font_sizes/font_size = 20
+[node name="Label" type="Label" parent="Panel/VBoxContainer/HostButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("6_font")
+theme_override_font_sizes/font_size = 14
+text = "Создать комнату"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="BackButton" type="TextureButton" parent="VBoxContainer"]
-custom_minimum_size = Vector2(200, 50)
-expanded_icon = ExtResource("8_yliwy")
-expand_icon = true
-expand_icon_position = 2
+[node name="JoinButton" type="TextureButton" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(125, 24)
+size_flags_horizontal = 4
+texture_normal = ExtResource("2_btn")
+texture_pressed = ExtResource("3_btnp")
+texture_hover = ExtResource("4_btnh")
+stretch_mode = 0
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/JoinButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("6_font")
+theme_override_font_sizes/font_size = 14
+text = "Подключиться к комнате"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="IPPanel" type="VBoxContainer" parent="Panel/VBoxContainer"]
+theme_override_constants/separation = 8
+visible = false
+
+[node name="IPInput" type="LineEdit" parent="Panel/VBoxContainer/IPPanel"]
+custom_minimum_size = Vector2(160, 24)
+placeholder_text = "IP (127.0.0.1)"
+text = "127.0.0.1"
+theme_override_fonts/font = ExtResource("6_font")
+theme_override_font_sizes/font_size = 13
+
+[node name="ConnectButton" type="TextureButton" parent="Panel/VBoxContainer/IPPanel"]
+custom_minimum_size = Vector2(125, 24)
+size_flags_horizontal = 4
+texture_normal = ExtResource("2_btn")
+texture_pressed = ExtResource("3_btnp")
+texture_hover = ExtResource("4_btnh")
+stretch_mode = 0
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/IPPanel/ConnectButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("6_font")
+theme_override_font_sizes/font_size = 14
+text = "Подключиться"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BackButton" type="TextureButton" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(125, 24)
+size_flags_horizontal = 4
+texture_normal = ExtResource("2_btn")
+texture_pressed = ExtResource("3_btnp")
+texture_hover = ExtResource("4_btnh")
+stretch_mode = 0
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/BackButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("6_font")
+theme_override_font_sizes/font_size = 14
 text = "Назад"
-theme_override_fonts/font = ExtResource("6_wtcg7")
-theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[connection signal="pressed" from="HostButton" to="." method="_on_host_pressed"]
-[connection signal="pressed" from="JoinButton" to="." method="_on_join_pressed"]
-[connection signal="pressed" from="BackButton" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="Panel/VBoxContainer/HostButton" to="." method="_on_host_pressed"]
+[connection signal="pressed" from="Panel/VBoxContainer/JoinButton" to="." method="_on_join_pressed"]
+[connection signal="pressed" from="Panel/VBoxContainer/IPPanel/ConnectButton" to="." method="_on_connect_pressed"]
+[connection signal="pressed" from="Panel/VBoxContainer/BackButton" to="." method="_on_back_pressed"]

@@ -12,6 +12,7 @@ var my_id: int
 # Сигналы
 signal connected_to_server
 signal disconnected_from_server
+signal connection_failed
 signal player_connected(player_id)
 signal player_disconnected(player_id)
 
@@ -20,7 +21,7 @@ func _ready() -> void:
 	
 	# Подключаем обработчики
 	net_multiplayer.server_disconnected.connect(_on_disconnected)
-	net_multiplayer.connected_to_server.connect(_on_connected)
+	net_multiplayer.connected_to_server.connect(_on_client_connected)
 	net_multiplayer.connection_failed.connect(_on_connection_failed)
 	net_multiplayer.peer_connected.connect(_on_peer_connected)
 	net_multiplayer.peer_disconnected.connect(_on_peer_disconnected)
@@ -32,6 +33,8 @@ func host_game(port: int = 4242) -> void:
 		connection_state = ConnectionState.HOSTING
 		my_id = SERVER_ID
 		print("Хостинг игры на порту %d" % port)
+		# Эмулируем подключение для локального игрока
+		emit_signal("connected_to_server")
 	else:
 		push_error("Не удалось создать сервер")
 
@@ -44,10 +47,10 @@ func join_game(address: String, port: int = 4242) -> void:
 	else:
 		push_error("Не удалось подключиться к серверу")
 
-func _on_connected(id: int) -> void:
-	my_id = id
+func _on_client_connected() -> void:
+	my_id = net_multiplayer.get_unique_id()
 	connection_state = ConnectionState.CONNECTED
-	print("Подключено к серверу как клиент ID: %d" % id)
+	print("Подключено к серверу как клиент ID: %d" % my_id)
 	emit_signal("connected_to_server")
 
 func _on_disconnected() -> void:
@@ -58,6 +61,7 @@ func _on_disconnected() -> void:
 func _on_connection_failed() -> void:
 	connection_state = ConnectionState.DISCONNECTED
 	push_error("Не удалось подключиться к серверу")
+	emit_signal("connection_failed")
 
 func _on_peer_connected(id: int) -> void:
 	print("Игрок подключился: %d" % id)
