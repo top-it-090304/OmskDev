@@ -1,0 +1,91 @@
+[gd_scene load_steps=5 format=3 uid="uid://1"]
+
+[ext_resource type="Script" uid="uid://1" path="res://World/UI/lobby.gd"]
+
+[node name="Lobby" type="Control"]
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 0.0
+margin_top = 0.0
+margin_right = 0.0
+margin_bottom = 0.0
+layout_mode = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+size_flags_horizontal = 4
+size_flags_vertical = 4
+anchor_preset = 15
+margin_left = 100.0
+margin_top = 100.0
+margin_right = 100.0
+margin_bottom = 100.0
+
+[node name="Label" type="Label" parent="VBoxContainer"]
+text = "Онлайн лобби"
+align = 1
+valign = 1
+custom_minimum_size = Vector2(0, 50)
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+size_flags_horizontal = 4
+size_flags_vertical = 2
+
+[node name="Label" type="Label" parent="HBoxContainer/Label"]
+text = "Ваш ID: "
+align = 0
+valign = 1
+
+[node name="Label" type="Label" parent="HBoxContainer/Label2"]
+name = "my_id_label"
+text = "—"
+align = 0
+valign = 1
+
+[node name="Button" type="Button" parent="VBoxContainer"]
+text = "Хостинг"
+name = "host_button"
+custom_minimum_size = Vector2(0, 40)
+
+[node name="Button" type="Button" parent="VBoxContainer"]
+text = "Подключиться"
+name = "join_button"
+custom_minimum_size = Vector2(0, 40)
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="VBoxContainer"]
+size_flags_horizontal = 4
+size_flags_vertical = 2
+
+[node name="Label" type="Label" parent="HBoxContainer2/Label"]
+text = "IP адрес: "
+align = 0
+valign = 1
+
+[node name="LineEdit" type="LineEdit" parent="HBoxContainer2/LineEdit"]
+name = "ip_input"
+placeholder = "127.0.0.1"
+text = "127.0.0.1"
+custom_minimum_size = Vector2(200, 30)
+
+[node name="Button" type="Button" parent="VBoxContainer"]
+text = "Начать игру"
+name = "start_button"
+custom_minimum_size = Vector2(0, 40)
+disabled = true
+
+[node name="Label" type="Label" parent="VBoxContainer"]
+name = "status_label"
+text = "Статус: отключено"
+align = 1
+valign = 1
+
+[node name="Label" type="Label" parent="VBoxContainer"]
+name = "players_label"
+text = "Игроки: 0/4"
+align = 1
+valign = 1
+
+[connection signal="pressed" from="VBoxContainer/host_button" to="." method="_on_host_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/join_button" to="." method="_on_join_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/start_button" to="." method="_on_start_button_pressed"]

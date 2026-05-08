@@ -35,18 +35,76 @@ var can_attack = true
 var is_dead = false 
 var last_known_max_health = 0
 
+# Сетевые переменные
+var is_local_player: boolean = false
+var target_position: Vector2
+var target_direction: Dir
+var interpolation_timer: float = 0.0
+const INTERPOLATION_DELAY: float = 0.1
 
 signal health_changed(new_health, max_health)
 signal exp_changed(current_exp, exp_needed)
 signal level_up(new_level)
+var target_position: Vector2
+var target_direction: Dir
+var interpolation_timer: float = 0.0
+const INTERPOLATION_DELAY: float = 0.1
+
+# RPC для синхронизации позиции и состояния
+[Rpc(mode="any", call_local=true, transfer_mode=MultiplayerAPI.TRANSFER_MODE_RELIABLE)]
+func rpc_set_position(pos: Vector2, dir: int) -> void:
+	if not is_local_player:
+		target_position = pos
+		target_direction = Dir(dir)
+		interpolation_timer = 0.0
+
+[Rpc(mode="any", call_local=true)]
+func rpc_take_damage(amount: int) -> void:
+	if not is_local_player and not is_dead:
+		take_damage(amount)
+
+[Rpc(mode="any", call_local=true)]
+func rpc_die() -> void:
+	if not is_local_player:
+		die()
+
+[Rpc(mode="any", call_local=true)]
+func rpc_heal(amount: int) -> void:
+	if not is_local_player:
+		heal(amount)
+
+[Rpc(mode="any", call_local=true)]
+func rpc_attack(from_rpc: bool) -> void:
+	if not is_local_player and not is_dead:
+		attack(from_rpc=true)
 
 func _physics_process(_delta: float) -> void:
 	if is_dead: return
-	# ВАЖНО: move_and_slide() ДОЛЖНА быть в _physics_process
-	move_and_slide()
+	
+	if is_local_player:
+		# Локальный игрок обрабатывает ввод и двигается
+		move_and_slide()
+		# Синхронизируем позицию с другими игроками
+		if NetworkManager.multiplayer.get_unique_id() != 0:  # Если мультиплеер активен
+			NetworkManager.multiplayer.rpc("rpc_set_position", global_position, int(current_dir))
+	else:
+		# Удаленный игрок интерполирует позицию
+		interpolation_timer += _delta
+		var t = clamp(interpolation_timer / INTERPOLATION_DELAY, 0.0, 1.0)
+		global_position = global_position.lerp(target_position, t)
+		if target_direction != current_dir:
+			current_dir = target_direction
+			# Обновляем анимацию в соответствии с новым направлением
+			# Для столкновений все еще нужны нулевая скорость
+			velocity = Vector2.ZERO
+			move_and_slide()
 
 func _process(_delta: float) -> void:
 	if is_dead: return
+	
+	# Если это НЕ локальный игрок, мы не обрабатываем ввод
+	if not is_local_player:
+		return
 
 	if Input.is_action_just_pressed("ui_focus_next"):  # Tab
 		GameConstants.PLAYER_MAX_SPEED = 500
@@ -124,7 +182,7 @@ func play_idle_animation():
 		Dir.LEFT: anim.play("idle_left")
 		Dir.RIGHT: anim.play("idle_right")
 
-func attack():
+func attack(from_rpc: bool = false) -> void:
 	if not can_attack or is_dead:
 		return
 
@@ -148,6 +206,16 @@ func attack():
 	can_anim = true
 	# PLAYER_ATTACK_SPEED: множитель > 1 = быстрее, делим wait_time на него
 	attack_timer.start(attack_timer.wait_time / GameConstants.PLAYER_ATTACK_SPEED)
+	
+	# Если атака была инициирована локально (не через RPC), рассылаем RPC другим игрокам
+	if not from_rpc and is_local_player:
+		# Уведомляем других игроков о атаке
+		if NetworkManager.multiplayer.get_unique_id() == NetworkManager.SERVER_ID:
+			# На сервере рассылаем всем клиентам
+			NetworkManager.multiplayer.rpc("rpc_attack", true)
+		else:
+			# На клиенте рассылаем на сервер (который затем перешлет другим)
+			NetworkManager.multiplayer.rpc_id(NetworkManager.SERVER_ID, "rpc_attack", true)
 	
 func apply_knockback(source_position: Vector2, force: float):
 	if is_dead: return
@@ -218,24 +286,45 @@ func _on_can_take_damage_timeout() -> void:
 
 func _ready() -> void:
 	add_to_group("player")
-
+	# Определяем, является ли этот игрок локальным
+	# Если мы хостим игру или подключились как клиент и этот узел создан локально
+	if NetworkManager.multiplayer.get_unique_id() == NetworkManager.SERVER_ID:
+		# Мы на сервере - этот игрок может быть локальным или удаленным в зависимости от контекста
+		# Для простоты предположим, что на сервере мы создаем только локального игрока
+		is_local_player = True
+	elif NetworkManager.multiplayer.get_unique_id() != 0:  # 0 означает, что мультиплеер не инициализирован
+		# Мы клиент и подключены к сессии
+		is_local_player = True
+	else:
+		# Мультиплеер не активен - одиночная игра
+		is_local_player = True
+	
+	# Если это НЕ локальный игрок, мы не должны обрабатывать ввод локально
+	# но все равно должны быть в сцене для визуализации
+	
 	# Инициализация системы уровней СНАЧАЛА
 	current_level = GameConstants.PLAYER_LEVEL
 	current_exp = GameConstants.PLAYER_EXPERIENCE
 	exp_to_next_level = _calculate_exp_for_level(current_level + 1)
-
+	
 	health_int = SaveSystem.saved_player_health if SaveSystem.should_restore_player else GameConstants.PLAYER_MAX_HEALTH
 	last_known_max_health = GameConstants.PLAYER_MAX_HEALTH
 	if not GameConstants.constants_changed.is_connected(_on_constants_changed):
 		GameConstants.constants_changed.connect(_on_constants_changed)
-
+	
 	# Эмитим сигналы ПОСЛЕ инициализации всех переменных
 	health_changed.emit(health_int, GameConstants.PLAYER_MAX_HEALTH)
 	exp_changed.emit(current_exp, exp_to_next_level)
-
+	
 	# Если это загрузка сохранения, восстанавливаем состояние
 	if SaveSystem.should_restore_player:
 		SaveSystem.restore_player_state()
+		
+	# Для удаленных игроков отключаем обработку ввода
+	if not is_local_player:
+		# Отключаем джойстик атаки, если он существует
+		if hasattr(attack_joystick):
+			attack_joystick.set_process(False)
 
 func _on_constants_changed() -> void:
 	var new_max = GameConstants.PLAYER_MAX_HEALTH

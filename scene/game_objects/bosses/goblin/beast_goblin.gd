@@ -7,6 +7,7 @@ const ATTACK_COOLDOWN   = 4.0
 
 var hp = 0
 var speed = GameConstants.ENEMY_BEASTGOBLIN_MAX_SPEED
+var player_took_damage: bool = false
 
 @onready var anim = $AnimatedSprite2D
 @onready var animP = $AnimationPlayer
@@ -44,6 +45,7 @@ func _ready() -> void:
 	player      = get_tree().get_first_node_in_group("player") as Node2D
 	parent_node = get_parent()
 	attack_timer.one_shot = true
+	player_took_damage = false
 	_play_idle_animation()
 
 func _physics_process(delta: float) -> void:
@@ -288,6 +290,7 @@ func _on_slap_body_entered(body: Node2D) -> void:
 func take_damage(amount: int):
 	if is_dead: return
 	hp -= amount
+	player_took_damage = true
 	hp_bar.update_hp(hp, GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_HP))
 	if hp <= 0:
 		death()

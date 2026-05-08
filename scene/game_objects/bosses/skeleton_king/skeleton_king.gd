@@ -2,6 +2,13 @@ extends CharacterBody2D
 
 const SKELETON_MINION_SCENE = preload("res://scene/game_objects/enemy/skeleton_bow/skeleton_bow.tscn")
 const BONE_PROJECTILE_SCENE = preload("res://scene/game_objects/enemy/skeleton_bow/arrow.tscn")
+const ARTEFACT_SCENES = [
+	preload("res://scene/pick_up/artefacts/artefact(boots_of_travel).tscn"),
+	preload("res://scene/pick_up/artefacts/blue_shroom.tscn"),
+	preload("res://scene/pick_up/artefacts/clock.tscn"),
+	preload("res://scene/pick_up/artefacts/crown.tscn"),
+	preload("res://scene/pick_up/artefacts/diamond.tscn")
+]
 
 const MELEE_RANGE      = 70.0   # Дистанция для атаки 01 (ближняя)
 const SUMMON_RANGE     = 120.0  # Дистанция для атаки 02 (средняя)
@@ -12,6 +19,8 @@ const SUMMON_COUNT     = 4      # Количество скелетов-минё
 
 var hp: int = 0
 var speed: float = 0.0
+var player_took_damage: bool = false
+var player_took_damage: bool = false
 
 @onready var anim: AnimatedSprite2D = $AnimatedSprite2D
 @onready var attack_timer: Timer = $attack_timer
@@ -51,6 +60,7 @@ func _ready() -> void:
 	player      = get_tree().get_first_node_in_group("player") as Node2D
 	parent_node = get_parent()
 	attack_timer.one_shot = true
+	player_took_damage = false
 	_play_idle_animation()
 
 func _physics_process(delta: float) -> void:
@@ -372,6 +382,7 @@ func take_damage(amount: int):
 	if is_dead:
 		return
 	hp -= amount
+	player_took_damage = true
 	hp_bar.update_hp(hp, GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_HP))
 	if hp <= 0:
 		death()
@@ -451,6 +462,14 @@ func _give_exp_to_player():
 		p.add_experience(GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_EXP_REWARD))
 
 func _spawn_loot():
-	var potion = GameConstants.HEALTH_POTION.instantiate()
-	potion.global_position = global_position
-	get_tree().current_scene.add_child(potion)
+	if player_took_damage:
+		var artefact = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()].instantiate()
+		artefact.global_position = global_position
+		get_tree().current_scene.add_child(artefact)
+	else:
+		var artefact1 = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()].instantiate()
+		var artefact2 = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()].instantiate()
+		artefact1.global_position = global_position + Vector2(-20, 0)
+		artefact2.global_position = global_position + Vector2(20, 0)
+		get_tree().current_scene.add_child(artefact1)
+		get_tree().current_scene.add_child(artefact2)
