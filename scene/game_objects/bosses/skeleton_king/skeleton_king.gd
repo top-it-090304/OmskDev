@@ -180,6 +180,7 @@ func _reset_after_attack():
 func spawn_melee_hitbox() -> void:
 	# Создаем Area2D для обнаружения удара вблизи
 	var hitbox = Area2D.new()
+	hitbox.z_index = 2
 	var shape = CircleShape2D.new()
 	shape.radius = 50.0
 	var col = CollisionShape2D.new()
@@ -233,6 +234,7 @@ func summon_minions() -> void:
 
 	for pos in summon_positions:
 		var minion = SKELETON_MINION_SCENE.instantiate()
+		minion.z_index = 2
 		# Добавляем миньона в ту же комнату, что и босс, чтобы наследовать aggression
 		var room = get_parent()
 		if room:
@@ -285,6 +287,7 @@ func start_charge_attack() -> void:
 
 	# Создание костяного копья (проектиль, который следует за рывком)
 	bone_projectile_instance = Node2D.new()
+	bone_projectile_instance.z_index = 2
 	bone_projectile_instance.global_position = global_position
 	get_tree().current_scene.add_child(bone_projectile_instance)
 
@@ -317,6 +320,7 @@ func start_charge_attack() -> void:
 func spawn_charge_hitbox() -> void:
 	# Ударная волна в точке приземления
 	var hitbox = Area2D.new()
+	hitbox.z_index = 2
 	var shape = CircleShape2D.new()
 	shape.radius = 60.0
 	var col = CollisionShape2D.new()
