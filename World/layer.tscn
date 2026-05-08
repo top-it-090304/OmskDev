@@ -15,7 +15,7 @@
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/diamond.tscn" id="10_ylsjx"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/golden_cup.tscn" id="11_3hlwg"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/injector.tscn" id="12_0el4m"]
-[ext_resource type="PackedScene" uid="uid://d1brwqu0cwyx1" path="res://scene/game_objects/bosses/skeleton_king/skeleton_king.tscn" id="12_hhjyk"]
+[ext_resource type="PackedScene" uid="uid://cqu11x06knfef" path="res://scene/game_objects/bosses/skeleton_king/skeleton_king.tscn" id="12_hhjyk"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/metal_shield.tscn" id="13_cueid"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/old_book.tscn" id="14_36tnp"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/red_potion.tscn" id="15_rhie0"]

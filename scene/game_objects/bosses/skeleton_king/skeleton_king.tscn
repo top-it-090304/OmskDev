@@ -1,4 +1,4 @@
-[gd_scene load_steps=255 format=3 uid="uid://d1brwqu0cwyx1"]
+[gd_scene load_steps=255 format=3 uid="uid://cqu11x06knfef"]
 
 [ext_resource type="Texture2D" uid="uid://d3ycw1nd8c1ns" path="res://sprites/bosses/Skeleton_King/Down/Png/SkeletonKingDownAttack01.png" id="1_0ux5b"]
 [ext_resource type="Script" uid="uid://det8keipox4nw" path="res://scene/game_objects/bosses/skeleton_king/skeleton_king.gd" id="1_script"]
@@ -26,7 +26,7 @@
 [ext_resource type="Texture2D" uid="uid://cug0qv5ql6teg" path="res://sprites/bosses/Skeleton_King/Left/Png/SkeletonKingLeftWalk.png" id="23_xso2b"]
 [ext_resource type="Texture2D" uid="uid://cygpfcflj6mlq" path="res://sprites/bosses/Skeleton_King/Right/Png/SkeletonKingRightWalk.png" id="24_5xis6"]
 [ext_resource type="Texture2D" uid="uid://cb4vabwjlvyvr" path="res://sprites/bosses/Skeleton_King/Up/Png/SkeletonKingUpWalk.png" id="25_vgyo8"]
-[ext_resource type="Script" uid="uid://osq5kv0630j2" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="26_hpbar"]
+[ext_resource type="Script" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="26_hpbar"]
 [ext_resource type="PackedScene" uid="uid://djw8n7hn0de6h" path="res://scene/ui/enemy_level_display.tscn" id="27_boss_level"]
 [ext_resource type="Texture2D" uid="uid://8o1hatxsh21y" path="res://assets/hpUnderEnemy.png" id="28_hpunder"]
 [ext_resource type="Texture2D" uid="uid://bu1d3dqfv283u" path="res://assets/hpProgressEnemy.png" id="29_hpprogress"]

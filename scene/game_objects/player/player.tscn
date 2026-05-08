@@ -32,7 +32,7 @@
 [ext_resource type="PackedScene" uid="uid://cgrlwgdgbo186" path="res://World/UI/paused.tscn" id="29_l6dqq"]
 [ext_resource type="Texture2D" uid="uid://dd2g7nk2qrl7h" path="res://assets/Button/InventoruButtonun.png" id="30_tigyi"]
 [ext_resource type="PackedScene" uid="uid://tqdnqu04xabq" path="res://scene/ui/level_up_popup.tscn" id="31_vv8lt"]
-[ext_resource type="Script" uid="uid://cc2ec7sesybly" path="res://scene/game_objects/player/inventory_button.gd" id="32_invbtn"]
+[ext_resource type="Script" uid="uid://d2csheqwcyoey" path="res://scene/game_objects/player/inventory_button.gd" id="32_invbtn"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_plpdn"]
 radius = 9.0
