@@ -16,8 +16,9 @@ func _on_node_added(node: Node) -> void:
 		_on_game_scene_ready()
 
 func _on_game_scene_ready() -> void:
-	# Spawn local player
-	_spawn_player(NetworkManager.my_id)
+	# Spawn local player only if we are in multiplayer (so that in single player, MapManager handles it)
+	if NetworkManager.connection_state != NetworkManager.ConnectionState.DISCONNECTED:
+		_spawn_player(NetworkManager.my_id)
 	# Host spawns remote peers
 	for id in pending_peers:
 		if id != NetworkManager.my_id:

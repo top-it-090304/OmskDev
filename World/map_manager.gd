@@ -108,7 +108,7 @@ func _spawn_player():
 		layer.add_child(Player) # Добавляем как child прямо в MapManager
 	else:
 		# 2. Если сцена не задана, пробуем найти игрока уже на сцене (например, если он в автолоаде)
-		Player = get_tree().get_first_node_in_group("Player")
+		Player = get_tree().get_first_node_in_group("player")
 		if not Player:
 			push_warning("MapManager: Сцена игрока не назначена и игрок в группе 'player' не найден!")
 			return
