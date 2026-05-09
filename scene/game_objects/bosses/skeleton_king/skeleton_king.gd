@@ -2,24 +2,19 @@ extends CharacterBody2D
 
 const SKELETON_MINION_SCENE = preload("res://scene/game_objects/enemy/skeleton_bow/skeleton_bow.tscn")
 const BONE_PROJECTILE_SCENE = preload("res://scene/game_objects/enemy/skeleton_bow/arrow.tscn")
-const ARTEFACT_SCENES = [
-	preload("res://scene/pick_up/artefacts/artefact(boots_of_travel).tscn"),
-	preload("res://scene/pick_up/artefacts/blue_shroom.tscn"),
-	preload("res://scene/pick_up/artefacts/clock.tscn"),
-	preload("res://scene/pick_up/artefacts/crown.tscn"),
-	preload("res://scene/pick_up/artefacts/diamond.tscn")
-]
+const HATCH_SCENE = preload("res://scene/pick_up/hatch.tscn")
 
 const MELEE_RANGE      = 70.0   # Дистанция для атаки 01 (ближняя)
 const SUMMON_RANGE     = 120.0  # Дистанция для атаки 02 (средняя)
 const CHARGE_RANGE     = 180.0  # Дистанция для атаки 03 (дальняя)
 
 const ATTACK_COOLDOWN  = 3.5     # Базовый кулдаун между атаками
-const SUMMON_COUNT     = 4      # Количество скелетов-минёнов
+const SUMMON_COOLDOWN  = 10.0    # Кулдаун суммона (увеличен для баланса)
+const MAX_MINIONS      = 10     # Максимальное количество самонов
+const MINION_HP        = 1      # HP миньонов (умирают с одного удара)
 
 var hp: int = 0
 var speed: float = 0.0
-var player_took_damage: bool = false
 
 @onready var anim: AnimatedSprite2D = $AnimatedSprite2D
 @onready var attack_timer: Timer = $attack_timer
@@ -59,7 +54,6 @@ func _ready() -> void:
 	player      = get_tree().get_first_node_in_group("player") as Node2D
 	parent_node = get_parent()
 	attack_timer.one_shot = true
-	player_took_damage = false
 	_play_idle_animation()
 
 func _physics_process(delta: float) -> void:
@@ -112,13 +106,13 @@ func _physics_process(delta: float) -> void:
 	if not is_attacking and not is_charging:
 		# Приоритет: 1) melee (когда игрок близко) 2) summon (средняя дистанция) 3) charge (далеко)
 		if player_in_melee_zone and _cd_melee <= 0.0:
-			_cd_melee = ATTACK_COOLDOWN
+			_cd_melee = ATTACK_COOLDOWN / 1.5
 			attack("melee")
-		elif player_in_summon_zone and _cd_summon <= 0.0:
-			_cd_summon = ATTACK_COOLDOWN + 1.0  # чуть дольше кулдаун за суммацию
+		elif player_in_summon_zone and _cd_summon <= 0.0 and _count_minions() < MAX_MINIONS:
+			_cd_summon = SUMMON_COOLDOWN
 			attack("summon")
 		elif player_in_charge_zone and _cd_charge <= 0.0:
-			_cd_charge = ATTACK_COOLDOWN * 2.0  # длинный кулдаун ульты
+			_cd_charge = (ATTACK_COOLDOWN * 2.0) / 1.5
 			attack("charge")
 
 # Возвращает дистанцию до игрока, к которой нужно стремиться
@@ -222,12 +216,20 @@ func _on_melee_hitbox_body_entered(body: Node2D) -> void:
 			body.apply_knockback(global_position, 500.0)
 
 # ============ АТАКА 02: Призыв миньонов (Raise Dead) ============
+func _count_minions() -> int:
+	return get_tree().get_nodes_in_group("enemys").size() - 1  # -1 это сам босс
+
 func summon_minions() -> void:
+	var current_minions = _count_minions()
+	if current_minions >= MAX_MINIONS:
+		return
+	
 	AudioManager.play_sfx("босс_суммон")
+	var to_summon = mini(4, MAX_MINIONS - current_minions)
 	var summon_positions: Array[Vector2] = []
 	var radius = 80.0
-	for i in SUMMON_COUNT:
-		var angle = (TAU / float(SUMMON_COUNT)) * i - PI/2
+	for i in to_summon:
+		var angle = (TAU / float(to_summon)) * i - PI/2
 		var pos = global_position + Vector2(cos(angle), sin(angle)) * radius
 		summon_positions.append(pos)
 
@@ -241,6 +243,11 @@ func summon_minions() -> void:
 		else:
 			get_tree().current_scene.add_child(minion)
 		minion.global_position = pos
+		
+		# Устанавливаем HP после добавления в сцену (перезаписывает _ready)
+		minion.set_meta("boss_minion", true)
+		minion.hp = MINION_HP
+		minion.get_node("TextureProgressBar").update_hp(MINION_HP, MINION_HP)
 
 		# Анимация появления
 		var tween = create_tween()
@@ -385,7 +392,6 @@ func take_damage(amount: int):
 	if is_dead:
 		return
 	hp -= amount
-	player_took_damage = true
 	hp_bar.update_hp(hp, GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_HP))
 	if hp <= 0:
 		death()
@@ -456,7 +462,8 @@ func death():
 	
 	await anim.animation_finished
 	_give_exp_to_player()
-	_spawn_loot()
+	if randf() <= 0.75: _spawn_loot()
+	_spawn_hatch()
 	queue_free()
 
 func _give_exp_to_player():
@@ -465,14 +472,12 @@ func _give_exp_to_player():
 		p.add_experience(GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_EXP_REWARD))
 
 func _spawn_loot():
-	if player_took_damage:
-		var artefact = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()].instantiate()
-		artefact.global_position = global_position
-		get_tree().current_scene.add_child(artefact)
-	else:
-		var artefact1 = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()].instantiate()
-		var artefact2 = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()].instantiate()
-		artefact1.global_position = global_position + Vector2(-20, 0)
-		artefact2.global_position = global_position + Vector2(20, 0)
-		get_tree().current_scene.add_child(artefact1)
-		get_tree().current_scene.add_child(artefact2)
+	var potion = GameConstants.HEALTH_POTION.instantiate()
+	potion.global_position = global_position
+	get_tree().current_scene.add_child(potion)
+
+func _spawn_hatch():
+	var hatch = HATCH_SCENE.instantiate()
+	hatch.global_position = global_position
+	get_tree().current_scene.add_child(hatch)
+	hatch.open_hatch()

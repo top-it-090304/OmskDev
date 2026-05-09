@@ -1,4 +1,4 @@
-[gd_scene load_steps=61 format=3 uid="uid://btc3fcnovye8d"]
+[gd_scene load_steps=62 format=3 uid="uid://btc3fcnovye8d"]
 
 [ext_resource type="Texture2D" uid="uid://4oxwsurkv5fc" path="res://assets/Button/GenericButton.png" id="1_fiq8v"]
 [ext_resource type="Texture2D" uid="uid://b70s4hl2nftxd" path="res://assets/Button/GenericPanel.png" id="1_kiqlh"]
@@ -236,7 +236,6 @@ grow_vertical = 2
 
 [node name="Background" type="AnimatedSprite2D" parent="."]
 position = Vector2(270, 130)
-scale = Vector2(1, 1)
 sprite_frames = SubResource("SpriteFrames_u7pht")
 animation = &"new_animation"
 autoplay = "new_animation"
