@@ -175,21 +175,23 @@ func load_game() -> bool:
 		GameConstants.ENEMY_LEVEL = progress.get("enemy_level", BASE_VALUES["ENEMY_LEVEL"])
 		GameConstants.CURRENT_FLOOR = progress.get("current_floor", BASE_VALUES["CURRENT_FLOOR"])
 
-	# Сохраняем данные для восстановления здоровья и позиции
+	# Сохраняем данные для восстановления здоровья
 	if "player_current_health" in save_data:
 		saved_player_health = save_data["player_current_health"]
 		should_restore_player = true
 
-	if "player_position" in save_data:
-		var pos = save_data["player_position"]
-		saved_player_position = Vector2(pos.get("x", 0), pos.get("y", 0))
+	# При полной загрузке игрок ВСЕГДА появляется в стартовой комнате (4, 4)
+	# Позиция НЕ восстанавливается из сохранения
+	saved_player_position = Vector2.ZERO
 
-	# Загружаем собранные артефакты
+	# Загружаем собранные артефакты (очищаем перед загрузкой во избежание дублей)
+	collected_artefacts.clear()
 	if "collected_artefacts" in save_data:
 		collected_artefacts = save_data["collected_artefacts"]
 		print("Загружено артефактов: ", collected_artefacts.size())
 
-	# Загружаем комнаты с собранными сокровищами
+	# Загружаем комнаты с собранными сокровищами (очищаем перед загрузкой)
+	collected_treasure_rooms.clear()
 	if "collected_treasure_rooms" in save_data:
 		collected_treasure_rooms = save_data["collected_treasure_rooms"]
 		print("Загружено комнат с собранными сокровищами: ", collected_treasure_rooms.size())

@@ -22,7 +22,6 @@ SaveSystem="*res://globals/save_system.gd"
 AudioManager="*res://globals/audio_manager.gd"
 NetworkManager="*res://globals/network_manager.gd"
 PlayerManager="*res://globals/player_manager.gd"
-LocalizationManager="*res://globals/localization_manager.gd"
 
 [display]
 
@@ -96,10 +95,6 @@ attack_right={
 [input_devices]
 
 pointing/emulate_touch_from_mouse=true
-
-[internationalization]
-
-locale/translations=PackedStringArray("res://translations/translations.csv")
 
 [layer_names]
 

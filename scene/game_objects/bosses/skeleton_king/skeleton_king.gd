@@ -14,12 +14,14 @@ const MELEE_RANGE      = 70.0   # Дистанция для атаки 01 (бл�
 const SUMMON_RANGE     = 120.0  # Дистанция для атаки 02 (средняя)
 const CHARGE_RANGE     = 180.0  # Дистанция для атаки 03 (дальняя)
 
-const ATTACK_COOLDOWN  = 3.5     # Базовый кулдаун между атаками
-const SUMMON_COUNT     = 4      # Количество скелетов-минёнов
+const ATTACK_COOLDOWN  = 4.5     # Базовый кулдаун между атаками (увеличен)
+const SUMMON_COUNT     = 2      # Количество скелетов-миньонов за раз
+const MAX_MINIONS      = 4      # Максимум скелетов на арене
 
 var hp: int = 0
 var speed: float = 0.0
 var player_took_damage: bool = false
+var active_minions: Array = []  # Отслеживаем активных миньонов
 
 @onready var anim: AnimatedSprite2D = $AnimatedSprite2D
 @onready var attack_timer: Timer = $attack_timer
@@ -108,6 +110,9 @@ func _physics_process(delta: float) -> void:
 			if can_anim:
 				_play_idle_animation()
 
+	# Очищаем список от удалённых миньонов
+	_cleanup_minions()
+	
 	# Выбор атаки на основе дистанции и готовности
 	if not is_attacking and not is_charging:
 		# Приоритет: 1) melee (когда игрок близко) 2) summon (средняя дистанция) 3) charge (далеко)
@@ -115,10 +120,10 @@ func _physics_process(delta: float) -> void:
 			_cd_melee = ATTACK_COOLDOWN
 			attack("melee")
 		elif player_in_summon_zone and _cd_summon <= 0.0:
-			_cd_summon = ATTACK_COOLDOWN + 1.0  # чуть дольше кулдаун за суммацию
+			_cd_summon = ATTACK_COOLDOWN + 2.0  # увеличен кулдаун суммона
 			attack("summon")
 		elif player_in_charge_zone and _cd_charge <= 0.0:
-			_cd_charge = ATTACK_COOLDOWN * 2.0  # длинный кулдаун ульты
+			_cd_charge = ATTACK_COOLDOWN * 2.5  # увеличен кулдаун ульты
 			attack("charge")
 
 # Возвращает дистанцию до игрока, к которой нужно стремиться
@@ -222,12 +227,26 @@ func _on_melee_hitbox_body_entered(body: Node2D) -> void:
 			body.apply_knockback(global_position, 500.0)
 
 # ============ АТАКА 02: Призыв миньонов (Raise Dead) ============
+func _cleanup_minions() -> void:
+	# Удаляем из списка мёртвых/удалённых миньонов
+	active_minions = active_minions.filter(func(m): return is_instance_valid(m) and not m.is_dead if "is_dead" in m else is_instance_valid(m))
+
 func summon_minions() -> void:
+	# Очищаем список перед проверкой
+	_cleanup_minions()
+	
+	# Проверяем, сколько ещё можно заспавнить
+	var can_spawn = MAX_MINIONS - active_minions.size()
+	if can_spawn <= 0:
+		return  # Уже максимум миньонов
+	
+	var to_spawn = mini(SUMMON_COUNT, can_spawn)
+	
 	AudioManager.play_sfx("босс_суммон")
 	var summon_positions: Array[Vector2] = []
 	var radius = 80.0
-	for i in SUMMON_COUNT:
-		var angle = (TAU / float(SUMMON_COUNT)) * i - PI/2
+	for i in to_spawn:
+		var angle = (TAU / float(to_spawn)) * i - PI/2
 		var pos = global_position + Vector2(cos(angle), sin(angle)) * radius
 		summon_positions.append(pos)
 
@@ -241,6 +260,9 @@ func summon_minions() -> void:
 		else:
 			get_tree().current_scene.add_child(minion)
 		minion.global_position = pos
+		
+		# Добавляем в список активных миньонов
+		active_minions.append(minion)
 
 		# Анимация появления
 		var tween = create_tween()

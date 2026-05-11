@@ -521,6 +521,8 @@ func change_current_room(new_x, new_y):
 	current_room_grid_pos = new_pos
 	room_changed.emit(current_room_grid_pos)
 	
+	update_visibility()
+	
 	# [AUTO-SAVE] Сохраняем позицию при входе в комнату (особенно если это босс)
 	# Это позволит игроку выйти и загрузиться прямо в этой комнате
 	for room_data in spawned_rooms:
@@ -556,6 +558,52 @@ func teleport_player_to_safe_room():
 	_reset_room_aggression()
 	
 	print("Игрок безопасно перемещён в стартовую комнату")
+
+# =====================================================================
+# FOG OF WAR SYSTEM
+# =====================================================================
+
+func update_visibility():
+	for room_data in spawned_rooms:
+		var room_node = room_data["node"] as Node2D
+		var room_pos = room_data["grid_pos"]
+		
+		if room_node:
+			# Текущая комната всегда видима
+			if room_pos == current_room_grid_pos:
+				room_node.modulate = Color(1, 1, 1, 1)
+				room_node.visible = true
+				_show_room_contents(room_node, true)
+			# Зачищенные комнаты видимы навсегда
+			elif room_pos in visited_rooms:
+				var enemys_node = room_node.find_child("Enemys")
+				if enemys_node and enemys_node.get_child_count() == 0:
+					room_node.modulate = Color(1, 1, 1, 1)
+					room_node.visible = true
+					_show_room_contents(room_node, true)
+				else:
+					room_node.modulate = Color(0, 0, 0, 1)
+					room_node.visible = true
+					_show_room_contents(room_node, false)
+			else:
+				room_node.modulate = Color(0, 0, 0, 1)
+				room_node.visible = true
+				_show_room_contents(room_node, false)
+
+func _show_room_contents(room_node: Node2D, show: bool):
+	# Скрываем/показываем врагов
+	var enemys_node = room_node.find_child("Enemys")
+	if enemys_node:
+		for enemy in enemys_node.get_children():
+			enemy.visible = show
+	
+	# Скрываем/показываем артефакты
+	for child in room_node.get_children():
+		if child.is_in_group("artefact"):
+			child.visible = show
+		# Также скрываем подставки под артефакты
+		if child.name == "ArtefactPedestal" or "pedestal" in child.name.to_lower():
+			child.visible = show
 
 func _reset_room_aggression():
 	# Прогоняем по всем комнатам и сбрасываем агрессию врагов
@@ -635,6 +683,12 @@ func load_dungeon_state():
 	# Генерируем данжен с тем же seed
 	generate_layout()
 	draw_map()
+	
+	# Восстанавливаем собранные комнаты с сокровищами ПЕРЕД спавном
+	if "collected_treasure_rooms" in dungeon_data:
+		SaveSystem.collected_treasure_rooms = dungeon_data["collected_treasure_rooms"]
+		print("Восстановлено собранных комнат с сокровищами: ", SaveSystem.collected_treasure_rooms.size())
+	
 	await get_tree().create_timer(0).timeout
 	_spawn_player()
 	await _spawn_obstacles_after_physics()
@@ -666,11 +720,6 @@ func load_dungeon_state():
 							enemy.queue_free()
 					break
 
-	# Восстанавливаем собранные комнаты с сокровищами
-	if "collected_treasure_rooms" in dungeon_data:
-		SaveSystem.collected_treasure_rooms = dungeon_data["collected_treasure_rooms"]
-		print("Восстановлено собранных комнат с сокровищами: ", SaveSystem.collected_treasure_rooms.size())
-
 	# Очищаем "колоду" предметов, чтобы не было дубликатов
 	item_draw_pile.clear()
 
@@ -678,18 +727,31 @@ func load_dungeon_state():
 	if "current_room_pos" in dungeon_data:
 		var room_pos = dungeon_data["current_room_pos"]
 		current_room_grid_pos = Vector2i(room_pos["x"], room_pos["y"])
-		
-		# ПРОВЕРКА БЕЗОПАСНОСТИ: если в комнате ещё есть враги — отправляем в стартовую
-		for room_data in spawned_rooms:
-			if room_data["grid_pos"] == current_room_grid_pos:
-				var room_node = room_data["node"]
-				var enemys_node = room_node.find_child("Enemys")
-				if enemys_node and enemys_node.get_child_count() > 0:
-					print("ВНИМАНИЕ: Комната при загрузке не зачищена! Телепорт в безопасную зону.")
-					teleport_player_to_safe_room()
-					return  # Прерываем, чтобы не вызывать change_current_room дважды
-				break
-		
-		change_current_room(current_room_grid_pos.x, current_room_grid_pos.y)
+	else:
+		current_room_grid_pos = get_safe_room_position()
+	
+	# Телепортируем игрока
+	var player = get_tree().get_first_node_in_group("player")
+	if player:
+		if SaveSystem.saved_player_position != Vector2.ZERO:
+			# Если позиция сохранена — восстанавливаем
+			player.global_position = SaveSystem.saved_player_position
+			print("Игрок восстановлен в позиции: ", SaveSystem.saved_player_position)
+		else:
+			# Если позиция НЕ сохранена — спавним в стартовой комнате (4, 4)
+			for room_data in spawned_rooms:
+				if room_data["type"] == RoomType.START:
+					var room_node = room_data["node"] as Node2D
+					var spawn_marker = room_node.find_child("PlayerSpawn", true, false)
+					if spawn_marker:
+						player.global_position = spawn_marker.global_position
+					else:
+						var local_center = Vector2(GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2.0, GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2.0)
+						player.global_position = room_node.to_global(local_center)
+					print("Игрок спавнится в стартовой комнате")
+					break
+	
+	change_current_room(current_room_grid_pos.x, current_room_grid_pos.y)
+	update_visibility()
 
 	print("Состояние данжена восстановлено")

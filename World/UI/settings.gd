@@ -40,7 +40,7 @@ func _on_save_pressed() -> void:
 	cfg.save(CFG_PATH)
 	_apply_bus("SFX", sound_slider.value)
 	_apply_bus("Music", music_slider.value)
-	LocalizationManager.set_language(lang)
+	TranslationServer.set_locale(lang)
 
 func _apply_bus(bus_name: String, value: float) -> void:
 	var idx := AudioServer.get_bus_index(bus_name)
