@@ -14,7 +14,7 @@
 [ext_resource type="Texture2D" uid="uid://b5c6qrutijkq0" path="res://assets/layers/Animated Tiles/Lava Dungeon/Doors/Без имени.png" id="8_qvk3c"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_kafmw"]
-size = Vector2(800, 542)
+size = Vector2(804, 551)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8a7m1"]
 size = Vector2(48, 8)
@@ -196,7 +196,7 @@ collision_mask = 18
 script = ExtResource("2_cib8v")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="room_shape"]
-position = Vector2(200, 135)
+position = Vector2(200, 135.5)
 shape = SubResource("RectangleShape2D_kafmw")
 debug_color = Color(0.564706, 0.411765, 0, 0.333333)
 

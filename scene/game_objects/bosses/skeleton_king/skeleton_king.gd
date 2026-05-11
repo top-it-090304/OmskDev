@@ -11,7 +11,7 @@ const ARTEFACT_SCENES = [
 ]
 
 const MELEE_RANGE      = 70.0   # Дистанция для атаки 01 (ближняя)
-const SUMMON_RANGE     = 120.0  # Дистанция для атаки 02 (средняя)
+const SUMMON_RANGE     = 400.0  # Дистанция для атаки 02 (средняя)
 const CHARGE_RANGE     = 180.0  # Дистанция для атаки 03 (дальняя)
 
 const ATTACK_COOLDOWN  = 4.5     # Базовый кулдаун между атаками (увеличен)
@@ -253,6 +253,7 @@ func summon_minions() -> void:
 	for pos in summon_positions:
 		var minion = SKELETON_MINION_SCENE.instantiate()
 		minion.z_index = 2
+		minion.hp=1
 		# Добавляем миньона в ту же комнату, что и босс, чтобы наследовать aggression
 		var room = get_parent()
 		if room:

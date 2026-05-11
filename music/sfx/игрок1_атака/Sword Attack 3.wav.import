@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://c36rksmva8huv"
+path="res://.godot/imported/Sword Attack 3.wav-664d3e586a859baadf9af0cb88705f4f.sample"
+
+[deps]
+
+source_file="res://music/sfx/игрок1_атака/Sword Attack 3.wav"
+dest_files=["res://.godot/imported/Sword Attack 3.wav-664d3e586a859baadf9af0cb88705f4f.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

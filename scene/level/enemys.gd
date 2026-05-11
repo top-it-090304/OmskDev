@@ -21,9 +21,16 @@ func _on_room_shape_area_exited(_area: Area2D) -> void:
 
 func _update_aggression() -> void:
 	var alive_enemies = 0
+	var boss_type = ""
 	for child in get_children():
 		if child.has_method("take_damage") and not child.get("is_dead"):
 			alive_enemies += 1
+			# Определяем тип босса по имени файла сцены
+			if child.scene_file_path:
+				if "skeleton_king" in child.scene_file_path:
+					boss_type = "skeleton_king"
+				elif "beastGoblin" in child.scene_file_path or "beast_goblin" in child.scene_file_path:
+					boss_type = "beast_goblin"
 
 	var new_aggression = _player_in_room and alive_enemies > 0
 	if new_aggression != aggression:
@@ -31,7 +38,7 @@ func _update_aggression() -> void:
 		if aggression:
 			var room = get_parent()
 			if room and room.get("is_boss_room"):
-				AudioManager.play_boss()
+				AudioManager.play_boss(boss_type)
 			else:
 				AudioManager.play_combat()
 		else:
