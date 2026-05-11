@@ -6,6 +6,10 @@ var connection_state := ConnectionState.DISCONNECTED
 const SERVER_ID = 1
 var my_id: int = 0
 
+# Connection timeout in seconds
+const CONNECTION_TIMEOUT := 10.0
+var connection_timer: Timer = null
+
 signal connected_to_server
 signal disconnected_from_server
 signal connection_failed
@@ -20,6 +24,13 @@ func _ready() -> void:
 	mp.connection_failed.connect(_on_connection_failed)
 	mp.peer_connected.connect(_on_peer_connected)
 	mp.peer_disconnected.connect(_on_peer_disconnected)
+	
+	# Initialize connection timeout timer
+	connection_timer = Timer.new()
+	connection_timer.wait_time = CONNECTION_TIMEOUT
+	connection_timer.one_shot = true
+	connection_timer.timeout.connect(_on_connection_timeout)
+	add_child(connection_timer)
 
 func host_game(port: int = 4242) -> void:
 	var peer := ENetMultiplayerPeer.new()
@@ -39,6 +50,8 @@ func join_game(address: String, port: int = 4242) -> void:
 		return
 	get_tree().get_multiplayer().multiplayer_peer = peer
 	connection_state = ConnectionState.CONNECTING
+	# Start connection timeout timer
+	connection_timer.start()
 
 func disconnect_game() -> void:
 	get_tree().get_multiplayer().multiplayer_peer = null
@@ -48,7 +61,7 @@ func disconnect_game() -> void:
 func is_hosting() -> bool:
 	return connection_state == ConnectionState.HOSTING
 
-# Encode IP to 6-char code (e.g. 192.168.1.5 -> A3F7K2)
+# Encode IP to 8-char code (e.g. 192.168.1.5 -> C0A80105)
 func encode_ip(ip: String) -> String:
 	var parts := ip.split(".")
 	if parts.size() != 4:
@@ -57,11 +70,11 @@ func encode_ip(ip: String) -> String:
 	for part in parts:
 		var num := int(part)
 		code += "%02X" % num  # Convert to hex (00-FF)
-	return code.substr(0, 6)  # Take first 6 chars
+	return code  # Return full 8 chars
 
-# Decode 6-char code back to IP
+# Decode 8-char code back to IP
 func decode_code(code: String) -> String:
-	if code.length() < 6:
+	if code.length() < 8:
 		return ""
 	var ip := ""
 	for i in range(4):
@@ -75,7 +88,17 @@ func decode_code(code: String) -> String:
 func _on_client_connected() -> void:
 	my_id = get_tree().get_multiplayer().get_unique_id()
 	connection_state = ConnectionState.CONNECTED
+	# Stop connection timeout timer
+	if connection_timer and connection_timer.is_stopped():
+		connection_timer.stop()
 	emit_signal("connected_to_server")
+
+func _on_connection_timeout() -> void:
+	if connection_state == ConnectionState.CONNECTING:
+		connection_state = ConnectionState.DISCONNECTED
+		get_tree().get_multiplayer().multiplayer_peer = null
+		my_id = 0
+		emit_signal("connection_failed")
 
 func _on_disconnected() -> void:
 	connection_state = ConnectionState.DISCONNECTED
