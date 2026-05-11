@@ -98,6 +98,11 @@ var SKELETON_KING_BONE_PROJECTILE = preload("res://scene/game_objects/enemy/skel
 # --- FLOOR ---
 var CURRENT_FLOOR = 1
 
+# --- UI SETTINGS ---
+var SHOW_DAMAGE_NUMBERS = true  # Показывать цифры урона
+var SHOW_HEAL_NUMBERS = true    # Показывать цифры хила
+var ALWAYS_SHOW_DODGE = true    # Всегда показывать уклонение
+
 # --- PROGRESSION ---
 var ENEMIES_KILLED = 0
 var KILLS_FOR_SPEED_DOUBLE = 5

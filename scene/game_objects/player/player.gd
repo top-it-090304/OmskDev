@@ -11,6 +11,7 @@ extends CharacterBody2D
 @onready var animP = $AnimationPlayer
 
 const LEVEL_UP_POPUP = preload("res://scene/ui/level_up_popup.tscn")
+const DAMAGE_POPUP = preload("res://scene/ui/damage_popup.tscn")
 
 # =========================================================
 # ОСНОВНЫЕ ПЕРЕМЕННЫЕ
@@ -335,6 +336,7 @@ func take_damage(amount: int):
 
 	# Уклонение
 	if randf() < GameConstants.PLAYER_DODGE_CHANCE:
+		_show_popup("dodge")
 		return
 
 	var final_amount = max(
@@ -518,15 +520,19 @@ func _on_hitbox_attack_body_entered(body: Node2D) -> void:
 
 	if body.is_in_group("enemys"):
 		var dmg = GameConstants.PLAYER_ATTACK_DAMAGE
-
+		var is_crit = false
+		
 		# Крит
 		if randf() < GameConstants.PLAYER_CRIT_CHANCE:
-			dmg = int(
-				dmg * GameConstants.PLAYER_CRIT_MULTIPLIER
-			)
+			dmg = int(dmg * GameConstants.PLAYER_CRIT_MULTIPLIER)
+			is_crit = true
 
 		body.take_damage(dmg)
-
+		
+		# Показываем урон над врагом
+		if GameConstants.SHOW_DAMAGE_NUMBERS:
+			_show_popup_at("damage" if not is_crit else "crit", dmg, body.global_position)
+		
 		if hit_particles:
 			var particles = hit_particles.instantiate()
 			particles.global_position = body.global_position
@@ -534,10 +540,7 @@ func _on_hitbox_attack_body_entered(body: Node2D) -> void:
 
 		# Вампиризм
 		if GameConstants.PLAYER_LIFESTEAL > 0.0:
-			var steal = int(
-				dmg * GameConstants.PLAYER_LIFESTEAL
-			)
-
+			var steal = int(dmg * GameConstants.PLAYER_LIFESTEAL)
 			if steal > 0:
 				heal(steal)
 
@@ -552,6 +555,10 @@ func heal(amount: int) -> void:
 		health_int,
 		GameConstants.PLAYER_MAX_HEALTH
 	)
+	
+	# Показываем хил
+	if GameConstants.SHOW_HEAL_NUMBERS and amount > 0:
+		_show_popup("heal", amount)
 
 # =========================================================
 # EXPERIENCE
@@ -641,10 +648,26 @@ func level_up_player() -> void:
 
 func _show_level_up_popup():
 	var popup = LEVEL_UP_POPUP.instantiate()
-
 	popup.global_position = global_position + Vector2(0, -50)
-
 	get_tree().current_scene.add_child(popup)
+
+func _show_popup(type: String, value: int = 0) -> void:
+	_show_popup_at(type, value, global_position)
+
+func _show_popup_at(type: String, value: int, pos: Vector2) -> void:
+	var popup = DAMAGE_POPUP.instantiate()
+	popup.global_position = pos + Vector2(randf_range(-5, 5), randf_range(-5, 5))
+	get_tree().current_scene.add_child(popup)
+	
+	match type:
+		"damage":
+			popup.setup(0, value)  # Type.DAMAGE = 0
+		"heal":
+			popup.setup(1, value)  # Type.HEAL = 1
+		"dodge":
+			popup.setup(2, 0)      # Type.DODGE = 2
+		"crit":
+			popup.setup(3, value)  # Type.CRIT = 3
 
 # =========================================================
 # POISON
