@@ -41,10 +41,6 @@ window/stretch/mode="viewport"
 
 enabled=PackedStringArray("res://addons/AS2P/plugin.cfg")
 
-[internationalization]
-
-locale/translations=PackedStringArray("res://translations/translations.ru.translation", "res://translations/translations.en.translation", "res://translations/translations.az.translation")
-
 [global_group]
 
 enemies=""
@@ -105,6 +101,10 @@ attack_right={
 [input_devices]
 
 pointing/emulate_touch_from_mouse=true
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://translations/translations.ru.translation", "res://translations/translations.en.translation", "res://translations/translations.az.translation")
 
 [layer_names]
 

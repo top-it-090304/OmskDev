@@ -1,6 +1,6 @@
-[gd_scene load_steps=47 format=3 uid="uid://bi05s77d5urai"]
+[gd_scene load_steps=47 format=3 uid="uid://cqp4gcbg50r85"]
 
-[ext_resource type="Script" path="res://World/UI/join_room.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://cbqbxgsak3e4" path="res://World/UI/join_room.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://4oxwsurkv5fc" path="res://assets/Button/GenericButton.png" id="2_btn"]
 [ext_resource type="Texture2D" uid="uid://duibchuhwk256" path="res://assets/Button/GenericButtonPressed.png" id="3_btnp"]
 [ext_resource type="Texture2D" uid="uid://b70s4hl2nftxd" path="res://assets/Button/GenericPanel.png" id="5_panel"]
@@ -225,7 +225,7 @@ theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 13
 placeholder_text = "Введите код"
 alignment = 1
-max_length = 6
+max_length = 8
 
 [node name="PasteButton" type="TextureButton" parent="Panel/VBoxContainer"]
 custom_minimum_size = Vector2(125, 24)

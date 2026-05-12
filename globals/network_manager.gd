@@ -6,7 +6,7 @@ var connection_state := ConnectionState.DISCONNECTED
 const SERVER_ID = 1
 var my_id: int = 0
 
-# Connection timeout in seconds
+# Тайм-аут подключения в секундах
 const CONNECTION_TIMEOUT := 10.0
 var connection_timer: Timer = null
 
@@ -25,7 +25,7 @@ func _ready() -> void:
 	mp.peer_connected.connect(_on_peer_connected)
 	mp.peer_disconnected.connect(_on_peer_disconnected)
 	
-	# Initialize connection timeout timer
+	# Инициализация таймера
 	connection_timer = Timer.new()
 	connection_timer.wait_time = CONNECTION_TIMEOUT
 	connection_timer.one_shot = true
@@ -34,9 +34,11 @@ func _ready() -> void:
 
 func host_game(port: int = 4242) -> void:
 	var peer := ENetMultiplayerPeer.new()
-	if peer.create_server(port) != OK:
-		push_error("Не удалось создать сервер на порту %d" % port)
+	var error = peer.create_server(port)
+	if error != OK:
+		push_error("Не удалось создать сервер: %d" % error)
 		return
+		
 	get_tree().get_multiplayer().multiplayer_peer = peer
 	connection_state = ConnectionState.HOSTING
 	my_id = SERVER_ID
@@ -44,60 +46,56 @@ func host_game(port: int = 4242) -> void:
 
 func join_game(address: String, port: int = 4242) -> void:
 	var peer := ENetMultiplayerPeer.new()
-	if peer.create_client(address, port) != OK:
-		push_error("Не удалось подключиться к %s:%d" % [address, port])
+	var error = peer.create_client(address, port)
+	if error != OK:
+		push_error("Ошибка создания клиента: %d" % error)
 		emit_signal("connection_failed")
 		return
+		
 	get_tree().get_multiplayer().multiplayer_peer = peer
 	connection_state = ConnectionState.CONNECTING
-	# Start connection timeout timer
 	connection_timer.start()
 
 func disconnect_game() -> void:
 	get_tree().get_multiplayer().multiplayer_peer = null
 	connection_state = ConnectionState.DISCONNECTED
 	my_id = 0
+	if not connection_timer.is_stopped():
+		connection_timer.stop()
 
 func is_hosting() -> bool:
 	return connection_state == ConnectionState.HOSTING
 
-# Encode IP to 8-char code (e.g. 192.168.1.5 -> C0A80105)
+# Кодирование IP (192.168.1.1 -> C0A80101) - всегда 8 символов
 func encode_ip(ip: String) -> String:
 	var parts := ip.split(".")
 	if parts.size() != 4:
 		return ""
 	var code := ""
 	for part in parts:
-		var num := int(part)
-		code += "%02X" % num  # Convert to hex (00-FF)
-	return code  # Return full 8 chars
+		code += "%02X" % int(part)
+	return code
 
-# Decode 8-char code back to IP
+# Декодирование (C0A80101 -> 192.168.1.1)
 func decode_code(code: String) -> String:
-	if code.length() < 8:
+	if code.length() != 8:
 		return ""
-	var ip := ""
+	var ip_parts = []
 	for i in range(4):
-		var hex := code.substr(i * 2, 2)
-		var num := hex.hex_to_int()
-		ip += str(num)
-		if i < 3:
-			ip += "."
-	return ip
+		var hex_part = code.substr(i * 2, 2)
+		ip_parts.append(str(hex_part.hex_to_int()))
+	return ".".join(ip_parts)
 
 func _on_client_connected() -> void:
 	my_id = get_tree().get_multiplayer().get_unique_id()
 	connection_state = ConnectionState.CONNECTED
-	# Stop connection timeout timer
-	if connection_timer and connection_timer.is_stopped():
+	if not connection_timer.is_stopped():
 		connection_timer.stop()
 	emit_signal("connected_to_server")
 
 func _on_connection_timeout() -> void:
 	if connection_state == ConnectionState.CONNECTING:
-		connection_state = ConnectionState.DISCONNECTED
-		get_tree().get_multiplayer().multiplayer_peer = null
-		my_id = 0
+		disconnect_game()
 		emit_signal("connection_failed")
 
 func _on_disconnected() -> void:
