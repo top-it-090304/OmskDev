@@ -30,3 +30,6 @@ LOBBY_COPY_IP,Скопировать IP,Copy IP,IP-ni kopyala
 LOBBY_PASTE_IP,Вставить IP,Paste IP,IP-ni yapışdır
 MP_CONNECTING,Подключение...,Connecting...,Qoşulur...
 MP_FAILED,Не удалось подключиться,Failed to connect,Qoşulmaq alınmadı
+LANG_RU,Русский,Russian,Rus
+LANG_EN,English,English,İngilis
+LANG_AZ,Azərbaycan,Azerbaijan,Azərbaycan

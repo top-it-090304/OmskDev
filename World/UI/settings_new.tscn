@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://daps7fcfppbts"]
+[gd_scene load_steps=5 format=3 uid="uid://bxrcjv0a80e1w"]
 
 [ext_resource type="Script" uid="uid://wldggetlxy7v" path="res://World/UI/settings.gd" id="1_fcveu"]
 [ext_resource type="Texture2D" uid="uid://b70s4hl2nftxd" path="res://assets/Button/GenericPanel.png" id="1_p77nn"]

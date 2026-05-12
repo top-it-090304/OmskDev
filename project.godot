@@ -14,6 +14,11 @@ config/name="Dungeon"
 run/main_scene="uid://btc3fcnovye8d"
 config/features=PackedStringArray("4.4", "Mobile")
 boot_splash/bg_color=Color(0, 0.0418439, 0.0956349, 1)
+config/icon="res://icon.svg"
+
+[audio]
+
+bus/default_bus_layout="res://default_bus_layout.tres"
 
 [autoload]
 
@@ -22,6 +27,7 @@ SaveSystem="*res://globals/save_system.gd"
 AudioManager="*res://globals/audio_manager.gd"
 NetworkManager="*res://globals/network_manager.gd"
 PlayerManager="*res://globals/player_manager.gd"
+LocalizationManager="*res://globals/localization_manager.gd"
 
 [display]
 
@@ -34,6 +40,10 @@ window/stretch/mode="viewport"
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/AS2P/plugin.cfg")
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://translations/translations.ru.translation", "res://translations/translations.en.translation", "res://translations/translations.az.translation")
 
 [global_group]
 

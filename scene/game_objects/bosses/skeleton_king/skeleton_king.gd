@@ -11,7 +11,7 @@ const ARTEFACT_SCENES = [
 ]
 
 const MELEE_RANGE      = 70.0   # Дистанция для атаки 01 (ближняя)
-const SUMMON_RANGE     = 400.0  # Дистанция для атаки 02 (средняя)
+
 const CHARGE_RANGE     = 180.0  # Дистанция для атаки 03 (дальняя)
 
 const ATTACK_COOLDOWN  = 4.5     # Базовый кулдаун между атаками (увеличен)
@@ -47,6 +47,8 @@ var is_attacking: bool = false
 var _cd_melee  := 0.0
 var _cd_summon := 0.0
 var _cd_charge := 0.0
+var _initial_attack_delay := 0.5  # Задержка перед первой атакой
+var _first_attack_done := false
 
 # Для ультимативной атаки (зарядка)
 var is_charging: bool = false
@@ -72,6 +74,13 @@ func _physics_process(delta: float) -> void:
 	_cd_melee  = max(0.0, _cd_melee  - delta)
 	_cd_summon = max(0.0, _cd_summon - delta)
 	_cd_charge = max(0.0, _cd_charge - delta)
+	
+	# Задержка перед первой атакой
+	if not _first_attack_done:
+		_initial_attack_delay -= delta
+		if _initial_attack_delay > 0.0:
+			return
+		_first_attack_done = true
 
 	var is_aggressive = parent_node and parent_node.get("aggression")
 	if not is_aggressive or not is_instance_valid(player):
@@ -115,33 +124,31 @@ func _physics_process(delta: float) -> void:
 	
 	# Выбор атаки на основе дистанции и готовности
 	if not is_attacking and not is_charging:
-		# Приоритет: 1) melee (когда игрок близко) 2) summon (средняя дистанция) 3) charge (далеко)
+		# Приоритет: 1) melee (когда игрок близко) 2) charge (далеко) 3) summon (по кулдауну)
 		if player_in_melee_zone and _cd_melee <= 0.0:
-			_cd_melee = ATTACK_COOLDOWN
+			_cd_melee = 3.5
 			attack("melee")
-		elif player_in_summon_zone and _cd_summon <= 0.0:
-			_cd_summon = ATTACK_COOLDOWN + 2.0  # увеличен кулдаун суммона
-			attack("summon")
 		elif player_in_charge_zone and _cd_charge <= 0.0:
-			_cd_charge = ATTACK_COOLDOWN * 2.5  # увеличен кулдаун ульты
+			_cd_charge = 3.5
 			attack("charge")
+		elif _cd_summon <= 0.0:  # summon работает только по кулдауну, без проверки расстояния
+			_cd_summon = 7.0  # кулдаун суммона 7 секунд
+			attack("summon")
 
 # Возвращает дистанцию до игрока, к которой нужно стремиться
 func _get_target_dist() -> float:
-	# Приоритет атак по дистанциям: melee → summon → charge
+	# Приоритет атак по дистанциям: melee → charge
+	# summon работает только по кулдауну, не влияет на движение
 	var melee_ready  = _cd_melee  <= 0.0 and player_in_melee_zone
-	var summon_ready = _cd_summon <= 0.0 and player_in_summon_zone
 	var charge_ready = _cd_charge <= 0.0 and player_in_charge_zone
 
 	if melee_ready:
 		return MELEE_RANGE      # зона ближней атаки
-	elif summon_ready:
-		return SUMMON_RANGE     # зона средних атак/суммона
 	elif charge_ready:
 		return CHARGE_RANGE     # зона ультимативной атаки
 	else:
 		# Если все на кулдауне — держимся на средней дистанции
-		return SUMMON_RANGE
+		return 80.0
 
 func attack(type: String):
 	if is_dead or is_attacking or is_charging:
@@ -158,9 +165,17 @@ func attack(type: String):
 		# Запускаем эффекты в середине анимации
 		match type:
 			"melee":
-				await get_tree().create_timer(0.2).timeout
+				# Визуальное предупреждение (каст) перед ударом
+				var warning_tween = create_tween()
+				warning_tween.tween_property(self, "modulate", Color(1.0, 0.3, 0.3, 1.0), 0.15)
+				warning_tween.parallel().tween_property(self, "scale", Vector2(1.2, 1.2), 0.15)
+				await get_tree().create_timer(0.35).timeout
+				# Возврат к нормальному виду и удар
+				var reset_tween = create_tween()
+				reset_tween.tween_property(self, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.1)
+				reset_tween.parallel().tween_property(self, "scale", Vector2(1.0, 1.0), 0.1)
 				spawn_melee_hitbox()
-				await get_tree().create_timer(0.6).timeout  # длительность анимации ~0.8с
+				await get_tree().create_timer(0.3).timeout
 			"summon":
 				await get_tree().create_timer(0.4).timeout
 				summon_minions()
@@ -226,66 +241,160 @@ func _on_melee_hitbox_body_entered(body: Node2D) -> void:
 		if body.has_method("apply_knockback"):
 			body.apply_knockback(global_position, 500.0)
 
-# ============ АТАКА 02: Призыв миньонов (Raise Dead) ============
+# ============ АТАКА 02: Призыв миньонов / Стрелы вокруг игрока ============
 func _cleanup_minions() -> void:
 	# Удаляем из списка мёртвых/удалённых миньонов
 	active_minions = active_minions.filter(func(m): return is_instance_valid(m) and not m.is_dead if "is_dead" in m else is_instance_valid(m))
 
 func summon_minions() -> void:
-	# Очищаем список перед проверкой
-	_cleanup_minions()
-	
-	# Проверяем, сколько ещё можно заспавнить
-	var can_spawn = MAX_MINIONS - active_minions.size()
-	if can_spawn <= 0:
-		return  # Уже максимум миньонов
-	
-	var to_spawn = mini(SUMMON_COUNT, can_spawn)
-	
 	AudioManager.play_sfx("босс_суммон")
-	var summon_positions: Array[Vector2] = []
-	var radius = 80.0
-	for i in to_spawn:
-		var angle = (TAU / float(to_spawn)) * i - PI/2
-		var pos = global_position + Vector2(cos(angle), sin(angle)) * radius
-		summon_positions.append(pos)
+	
+	# Проверяем, можно ли призвать миньонов
+	_cleanup_minions()
+	var can_spawn = MAX_MINIONS - active_minions.size()
+	
+	if can_spawn > 0:
+		# Спавним миньонов вокруг босса
+		var to_spawn = mini(SUMMON_COUNT, can_spawn)
+		var radius = 80.0
+		for i in to_spawn:
+			var angle = (TAU / float(to_spawn)) * i - PI/2
+			var pos = global_position + Vector2(cos(angle), sin(angle)) * radius
+			
+			var minion = SKELETON_MINION_SCENE.instantiate()
+			minion.z_index = 2
+			var room = get_parent()
+			if room:
+				room.add_child(minion)
+			else:
+				get_tree().current_scene.add_child(minion)
+			minion.global_position = pos
+			minion.hp = 1
+			minion.hp_bar.update_hp(1, 1)
+			active_minions.append(minion)
+			
+			var tween = create_tween()
+			tween.tween_property(minion, "modulate:a", 0.0, 0.0)
+			tween.tween_property(minion, "modulate:a", 1.0, 0.3)
+			
+			var summon_circle = CPUParticles2D.new()
+			summon_circle.emitting = true
+			summon_circle.one_shot = true
+			summon_circle.explosiveness = 1.0
+			summon_circle.amount = 20
+			summon_circle.lifetime = 0.4
+			summon_circle.spread = 360.0
+			summon_circle.initial_velocity_min = 60.0
+			summon_circle.initial_velocity_max = 100.0
+			summon_circle.scale_amount_min = 2.0
+			summon_circle.scale_amount_max = 4.0
+			summon_circle.color = Color(0.85, 0.85, 0.9, 0.6)
+			summon_circle.z_index = 5
+			summon_circle.global_position = pos
+			get_tree().current_scene.add_child(summon_circle)
+	
+	# Если миньонов максимум — запускаем стрелы вокруг игрока
+	_cleanup_minions()
+	if active_minions.size() >= MAX_MINIONS:
+		_spawn_arrows_around_player()
 
-	for pos in summon_positions:
-		var minion = SKELETON_MINION_SCENE.instantiate()
-		minion.z_index = 2
-		minion.hp=1
-		# Добавляем миньона в ту же комнату, что и босс, чтобы наследовать aggression
-		var room = get_parent()
-		if room:
-			room.add_child(minion)
-		else:
-			get_tree().current_scene.add_child(minion)
-		minion.global_position = pos
+# ============ СТРЕЛЫ ВОКРУГ ИГРОКА ============
+func _spawn_arrows_around_player() -> void:
+	if not is_instance_valid(player):
+		return
+	
+	var arrow_count = 5
+	var radius = 60.0
+	var arrows: Array = []
+	
+	# Создаём 5 стрел вокруг игрока с задержкой
+	for i in arrow_count:
+		var angle = (TAU / float(arrow_count)) * i
+		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * radius
 		
-		# Добавляем в список активных миньонов
-		active_minions.append(minion)
+		# Создаём стрелу
+		var arrow = _create_warning_arrow(spawn_pos, player.global_position)
+		arrows.append(arrow)
+		
+		# Задержка между созданием стрел
+		await get_tree().create_timer(0.3).timeout
+	
+	# Ждём пока все стрелы "зарядятся" (светятся 0.3 сек)
+	await get_tree().create_timer(0.3).timeout
+	
+	# Запускаем все стрелы к игроку
+	for arrow in arrows:
+		if is_instance_valid(arrow) and is_instance_valid(player):
+			_launch_arrow_at_player(arrow)
 
-		# Анимация появления
-		var tween = create_tween()
-		tween.tween_property(minion, "modulate:a", 0.0, 0.0)
-		tween.tween_property(minion, "modulate:a", 1.0, 0.3)
+func _create_warning_arrow(spawn_pos: Vector2, target_pos: Vector2) -> Node2D:
+	var arrow = Area2D.new()
+	arrow.z_index = 10
+	arrow.global_position = spawn_pos
+	
+	# Направление к игроку (для поворота стрелы)
+	var direction = (target_pos - spawn_pos).normalized()
+	
+	# Визуальная часть стрелы
+	var sprite = Sprite2D.new()
+	sprite.texture = preload("res://sprites/enemys/skeletonBow/arrow.png")
+	sprite.rotation = direction.angle()
+	sprite.modulate = Color(1.0, 0.5, 0.5, 1.0)  # Красноватый цвет
+	arrow.add_child(sprite)
+	
+	# Коллизия
+	var shape = CollisionShape2D.new()
+	var circle = CircleShape2D.new()
+	circle.radius = 8.0
+	shape.shape = circle
+	arrow.add_child(shape)
+	arrow.collision_layer = 0
+	arrow.collision_mask = 1  # игрок
+	
+	# Эффект свечения (пульсация)
+	var glow_tween = create_tween()
+	glow_tween.set_loops()
+	glow_tween.tween_property(sprite, "modulate", Color(1.0, 0.3, 0.3, 1.0), 0.15)
+	glow_tween.tween_property(sprite, "modulate", Color(1.0, 0.7, 0.7, 1.0), 0.15)
+	arrow.set_meta("glow_tween", glow_tween)
+	
+	# Сохраняем направление для запуска
+	arrow.set_meta("direction", direction)
+	
+	get_tree().current_scene.add_child(arrow)
+	
+	# Звук появления
+	AudioManager.play_sfx("враг_выстрел_стрела")
+	
+	return arrow
 
-		# Визуальный эффект призыва
-		var summon_circle = CPUParticles2D.new()
-		summon_circle.emitting = true
-		summon_circle.one_shot = true
-		summon_circle.explosiveness = 1.0
-		summon_circle.amount = 20
-		summon_circle.lifetime = 0.4
-		summon_circle.spread = 360.0
-		summon_circle.initial_velocity_min = 60.0
-		summon_circle.initial_velocity_max = 100.0
-		summon_circle.scale_amount_min = 2.0
-		summon_circle.scale_amount_max = 4.0
-		summon_circle.color = Color(0.85, 0.85, 0.9, 0.6)
-		summon_circle.z_index = 5
-		summon_circle.global_position = pos
-		get_tree().current_scene.add_child(summon_circle)
+func _launch_arrow_at_player(arrow: Node2D) -> void:
+	if not is_instance_valid(arrow):
+		return
+	
+	# Останавливаем свечение
+	var glow_tween = arrow.get_meta("glow_tween")
+	if glow_tween:
+		glow_tween.kill()
+	
+	# Получаем направление (уже направлено к игроку)
+	var direction: Vector2 = arrow.get_meta("direction", Vector2.DOWN)
+	var speed = 300.0
+	
+	# Подключаем сигнал урона
+	arrow.body_entered.connect(func(body):
+		if body.is_in_group("player"):
+			if body.has_method("take_damage"):
+				body.take_damage(GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_BODY_DAMAGE))
+			if is_instance_valid(arrow):
+				arrow.queue_free()
+	)
+	
+	# Движение стрелы
+	var travel_time = 3.0
+	var travel_tween = create_tween()
+	travel_tween.tween_property(arrow, "global_position", arrow.global_position + direction * speed * travel_time, travel_time)
+	travel_tween.tween_callback(arrow.queue_free)
 
 # ============ АТАКА 03: Ультимативная способность (Bone Spear Rush) ============
 func start_charge_attack() -> void:
@@ -293,17 +402,22 @@ func start_charge_attack() -> void:
 	can_walk = false
 
 	var start_pos = global_position
-	# Цель — точка за игроком (проходит сквозь)
-	var to_player = (player.global_position - global_position).normalized()
-	charge_target_pos = player.global_position + to_player * 200.0
+	# Цель — позиция игрока на момент начала атаки (не обновляется)
+	charge_target_pos = player.global_position
+
+	# Задержка перед рывком для возможности увернуться
+	var warning_tween = create_tween()
+	warning_tween.tween_property(self, "modulate", Color(1.0, 0.3, 0.3, 1.0), 0.15)
+	warning_tween.parallel().tween_property(self, "scale", Vector2(1.2, 1.2), 0.15)
+	await get_tree().create_timer(0.35).timeout
 
 	# Анимация рывка
 	var charge_tween = create_tween()
-	charge_tween.tween_property(self, "modulate", Color(1.0, 1.0, 1.0, 0.6), 0.1)
-	charge_tween.parallel().tween_property(self, "scale", Vector2(1.3, 1.3), 0.15)
+	charge_tween.tween_property(self, "modulate", Color(1.0, 1.0, 1.0, 0.6), 0.05)
+	charge_tween.parallel().tween_property(self, "scale", Vector2(1.3, 1.3), 0.05)
 
-	# Рывок к цели
-	var dash_duration = 0.25
+	# Рывок к цели (в 2 раза быстрее)
+	var dash_duration = 0.125
 	var dash_tween = create_tween()
 	dash_tween.tween_property(self, "global_position", charge_target_pos, dash_duration).set_trans(Tween.TRANS_LINEAR)
 
@@ -323,6 +437,9 @@ func start_charge_attack() -> void:
 
 	# Удар в точке приземления
 	spawn_charge_hitbox()
+
+	# Небольшая пауза перед возвратом
+	await get_tree().create_timer(0.1).timeout
 
 	# Возврат к исходной позиции (частично)
 	var return_target = start_pos + (charge_target_pos - start_pos) * 0.3
@@ -353,7 +470,23 @@ func spawn_charge_hitbox() -> void:
 	hitbox.collision_mask = 1
 	get_tree().current_scene.add_child(hitbox)
 
-	# Визуальный эффект — взрыв
+	# Визуальный эффект — подсветка области песочным цветом (как в melee)
+	var flash = Polygon2D.new()
+	var pts = PackedVector2Array()
+	for i in 20:
+		var a = (TAU / 20.0) * i
+		pts.append(Vector2(cos(a), sin(a)) * 55.0)
+	flash.polygon = pts
+	flash.color = Color(0.9, 0.9, 0.95, 0.7)
+	flash.z_index = 10
+	flash.global_position = global_position
+	get_tree().current_scene.add_child(flash)
+
+	var tween = create_tween()
+	tween.tween_property(flash, "color:a", 0.0, 0.25)
+	tween.tween_callback(flash.queue_free)
+
+	# Визуальный эффект — взрыв частиц
 	var explosion = CPUParticles2D.new()
 	explosion.emitting = true
 	explosion.one_shot = true

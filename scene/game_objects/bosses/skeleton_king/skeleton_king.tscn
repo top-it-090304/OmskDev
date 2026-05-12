@@ -1,4 +1,4 @@
-[gd_scene load_steps=255 format=3 uid="uid://cqu11x06knfef"]
+[gd_scene load_steps=254 format=3 uid="uid://cqu11x06knfef"]
 
 [ext_resource type="Texture2D" uid="uid://d3ycw1nd8c1ns" path="res://sprites/bosses/Skeleton_King/Down/Png/SkeletonKingDownAttack01.png" id="1_0ux5b"]
 [ext_resource type="Script" uid="uid://det8keipox4nw" path="res://scene/game_objects/bosses/skeleton_king/skeleton_king.gd" id="1_script"]
@@ -1690,9 +1690,6 @@ animations = [{
 [sub_resource type="CircleShape2D" id="CircleShape2D_melee"]
 radius = 60.0
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_summon"]
-radius = 340.669
-
 [sub_resource type="CircleShape2D" id="CircleShape2D_charge"]
 radius = 190.0
 
@@ -1700,7 +1697,6 @@ radius = 190.0
 
 [node name="SkeletonKing" type="CharacterBody2D" groups=["enemies", "enemys"]]
 z_index = 2
-scale = Vector2(1.5, 1.5)
 collision_layer = 5
 script = ExtResource("1_script")
 
@@ -1721,13 +1717,6 @@ collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="detector_melee"]
 shape = SubResource("CircleShape2D_melee")
-
-[node name="detector_summon" type="Area2D" parent="."]
-z_index = 2
-collision_mask = 2
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="detector_summon"]
-shape = SubResource("CircleShape2D_summon")
 
 [node name="detector_charge" type="Area2D" parent="."]
 z_index = 2
@@ -1763,8 +1752,6 @@ offset_bottom = 24.0
 
 [connection signal="body_entered" from="detector_melee" to="." method="_on_detector_melee_body_entered"]
 [connection signal="body_exited" from="detector_melee" to="." method="_on_detector_melee_body_exited"]
-[connection signal="body_entered" from="detector_summon" to="." method="_on_detector_summon_body_entered"]
-[connection signal="body_exited" from="detector_summon" to="." method="_on_detector_summon_body_exited"]
 [connection signal="body_entered" from="detector_charge" to="." method="_on_detector_charge_body_entered"]
 [connection signal="body_exited" from="detector_charge" to="." method="_on_detector_charge_body_exited"]
 [connection signal="area_entered" from="hitbox" to="." method="_on_hitbox_area_entered"]

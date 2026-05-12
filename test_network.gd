@@ -12,9 +12,9 @@ func _ready() -> void:
 	print("=== Сетевая информация ===")
 print("Мультиплеер инициализирован: %s" % (NetworkManager.net_multiplayer != null))
 
-  if NetworkManager.net_multiplayer:
-      print("Уникальный ID: %d" % NetworkManager.net_multiplayer.get_unique_id())
-      print("Состояние подключения: %d" % NetworkManager.net_multiplayer.get_connection_status())
+if NetworkManager.net_multiplayer:
+	  print("Уникальный ID: %d" % NetworkManager.net_multiplayer.get_unique_id())
+	  print("Состояние подключения: %d" % NetworkManager.net_multiplayer.get_connection_status())
 	
 	print("Состояние NetworkManager: %d" % NetworkManager.connection_state)
 	print("Мой ID в NetworkManager: %d" % NetworkManager.my_id)

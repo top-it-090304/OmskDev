@@ -1,4 +1,4 @@
-[gd_scene load_steps=57 format=3 uid="uid://lobby_scene"]
+[gd_scene load_steps=47 format=3 uid="uid://dj0ud35blajx8"]
 
 [ext_resource type="Script" path="res://World/UI/lobby.gd" id="1_lobby"]
 [ext_resource type="Texture2D" uid="uid://4oxwsurkv5fc" path="res://assets/Button/GenericButton.png" id="2_btn"]
@@ -175,19 +175,23 @@ animations = [{
 }]
 
 [node name="Lobby" type="Control"]
+layout_mode = 3
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_lobby")
 
 [node name="Background" type="AnimatedSprite2D" parent="."]
 position = Vector2(270, 130)
-scale = Vector2(1, 1)
 sprite_frames = SubResource("SpriteFrames_bg")
 animation = &"new_animation"
 autoplay = "new_animation"
 
 [node name="Panel" type="Panel" parent="."]
 self_modulate = Color(0, 0, 0, 0.6)
+layout_mode = 0
 anchor_left = 0.25
 anchor_top = 0.1
 anchor_right = 0.75
@@ -195,36 +199,42 @@ anchor_bottom = 0.92
 
 [node name="Border" type="Sprite2D" parent="Panel"]
 position = Vector2(135, 110)
-scale = Vector2(5.5, 6.0)
+scale = Vector2(5.5, 6)
 texture = ExtResource("5_panel")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 theme_override_constants/separation = 8
 alignment = 1
 
 [node name="TitleLabel" type="Label" parent="Panel/VBoxContainer"]
-horizontal_alignment = 1
+layout_mode = 2
 theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 16
 text = "Комната"
+horizontal_alignment = 1
 
 [node name="CodeRow" type="HBoxContainer" parent="Panel/VBoxContainer"]
+layout_mode = 2
 alignment = 1
 
 [node name="CodePrefix" type="Label" parent="Panel/VBoxContainer/CodeRow"]
+layout_mode = 2
 theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 12
 text = "Код: "
 
 [node name="code_label" type="Label" parent="Panel/VBoxContainer/CodeRow"]
+layout_mode = 2
 theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 14
 text = "——"
 
 [node name="CopyButton" type="TextureButton" parent="Panel/VBoxContainer/CodeRow"]
 custom_minimum_size = Vector2(80, 24)
+layout_mode = 2
 texture_normal = ExtResource("2_btn")
 texture_pressed = ExtResource("3_btnp")
 stretch_mode = 0
@@ -249,6 +259,7 @@ vertical_alignment = 1
 layout_mode = 2
 
 [node name="PlayersLabel" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
 theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 11
 text = "Игроки:"
@@ -262,19 +273,21 @@ theme_override_constants/separation = 4
 layout_mode = 2
 
 [node name="status_label" type="Label" parent="Panel/VBoxContainer"]
-horizontal_alignment = 1
+layout_mode = 2
 theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 11
 text = "Статус: ..."
+horizontal_alignment = 1
 
 [node name="start_button" type="TextureButton" parent="Panel/VBoxContainer"]
+visible = false
 custom_minimum_size = Vector2(125, 24)
+layout_mode = 2
 size_flags_horizontal = 4
+disabled = true
 texture_normal = ExtResource("2_btn")
 texture_pressed = ExtResource("3_btnp")
 stretch_mode = 0
-visible = false
-disabled = true
 
 [node name="Label" type="Label" parent="Panel/VBoxContainer/start_button"]
 layout_mode = 1
@@ -294,6 +307,7 @@ vertical_alignment = 1
 
 [node name="back_button" type="TextureButton" parent="Panel/VBoxContainer"]
 custom_minimum_size = Vector2(125, 24)
+layout_mode = 2
 size_flags_horizontal = 4
 texture_normal = ExtResource("2_btn")
 texture_pressed = ExtResource("3_btnp")

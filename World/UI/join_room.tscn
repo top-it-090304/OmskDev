@@ -1,4 +1,4 @@
-[gd_scene load_steps=57 format=3 uid="uid://join_room_scene"]
+[gd_scene load_steps=47 format=3 uid="uid://bi05s77d5urai"]
 
 [ext_resource type="Script" path="res://World/UI/join_room.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://4oxwsurkv5fc" path="res://assets/Button/GenericButton.png" id="2_btn"]
@@ -175,19 +175,23 @@ animations = [{
 }]
 
 [node name="JoinRoom" type="Control"]
+layout_mode = 3
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_script")
 
 [node name="Background" type="AnimatedSprite2D" parent="."]
 position = Vector2(270, 130)
-scale = Vector2(1, 1)
 sprite_frames = SubResource("SpriteFrames_bg")
 animation = &"new_animation"
 autoplay = "new_animation"
 
 [node name="Panel" type="Panel" parent="."]
 self_modulate = Color(0, 0, 0, 0.6)
+layout_mode = 0
 anchor_left = 0.25
 anchor_top = 0.18
 anchor_right = 0.75
@@ -199,29 +203,33 @@ scale = Vector2(5.5, 4.8)
 texture = ExtResource("5_panel")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 theme_override_constants/separation = 6
 alignment = 1
 
 [node name="Title" type="Label" parent="Panel/VBoxContainer"]
-horizontal_alignment = 1
-text = "Подключение к комнате"
+layout_mode = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 14
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+text = "Подключение к комнате"
+horizontal_alignment = 1
 
 [node name="CodeInput" type="LineEdit" parent="Panel/VBoxContainer"]
 custom_minimum_size = Vector2(125, 24)
+layout_mode = 2
 size_flags_horizontal = 4
-placeholder_text = "Введите код"
-alignment = 1
 theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 13
+placeholder_text = "Введите код"
+alignment = 1
 max_length = 6
 
 [node name="PasteButton" type="TextureButton" parent="Panel/VBoxContainer"]
 custom_minimum_size = Vector2(125, 24)
+layout_mode = 2
 size_flags_horizontal = 4
 texture_normal = ExtResource("2_btn")
 texture_pressed = ExtResource("3_btnp")
@@ -244,13 +252,15 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="ErrorLabel" type="Label" parent="Panel/VBoxContainer"]
-horizontal_alignment = 1
+layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
 theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 10
+horizontal_alignment = 1
 
 [node name="ConnectButton" type="TextureButton" parent="Panel/VBoxContainer"]
 custom_minimum_size = Vector2(125, 24)
+layout_mode = 2
 size_flags_horizontal = 4
 texture_normal = ExtResource("2_btn")
 texture_pressed = ExtResource("3_btnp")
@@ -274,6 +284,7 @@ vertical_alignment = 1
 
 [node name="BackButton" type="TextureButton" parent="Panel/VBoxContainer"]
 custom_minimum_size = Vector2(125, 24)
+layout_mode = 2
 size_flags_horizontal = 4
 texture_normal = ExtResource("2_btn")
 texture_pressed = ExtResource("3_btnp")

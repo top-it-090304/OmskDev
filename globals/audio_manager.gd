@@ -51,14 +51,31 @@ const MAX_SFX_PER_TYPE = 3  # Максимум одновременно игра
 
 func _ready() -> void:
 	_music_player = AudioStreamPlayer.new()
-	_music_player.bus = "Master"
+	_music_player.bus = "Music"
 	add_child(_music_player)
 	
 	# Предзагружаем одиночные файлы
 	for key in SFX_FILES:
 		_sfx_files_cache[key] = load(SFX_FILES[key])
 	
+	# Применяем сохранённые настройки громкости
+	_load_audio_settings()
+	
 	play_explore()
+
+func _load_audio_settings() -> void:
+	var cfg := ConfigFile.new()
+	if cfg.load("user://settings.cfg") == OK:
+		var sfx_vol = float(cfg.get_value("audio", "sfx", 1.0))
+		var music_vol = float(cfg.get_value("audio", "music", 1.0))
+		_apply_bus_volume("SFX", sfx_vol)
+		_apply_bus_volume("Music", music_vol)
+
+func _apply_bus_volume(bus_name: String, value: float) -> void:
+	var idx := AudioServer.get_bus_index(bus_name)
+	if idx >= 0:
+		AudioServer.set_bus_volume_db(idx, linear_to_db(value) if value > 0 else -80.0)
+		AudioServer.set_bus_mute(idx, value == 0.0)
 
 # --- МУЗЫКА ---
 
@@ -133,7 +150,7 @@ func play_sfx(name: String) -> void:
 		return
 	
 	var player = AudioStreamPlayer.new()
-	player.bus = "Master"
+	player.bus = "SFX"
 	player.stream = stream
 	add_child(player)
 	player.play()
