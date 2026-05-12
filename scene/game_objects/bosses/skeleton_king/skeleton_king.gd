@@ -277,21 +277,23 @@ func summon_minions() -> void:
 			tween.tween_property(minion, "modulate:a", 0.0, 0.0)
 			tween.tween_property(minion, "modulate:a", 1.0, 0.3)
 			
-			var summon_circle = CPUParticles2D.new()
-			summon_circle.emitting = true
-			summon_circle.one_shot = true
-			summon_circle.explosiveness = 1.0
-			summon_circle.amount = 20
-			summon_circle.lifetime = 0.4
-			summon_circle.spread = 360.0
-			summon_circle.initial_velocity_min = 60.0
-			summon_circle.initial_velocity_max = 100.0
-			summon_circle.scale_amount_min = 2.0
-			summon_circle.scale_amount_max = 4.0
-			summon_circle.color = Color(0.85, 0.85, 0.9, 0.6)
-			summon_circle.z_index = 5
-			summon_circle.global_position = pos
-			get_tree().current_scene.add_child(summon_circle)
+			# Частицы призыва (только если включены)
+			if GameConstants.show_particles:
+				var summon_circle = CPUParticles2D.new()
+				summon_circle.emitting = true
+				summon_circle.one_shot = true
+				summon_circle.explosiveness = 1.0
+				summon_circle.amount = 20
+				summon_circle.lifetime = 0.4
+				summon_circle.spread = 360.0
+				summon_circle.initial_velocity_min = 60.0
+				summon_circle.initial_velocity_max = 100.0
+				summon_circle.scale_amount_min = 2.0
+				summon_circle.scale_amount_max = 4.0
+				summon_circle.color = Color(0.85, 0.85, 0.9, 0.6)
+				summon_circle.z_index = 5
+				summon_circle.global_position = pos
+				get_tree().current_scene.add_child(summon_circle)
 	
 	# Если миньонов максимум — запускаем стрелы вокруг игрока
 	_cleanup_minions()
@@ -486,22 +488,23 @@ func spawn_charge_hitbox() -> void:
 	tween.tween_property(flash, "color:a", 0.0, 0.25)
 	tween.tween_callback(flash.queue_free)
 
-	# Визуальный эффект — взрыв частиц
-	var explosion = CPUParticles2D.new()
-	explosion.emitting = true
-	explosion.one_shot = true
-	explosion.explosiveness = 1.0
-	explosion.amount = 40
-	explosion.lifetime = 0.5
-	explosion.spread = 360.0
-	explosion.initial_velocity_min = 80.0
-	explosion.initial_velocity_max = 150.0
-	explosion.scale_amount_min = 3.0
-	explosion.scale_amount_max = 6.0
-	explosion.color = Color(0.9, 0.8, 0.6, 0.8)
-	explosion.z_index = 10
-	explosion.global_position = global_position
-	get_tree().current_scene.add_child(explosion)
+	# Визуальный эффект — взрыв частиц (только если включены)
+	if GameConstants.show_particles:
+		var explosion = CPUParticles2D.new()
+		explosion.emitting = true
+		explosion.one_shot = true
+		explosion.explosiveness = 1.0
+		explosion.amount = 40
+		explosion.lifetime = 0.5
+		explosion.spread = 360.0
+		explosion.initial_velocity_min = 80.0
+		explosion.initial_velocity_max = 150.0
+		explosion.scale_amount_min = 3.0
+		explosion.scale_amount_max = 6.0
+		explosion.color = Color(0.9, 0.8, 0.6, 0.8)
+		explosion.z_index = 10
+		explosion.global_position = global_position
+		get_tree().current_scene.add_child(explosion)
 
 	AudioManager.play_sfx("босс_атака_выстрел")
 	hitbox.body_entered.connect(_on_charge_hitbox_body_entered)

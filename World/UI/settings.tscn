@@ -118,6 +118,22 @@ popup/item_1/id = 1
 popup/item_2/text = "Azərbaycan"
 popup/item_2/id = 2
 
+[node name="ParticlesRow" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/ParticlesRow"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_o0o4q")
+theme_override_font_sizes/font_size = 11
+text = "Частицы"
+vertical_alignment = 1
+
+[node name="CheckButton" type="CheckButton" parent="VBoxContainer/ParticlesRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Показывать"
+
 [node name="ControlsButton" type="TextureButton" parent="VBoxContainer"]
 custom_minimum_size = Vector2(160, 28)
 layout_mode = 2
@@ -163,5 +179,6 @@ vertical_alignment = 1
 [connection signal="value_changed" from="VBoxContainer/SoundRow/Slider" to="." method="_on_sound_changed"]
 [connection signal="value_changed" from="VBoxContainer/MusicRow/Slider" to="." method="_on_music_changed"]
 [connection signal="item_selected" from="VBoxContainer/LangRow/OptionButton" to="." method="_on_lang_selected"]
+[connection signal="toggled" from="VBoxContainer/ParticlesRow/CheckButton" to="." method="_on_particles_toggled"]
 [connection signal="pressed" from="VBoxContainer/ControlsButton" to="." method="_on_controls_pressed"]
 [connection signal="pressed" from="VBoxContainer/BackButton" to="." method="_on_back_pressed"]

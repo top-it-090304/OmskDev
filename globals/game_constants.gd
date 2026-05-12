@@ -5,6 +5,9 @@ signal constants_changed
 const CONFIG_PATH = "res://globals/game_consts.cfg"
 const RELOAD_CHECK_INTERVAL_SEC = 0.5
 
+# Графические настройки
+var show_particles: bool = true
+
 var MAP_MANAGER_ROOM_SIZE_X = 864
 var MAP_MANAGER_ROOM_SIZE_Y = 608 + 32
 var MAP_MANAGER_CORRIDOR_LENGTH = 64
@@ -116,7 +119,13 @@ var _last_cfg_mtime := -1
 
 func _ready() -> void:
 	load_from_disk()
+	_load_graphics_settings()
 	_last_cfg_mtime = FileAccess.get_modified_time(CONFIG_PATH)
+
+func _load_graphics_settings() -> void:
+	var cfg := ConfigFile.new()
+	if cfg.load("user://settings.cfg") == OK:
+		show_particles = bool(cfg.get_value("graphics", "show_particles", true))
 
 func _process(delta: float) -> void:
 	_reload_timer_sec += delta

@@ -20,21 +20,22 @@ func _spawn_effect() -> void:
 	flash.z_index = 10
 	add_child(flash)
 
-	# Частицы разлёта
-	var particles = CPUParticles2D.new()
-	particles.emitting = true
-	particles.one_shot = true
-	particles.explosiveness = 1.0
-	particles.amount = 12
-	particles.lifetime = 0.35
-	particles.initial_velocity_min = 60.0
-	particles.initial_velocity_max = 120.0
-	particles.scale_amount_min = 3.0
-	particles.scale_amount_max = 6.0
-	particles.color = Color(1.0, 0.7, 0.1, 1.0)
-	particles.gravity = Vector2.ZERO
-	particles.z_index = 10
-	add_child(particles)
+	# Частицы разлёта (только если включены)
+	if GameConstants.show_particles:
+		var particles = CPUParticles2D.new()
+		particles.emitting = true
+		particles.one_shot = true
+		particles.explosiveness = 1.0
+		particles.amount = 12
+		particles.lifetime = 0.35
+		particles.initial_velocity_min = 60.0
+		particles.initial_velocity_max = 120.0
+		particles.scale_amount_min = 3.0
+		particles.scale_amount_max = 6.0
+		particles.color = Color(1.0, 0.7, 0.1, 1.0)
+		particles.gravity = Vector2.ZERO
+		particles.z_index = 10
+		add_child(particles)
 
 	var tween = create_tween()
 	tween.tween_property(flash, "color:a", 0.0, 0.2)

@@ -3,6 +3,7 @@ extends Control
 @onready var sound_slider: HSlider = $VBoxContainer/SoundRow/Slider
 @onready var music_slider: HSlider = $VBoxContainer/MusicRow/Slider
 @onready var lang_option: OptionButton = $VBoxContainer/LangRow/OptionButton
+@onready var particles_check: CheckButton = $VBoxContainer/ParticlesRow/CheckButton
 
 const LANGS = ["ru", "en", "az"]
 const CFG_PATH = "user://settings.cfg"
@@ -19,6 +20,8 @@ func _load_settings() -> void:
 	music_slider.value = float(cfg.get_value("audio", "music", 1.0))
 	var lang: String = str(cfg.get_value("settings", "language", "ru"))
 	lang_option.selected = LANGS.find(lang) if LANGS.has(lang) else 0
+	# Загружаем настройку частиц
+	particles_check.button_pressed = bool(cfg.get_value("graphics", "show_particles", true))
 	# Применяем загруженные настройки громкости
 	_apply_bus("SFX", sound_slider.value)
 	_apply_bus("Music", music_slider.value)
@@ -41,6 +44,12 @@ func _save_setting(section: String, key: String, value) -> void:
 
 func _on_lang_selected(_idx: int) -> void:
 	pass  # applied on save
+
+func _on_particles_toggled(button_pressed: bool) -> void:
+	_save_setting("graphics", "show_particles", button_pressed)
+	# Обновляем глобальную настройку
+	if GameConstants:
+		GameConstants.show_particles = button_pressed
 
 func _apply_bus(bus_name: String, value: float) -> void:
 	var idx := AudioServer.get_bus_index(bus_name)
