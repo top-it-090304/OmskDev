@@ -2,7 +2,7 @@
 
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
-uid="uid://jkuru0kdbch7"
+uid="uid://emq8im4ueg6o"
 path="res://.godot/imported/музыка_исследования.ogg-e660e76bafac3ec59b07073319f92726.oggvorbisstr"
 
 [deps]
@@ -12,8 +12,8 @@ dest_files=["res://.godot/imported/музыка_исследования.ogg-e66
 
 [params]
 
-loop=true
+loop=false
 loop_offset=0.0
-bpm=120.0
+bpm=0.0
 beat_count=0
 bar_beats=4

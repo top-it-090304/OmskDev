@@ -99,22 +99,44 @@ func play_boss(boss_type: String = "skeleton_king") -> void:
 	_crossfade(new_stream)
 
 func _crossfade(new_stream: AudioStream) -> void:
-	if new_stream == null or _music_player.stream == new_stream:
+	if new_stream == null:
 		return
 	
-	# Если это первый запуск - играем сразу без затухания
-	if _music_player.stream == null:
+	# Если та же музыка уже играет - не делаем ничего
+	if _music_player.stream == new_stream and _music_player.playing:
+		return
+	
+	# Если это первый запуск или плеер остановлен - играем сразу
+	if _music_player.stream == null or not _music_player.playing:
 		_music_player.stream = new_stream
+		_music_player.volume_db = 0.0
 		_music_player.play()
+		_current_music = new_stream
 		return
 	
+	# Затухание текущей музыки
 	var tween = create_tween()
 	tween.tween_property(_music_player, "volume_db", -40.0, 1.0)
 	await tween.finished
+	
+	# Переключаем на новую музыку
 	_music_player.stream = new_stream
 	_music_player.play()
+	_current_music = new_stream
+	
+	# Нарастание новой музыки
 	var tween2 = create_tween()
 	tween2.tween_property(_music_player, "volume_db", 0.0, 1.0)
+
+func restart_music() -> void:
+	# Перезапускает музыку (полезно после загрузки сохранения)
+	if _current_music == null:
+		_current_music = MUSIC_EXPLORE
+	
+	_music_player.stop()
+	_music_player.stream = _current_music
+	_music_player.volume_db = 0.0
+	_music_player.play()
 
 func stop_music() -> void:
 	var tween = create_tween()
