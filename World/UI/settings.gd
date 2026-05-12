@@ -9,7 +9,6 @@ const CFG_PATH = "user://settings.cfg"
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	
 	_load_settings()
 
 func _load_settings() -> void:
@@ -50,5 +49,64 @@ func _apply_bus(bus_name: String, value: float) -> void:
 		AudioServer.set_bus_mute(idx, value == 0.0)
 
 func _on_back_pressed() -> void:
-	
 	queue_free()
+
+func _on_controls_pressed() -> void:
+	# Сохраняем откуда зашли
+	_save_came_from_scene()
+	
+	# Сохраняем состояние игрока перед сменой сцены
+	_save_player_state()
+	
+	# Снимаем паузу
+	get_tree().paused = false
+	
+	# Закрываем настройки
+	queue_free()
+	
+	# Меняем сцену на тестовую комнату
+	get_tree().change_scene_to_file("res://World/joystick_test_room.tscn")
+
+func _save_came_from_scene() -> void:
+	# Определяем текущую сцену
+	var current_scene = get_tree().current_scene
+	var scene_path = ""
+	
+	if current_scene:
+		scene_path = current_scene.scene_file_path
+		
+		# Если это уже настройки - берём родительскую сцену
+		if scene_path.contains("settings"):
+			# Проверяем есть ли игрок (значит зашли из игры)
+			var player = get_tree().get_first_node_in_group("player")
+			if player:
+				scene_path = "res://World/layer.tscn"
+			else:
+				scene_path = "res://World/UI/menu.tscn"
+	
+	var cfg := ConfigFile.new()
+	cfg.load(CFG_PATH)
+	cfg.set_value("joystick_edit", "came_from_scene", scene_path)
+	cfg.save(CFG_PATH)
+
+func _save_player_state() -> void:
+	var player = get_tree().get_first_node_in_group("player")
+	if not player:
+		return
+	
+	var state = {
+		"health": player.health_int,
+		"level": player.current_level,
+		"exp": player.current_exp,
+		"exp_to_next": player.exp_to_next_level,
+		"position_x": player.global_position.x,
+		"position_y": player.global_position.y,
+		"is_poisoned": player.is_poisoned,
+		"poison_timer": player.poison_timer,
+		"poison_damage": player.poison_damage_per_tick
+	}
+	
+	var cfg := ConfigFile.new()
+	cfg.load(CFG_PATH)
+	cfg.set_value("player_state", "saved_state", state)
+	cfg.save(CFG_PATH)

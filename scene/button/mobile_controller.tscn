@@ -1,9 +1,12 @@
-[gd_scene load_steps=3 format=3 uid="uid://5f3o7tew7oun"]
+[gd_scene load_steps=4 format=3 uid="uid://5f3o7tew7oun"]
 
+[ext_resource type="Script" uid="uid://cmobilectrl" path="res://scene/button/mobile_controller.gd" id="0_script"]
 [ext_resource type="PackedScene" uid="uid://dmr0fcamx7t56" path="res://addons/virtual_joystick/virtual_joystick_scene.tscn" id="1_meroc"]
 [ext_resource type="PackedScene" uid="uid://dfuapr48brg6e" path="res://addons/virtual_joystick/atack_c_ontrol.tscn" id="2_5v1cm"]
 
 [node name="MobileController" type="CanvasLayer"]
+script = ExtResource("0_script")
+layer = 10
 
 [node name="VirtualJoystick" parent="." instance=ExtResource("1_meroc")]
 offset_left = 16.0

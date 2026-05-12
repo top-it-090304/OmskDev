@@ -1,0 +1,47 @@
+[gd_scene load_steps=4 format=3 uid="uid://bdgclshae7wyo"]
+
+[ext_resource type="Script" path="res://World/joystick_test_room.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://5f3o7tew7oun" path="res://scene/button/mobile_controller.tscn" id="2_mobile"]
+[ext_resource type="PackedScene" uid="uid://dkgoa4jajp8yf" path="res://World/UI/joystick_edit_overlay.tscn" id="3_overlay"]
+
+[node name="JoystickTestRoom" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+z_index = -10
+offset_right = 540.0
+offset_bottom = 260.0
+color = Color(0.1, 0.1, 0.15, 1)
+
+[node name="Label" type="Label" parent="."]
+offset_left = 170.0
+offset_top = 20.0
+offset_right = 370.0
+offset_bottom = 50.0
+text = "Настройка джойстиков"
+horizontal_alignment = 1
+
+[node name="InstructionLabel" type="Label" parent="."]
+offset_left = 120.0
+offset_top = 60.0
+offset_right = 420.0
+offset_bottom = 100.0
+text = "Перетащите джойстик или измените размер
+(зум двумя пальцами)"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="MobileController" parent="." instance=ExtResource("2_mobile")]
+
+[node name="Overlay" parent="." instance=ExtResource("3_overlay")]
+anchors_preset = 4
+anchor_top = 0.5
+anchor_right = 0.0
+anchor_bottom = 0.5
+offset_left = 272.0
+offset_top = 240.0
+offset_right = 272.0
+offset_bottom = 240.0
+grow_horizontal = 1
+size_flags_horizontal = 4
+size_flags_vertical = 4

@@ -118,6 +118,27 @@ popup/item_1/id = 1
 popup/item_2/text = "Azərbaycan"
 popup/item_2/id = 2
 
+[node name="ControlsButton" type="TextureButton" parent="VBoxContainer"]
+custom_minimum_size = Vector2(160, 28)
+layout_mode = 2
+size_flags_horizontal = 4
+texture_normal = ExtResource("2_btn")
+texture_pressed = ExtResource("3_btnp")
+stretch_mode = 0
+
+[node name="Label" type="Label" parent="VBoxContainer/ControlsButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("5_o0o4q")
+theme_override_font_sizes/font_size = 12
+text = "Управление"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="BackButton" type="TextureButton" parent="VBoxContainer"]
 custom_minimum_size = Vector2(160, 28)
 layout_mode = 2
@@ -142,4 +163,5 @@ vertical_alignment = 1
 [connection signal="value_changed" from="VBoxContainer/SoundRow/Slider" to="." method="_on_sound_changed"]
 [connection signal="value_changed" from="VBoxContainer/MusicRow/Slider" to="." method="_on_music_changed"]
 [connection signal="item_selected" from="VBoxContainer/LangRow/OptionButton" to="." method="_on_lang_selected"]
+[connection signal="pressed" from="VBoxContainer/ControlsButton" to="." method="_on_controls_pressed"]
 [connection signal="pressed" from="VBoxContainer/BackButton" to="." method="_on_back_pressed"]
