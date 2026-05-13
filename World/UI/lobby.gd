@@ -8,6 +8,10 @@ extends Control
 var _peers: Array[int] = []
 
 func _ready() -> void:
+	# Иначе @rpc("authority") из лобби может не уходить с хоста (authority != SERVER_ID)
+	if NetworkManager.is_multiplayer_active():
+		set_multiplayer_authority(NetworkManager.SERVER_ID)
+
 	start_button.visible = NetworkManager.is_hosting()
 	start_button.disabled = true
 
@@ -22,6 +26,7 @@ func _ready() -> void:
 	else:
 		code_label.text = "——"
 		_set_status("Подключено. Ожидание хоста...")
+		SaveSystem.delete_dungeon_state()
 
 	_rebuild_player_list()
 
@@ -70,14 +75,16 @@ func _rebuild_player_list() -> void:
 func _on_start_button_pressed() -> void:
 	if not NetworkManager.is_hosting():
 		return
-	var peers_to_spawn := _peers.duplicate()
-	rpc("_rpc_start_game")
+	var peers_to_spawn: Array = _peers.duplicate()
+	_rpc_start_game.rpc(peers_to_spawn)
+
+@rpc("authority", "call_local", "reliable")
+func _rpc_start_game(peers_to_spawn: Array) -> void:
 	_load_game(peers_to_spawn)
 
-@rpc("authority", "call_remote", "reliable")
-func _rpc_start_game() -> void:
-	_load_game([])
-
 func _load_game(peers_to_spawn: Array) -> void:
+	# Новый кооп-ран: данж генерирует только хост; старый dungeon_state у гостя перезапишется по RPC
+	if NetworkManager.is_hosting():
+		SaveSystem.delete_dungeon_state()
 	PlayerManager.pending_peers = peers_to_spawn
 	get_tree().change_scene_to_file("res://World/layer.tscn")

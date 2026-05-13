@@ -38,9 +38,6 @@ var item_draw_pile: Array[PackedScene] = []
 # Seed для генерации (для сохранения/загрузки)
 var generation_seed: int = 0
 
-# Люк в комнате босса
-var boss_hatch: Node2D = null
-
 #minimap
 var current_room_grid_pos = Vector2i(GameConstants.MAP_MANAGER_GRID_SIZE / 2, GameConstants.MAP_MANAGER_GRID_SIZE / 2)
 signal room_changed(new_grid_pos)
@@ -48,7 +45,7 @@ var visited_rooms = []
 var seen_rooms = []
 
 
-func _ready():
+func _ready() -> void:
 	add_to_group("map_manager")
 	get_tree().auto_accept_quit = false  # Перехватываем попытки выхода
 
@@ -56,13 +53,43 @@ func _ready():
 		push_error("ОШИБКА: Добавь хотя бы по одной сцене для Start, Normal и Boss комнат!")
 		return
 
-	# Проверяем, есть ли сохраненный seed
+	call_deferred("_boot_dungeon_async")
+
+
+func _client_retry_finalize_if_needed() -> void:
+	if not NetworkManager.is_multiplayer_active() or NetworkManager.is_hosting():
+		return
+	if PlayerManager.network_spawn_finalize_done:
+		return
+	push_warning("MapManager: клиент — повторный finalize_network_spawns (после сбоя загрузки данжа?)")
+	PlayerManager.finalize_network_spawns()
+
+
+func _boot_dungeon_async() -> void:
+	PlayerManager.network_spawn_finalize_done = false
+	# Гость (не хост лобби): ждём dungeon с хоста. Не используем is_client() — при HOSTING
+	# иногда is_server() ещё не готов, и хост ошибочно попадал в эту ветку и зависал на await.
+	if NetworkManager.is_multiplayer_active() and not NetworkManager.is_hosting():
+		await get_tree().process_frame
+		var ok: bool = await NetworkManager.client_wait_dungeon_ready(75.0)
+		if not ok:
+			NetworkManager.rpc_request_dungeon_resync.rpc_id(NetworkManager.SERVER_ID)
+			ok = await NetworkManager.client_wait_dungeon_ready(30.0)
+		if SaveSystem.has_dungeon_state():
+			await load_dungeon_state()
+		else:
+			push_error("MapManager: клиент так и не получил dungeon_state")
+		PlayerManager.finalize_network_spawns()
+		# Если load_dungeon_state упал по ошибке, finalize не отработал — повтор через несколько секунд
+		var retry_t := get_tree().create_timer(3.0)
+		retry_t.timeout.connect(_client_retry_finalize_if_needed, CONNECT_ONE_SHOT)
+		return
+
 	if SaveSystem.has_dungeon_state():
 		print("=== ЗАГРУЗКА СОХРАНЕННОГО ДАНЖЕНА ===")
-		load_dungeon_state()
+		await load_dungeon_state()
 	else:
 		print("=== ГЕНЕРАЦИЯ НОВОГО ДАНЖЕНА ===")
-		# Генерируем новый seed
 		generation_seed = randi()
 		seed(generation_seed)
 		print("Seed генерации: ", generation_seed)
@@ -74,13 +101,45 @@ func _ready():
 		await _spawn_obstacles_after_physics()
 		await _spawn_enemies_after_physics()
 
-		# НОВОЕ: Спавним предметы в комнатах сокровищ (делаем это последним)
 		_spawn_treasure_items()
 
 		change_current_room(current_room_grid_pos.x, current_room_grid_pos.y)
 
-		# Сохраняем состояние данжена
 		save_dungeon_state()
+
+	if NetworkManager.is_multiplayer_active() and NetworkManager.is_hosting():
+		NetworkManager.host_publish_dungeon_state()
+
+	PlayerManager.finalize_network_spawns()
+
+func get_coop_spawn_points() -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	for room_data in spawned_rooms:
+		if room_data["type"] != RoomType.START:
+			continue
+		var room_node := room_data["node"] as Node2D
+		var base: Vector2
+		var marker := room_node.find_child("PlayerSpawn", true, false) as Node2D
+		if marker:
+			base = marker.global_position
+		else:
+			var lc := Vector2(
+				GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2.0,
+				GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2.0
+			)
+			base = room_node.to_global(lc)
+		var offsets: Array[Vector2] = [
+			Vector2.ZERO,
+			Vector2(72, 0),
+			Vector2(-72, 0),
+			Vector2(0, 72),
+			Vector2(48, 48),
+			Vector2(-48, -48),
+		]
+		for off in offsets:
+			out.append(base + off)
+		break
+	return out
 
 func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
@@ -141,7 +200,8 @@ func _get_next_treasure_item() -> PackedScene:
 	if item_draw_pile.is_empty():
 		item_draw_pile = treasure_items.duplicate()
 		item_draw_pile.shuffle()
-		
+	if item_draw_pile.is_empty():
+		return null
 	# Достаем верхнюю карту из колоды (pop_back() быстрее, чем pop_front())
 	return item_draw_pile.pop_back()
 
@@ -166,6 +226,7 @@ func _spawn_treasure_items():
 
 			# Добавляем предмет напрямую в корень комнаты
 			room_node.add_child(item_instance)
+			item_instance.set_meta("_treasure_room_grid", room_pos)
 
 			# Строго по центру комнаты
 			var local_center = Vector2(GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2.0, GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2.0)
@@ -346,6 +407,7 @@ func _spawn_obstacles_in_room(room_node: Node2D, room_type: RoomType):
 		
 	if obstacle_data.is_empty():
 		return
+	var n_obstacles := obstacle_data.size()
 
 	var container = room_node.find_child("Obstacles")
 	if container == null:
@@ -361,31 +423,23 @@ func _spawn_obstacles_in_room(room_node: Node2D, room_type: RoomType):
 	var space_state = get_world_2d().direct_space_state
 	var spawned_rects: Array[Rect2] = []
 	var padding = 8.0 
-	
-	# Размеры проходов (запретные зоны у дверей)
-	var room_width = GameConstants.MAP_MANAGER_ROOM_SIZE_X
-	var room_height = GameConstants.MAP_MANAGER_ROOM_SIZE_Y
-	var passage_half_width = 64  # Полуширина запретной зоны (проход ~64px)
-	var wall_margin_top = 128  # Отступ от верхней стены (стена 64px + проход 64px)
-	var wall_margin_sides_bottom = 64  # Отступ от остальных стен
-	
-	# Центры проходов на каждой стороне
-	var center_x = room_width / 2.0
-	var center_y = room_height / 2.0
 
 	for _i in range(obstacle_count):
-		var data 
+		var data: Dictionary
 		match type_of_room:
-			1: data = obstacle_data[0]
-			2: 
-				if randi_range(0, 1): data = obstacle_data[1] 
-				else: data = obstacle_data[2]
-			
+			1:
+				data = obstacle_data[0]
+			2:
+				if n_obstacles >= 3:
+					data = obstacle_data[1] if randi_range(0, 1) == 0 else obstacle_data[2]
+				else:
+					data = obstacle_data[mini(1, n_obstacles - 1)]
 			3:
-				var r = randi_range(0, 2)
-				if r == 0: data = obstacle_data[3] 
-				elif r == 1: data = obstacle_data[4]
-				else: data = obstacle_data[5]
+				if n_obstacles >= 6:
+					var r := randi_range(0, 2)
+					data = obstacle_data[3 + r]
+				else:
+					data = obstacle_data[mini(3, n_obstacles - 1)]
 				
 		var scene: PackedScene = data["scene"]
 		var size: Vector2 = data["size"]
@@ -404,23 +458,8 @@ func _spawn_obstacles_in_room(room_node: Node2D, room_type: RoomType):
 		var max_attempts = 30
 
 		for _attempt in range(max_attempts):
-			var local_x = randf_range(half_size.x + wall_margin_sides_bottom, room_width - half_size.x - wall_margin_sides_bottom)
-			var local_y = randf_range(half_size.y + wall_margin_top, room_height - half_size.y - wall_margin_sides_bottom)
-			
-			# Проверяем, не попадает ли объект в зону прохода
-			# Верхний проход (y = 64, центр по x) - с учётом стены 64px сверху
-			if local_y <= wall_margin_top + passage_half_width + half_size.y and abs(local_x - center_x) <= passage_half_width + half_size.x:
-				continue
-			# Нижний проход (y = room_height - 64, центр по x)
-			if local_y >= room_height - wall_margin_sides_bottom - passage_half_width - half_size.y and abs(local_x - center_x) <= passage_half_width + half_size.x:
-				continue
-			# Левый проход (x = 64, центр по y)
-			if local_x <= wall_margin_sides_bottom + passage_half_width + half_size.x and abs(local_y - center_y) <= passage_half_width + half_size.y:
-				continue
-			# Правый проход (x = room_width - 64, центр по y)
-			if local_x >= room_width - wall_margin_sides_bottom - passage_half_width - half_size.x and abs(local_y - center_y) <= passage_half_width + half_size.y:
-				continue
-			
+			var local_x = randf_range(half_size.x + 64, GameConstants.MAP_MANAGER_ROOM_SIZE_X - half_size.x - 64)
+			var local_y = randf_range(half_size.y + 64, GameConstants.MAP_MANAGER_ROOM_SIZE_Y - half_size.y - 64)
 			var local_pos = Vector2(local_x, local_y)
 			var global_pos = room_node.to_global(local_pos)
 			
@@ -481,91 +520,40 @@ func _spawn_enemies_after_physics():
 		for _i in range(enemy_count):
 			_spawn_single_enemy(space_state, room_node)
 func _spawn_boss(space_state, room_node):
-		var local_x = (GameConstants.MAP_MANAGER_ROOM_SIZE_X /2)
-		var local_y = (GameConstants.MAP_MANAGER_ROOM_SIZE_Y /2)
-		var local_point = Vector2(local_x, local_y)
-		var global_point = room_node.to_global(local_point)
+	if boss_variations.is_empty():
+		push_warning("MapManager: boss_variations пуст — босс не заспавнен")
+		return
+	var local_x = (GameConstants.MAP_MANAGER_ROOM_SIZE_X /2)
+	var local_y = (GameConstants.MAP_MANAGER_ROOM_SIZE_Y /2)
+	var local_point = Vector2(local_x, local_y)
+	var global_point = room_node.to_global(local_point)
 
-		var query = PhysicsPointQueryParameters2D.new()
-		query.position = global_point 
-		query.collide_with_bodies = true  
-		query.collide_with_areas = false  
-		query.collision_mask = 1 
+	var query = PhysicsPointQueryParameters2D.new()
+	query.position = global_point 
+	query.collide_with_bodies = true  
+	query.collide_with_areas = false  
+	query.collision_mask = 1 
 
-		var intersection = space_state.intersect_point(query)
+	var intersection = space_state.intersect_point(query)
 
-		if intersection.is_empty():
-			var selected_boss_scene = boss_variations.pick_random()
-			var boss = selected_boss_scene.instantiate()
-			
-			var area_enemys = room_node.find_child("Enemys")
-			if area_enemys == null:
-				return
-			
-			area_enemys.add_child(boss)
-			boss.global_position = global_point
-			
-			# Спавним закрытый люк в центре комнаты босса
-			_spawn_boss_hatch(room_node)
-			return 
+	if intersection.is_empty():
+		var selected_boss_scene = boss_variations.pick_random()
+		var boss = selected_boss_scene.instantiate()
+		
+		var area_enemys = room_node.find_child("Enemys")
+		if area_enemys == null:
+			return
+		
+		area_enemys.add_child(boss)
+		boss.global_position = global_point
+		return 
 
-func _spawn_boss_hatch(room_node: Node2D):
-	var hatch_scene = preload("res://scene/pick_up/hatch.tscn")
-	var hatch = hatch_scene.instantiate()
-	
-	var local_x = (GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2.0)
-	var local_y = (GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2.0)
-	var global_center = room_node.to_global(Vector2(local_x, local_y))
-	
-	room_node.add_child(hatch)
-	hatch.global_position = global_center
-	hatch.z_index = 1
-	
-	# Сохраняем ссылку на люк
-	boss_hatch = hatch
-
-func open_boss_hatch():
-	if boss_hatch and is_instance_valid(boss_hatch):
-		boss_hatch.open_hatch()
-		# Сохраняем что люк открыт
-		SaveSystem.set_boss_hatch_opened(true)
-
-func restore_boss_hatch_state():
-	if SaveSystem.is_boss_hatch_opened() and boss_hatch and is_instance_valid(boss_hatch):
-		boss_hatch.open_hatch()
-		print("Люк босса восстановлен как открытый") 
 func _spawn_single_enemy(space_state, room_node):
 	var max_attempts = 30 
 	
-	# Размеры проходов (запретные зоны у дверей)
-	var room_width = GameConstants.MAP_MANAGER_ROOM_SIZE_X
-	var room_height = GameConstants.MAP_MANAGER_ROOM_SIZE_Y
-	var passage_half_width = 64  # Полуширина запретной зоны (проход ~64px)
-	var wall_margin_top = 128  # Отступ от верхней стены (стена 64px + проход 64px)
-	var wall_margin_sides_bottom = 64  # Отступ от остальных стен
-	
-	# Центры проходов на каждой стороне
-	var center_x = room_width / 2.0
-	var center_y = room_height / 2.0
-	
 	for _attempt in range(max_attempts):
-		var local_x = randf_range(wall_margin_sides_bottom, room_width - wall_margin_sides_bottom)
-		var local_y = randf_range(wall_margin_top, room_height - wall_margin_sides_bottom)
-		
-		# Проверяем, не попадает ли враг в зону прохода
-		# Верхний проход (y = 64, центр по x) - с учётом стены 64px сверху
-		if local_y <= wall_margin_top + passage_half_width and abs(local_x - center_x) <= passage_half_width:
-			continue
-		# Нижний проход (y = room_height - 64, центр по x)
-		if local_y >= room_height - wall_margin_sides_bottom - passage_half_width and abs(local_x - center_x) <= passage_half_width:
-			continue
-		# Левый проход (x = 64, центр по y)
-		if local_x <= wall_margin_sides_bottom + passage_half_width and abs(local_y - center_y) <= passage_half_width:
-			continue
-		# Правый проход (x = room_width - 64, центр по y)
-		if local_x >= room_width - wall_margin_sides_bottom - passage_half_width and abs(local_y - center_y) <= passage_half_width:
-			continue
-		
+		var local_x = randf_range(64, GameConstants.MAP_MANAGER_ROOM_SIZE_X - 64)
+		var local_y = randf_range(64, GameConstants.MAP_MANAGER_ROOM_SIZE_Y - 64)
 		var local_point = Vector2(local_x, local_y)
 		var global_point = room_node.to_global(local_point)
 
@@ -578,6 +566,8 @@ func _spawn_single_enemy(space_state, room_node):
 		var intersection = space_state.intersect_point(query)
 
 		if intersection.is_empty():
+			if enemy_variations.is_empty():
+				return
 			var selected_enemy_scene = enemy_variations.pick_random()
 			var enemy = selected_enemy_scene.instantiate()
 			
@@ -783,18 +773,24 @@ func load_dungeon_state():
 	visited_rooms.clear()
 	if "visited_rooms" in dungeon_data:
 		for room_pos in dungeon_data["visited_rooms"]:
-			visited_rooms.append(Vector2i(room_pos["x"], room_pos["y"]))
+			if not room_pos is Dictionary:
+				continue
+			visited_rooms.append(Vector2i(int(room_pos.get("x", 0)), int(room_pos.get("y", 0))))
 
 	# Восстанавливаем увиденные комнаты
 	seen_rooms.clear()
 	if "seen_rooms" in dungeon_data:
 		for room_pos in dungeon_data["seen_rooms"]:
-			seen_rooms.append(Vector2i(room_pos["x"], room_pos["y"]))
+			if not room_pos is Dictionary:
+				continue
+			seen_rooms.append(Vector2i(int(room_pos.get("x", 0)), int(room_pos.get("y", 0))))
 
 	# Удаляем врагов из зачищенных комнат
 	if "cleared_rooms" in dungeon_data:
 		for cleared_pos in dungeon_data["cleared_rooms"]:
-			var cleared_vec = Vector2i(cleared_pos["x"], cleared_pos["y"])
+			if not cleared_pos is Dictionary:
+				continue
+			var cleared_vec = Vector2i(int(cleared_pos.get("x", 0)), int(cleared_pos.get("y", 0)))
 			for room_data in spawned_rooms:
 				if room_data["grid_pos"] == cleared_vec:
 					var room_node = room_data["node"]
@@ -804,39 +800,40 @@ func load_dungeon_state():
 							enemy.queue_free()
 					break
 
-	# Восстанавливаем состояние люка босса
-	restore_boss_hatch_state()
-
 	# Очищаем "колоду" предметов, чтобы не было дубликатов
 	item_draw_pile.clear()
 
 	# Восстанавливаем текущую комнату
 	if "current_room_pos" in dungeon_data:
 		var room_pos = dungeon_data["current_room_pos"]
-		current_room_grid_pos = Vector2i(room_pos["x"], room_pos["y"])
+		if room_pos is Dictionary:
+			current_room_grid_pos = Vector2i(int(room_pos.get("x", 0)), int(room_pos.get("y", 0)))
+		else:
+			current_room_grid_pos = get_safe_room_position()
 	else:
 		current_room_grid_pos = get_safe_room_position()
 	
-	# Телепортируем игрока
-	var player = get_tree().get_first_node_in_group("player")
-	if player:
-		if SaveSystem.saved_player_position != Vector2.ZERO:
-			# Если позиция сохранена — восстанавливаем
-			player.global_position = SaveSystem.saved_player_position
-			print("Игрок восстановлен в позиции: ", SaveSystem.saved_player_position)
-		else:
-			# Если позиция НЕ сохранена — спавним в стартовой комнате (4, 4)
-			for room_data in spawned_rooms:
-				if room_data["type"] == RoomType.START:
-					var room_node = room_data["node"] as Node2D
-					var spawn_marker = room_node.find_child("PlayerSpawn", true, false)
-					if spawn_marker:
-						player.global_position = spawn_marker.global_position
-					else:
-						var local_center = Vector2(GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2.0, GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2.0)
-						player.global_position = room_node.to_global(local_center)
-					print("Игрок спавнится в стартовой комнате")
-					break
+	# В коопе позиции задаёт PlayerManager.finalize_network_spawns — иначе двигаем только одного из get_first_node_in_group("player")
+	if not get_tree().get_multiplayer().has_multiplayer_peer():
+		var player = get_tree().get_first_node_in_group("player")
+		if player:
+			if SaveSystem.saved_player_position != Vector2.ZERO:
+				# Если позиция сохранена — восстанавливаем
+				player.global_position = SaveSystem.saved_player_position
+				print("Игрок восстановлен в позиции: ", SaveSystem.saved_player_position)
+			else:
+				# Если позиция НЕ сохранена — спавним в стартовой комнате (4, 4)
+				for room_data in spawned_rooms:
+					if room_data["type"] == RoomType.START:
+						var room_node = room_data["node"] as Node2D
+						var spawn_marker = room_node.find_child("PlayerSpawn", true, false)
+						if spawn_marker:
+							player.global_position = spawn_marker.global_position
+						else:
+							var local_center = Vector2(GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2.0, GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2.0)
+							player.global_position = room_node.to_global(local_center)
+						print("Игрок спавнится в стартовой комнате")
+						break
 	
 	change_current_room(current_room_grid_pos.x, current_room_grid_pos.y)
 	update_visibility()

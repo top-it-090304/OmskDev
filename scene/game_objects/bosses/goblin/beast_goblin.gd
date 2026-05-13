@@ -382,7 +382,7 @@ func _open_hatch_via_map_manager():
 		map_manager.open_boss_hatch()
 
 func _give_exp_to_player():
-	var p = get_tree().get_first_node_in_group("player")
+	var p := PlayerManager.get_player_for_local_rewards()
 	if p and p.has_method("add_experience"):
 		p.add_experience(GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_EXP_REWARD))
 

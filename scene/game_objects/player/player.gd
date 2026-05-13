@@ -61,6 +61,14 @@ var interpolation_timer: float = 0.0
 
 const INTERPOLATION_DELAY: float = 0.1
 
+## Синхрон позиции в мультиплеере (раньше — каждый physics-кадр → лаг клиента)
+const POS_SYNC_MIN_INTERVAL_SEC := 1.0 / 22.0
+const POS_SYNC_MIN_DIST_SQ := 2.25
+
+var _pos_sync_accum: float = 0.0
+var _last_sent_pos_net: Vector2 = Vector2(NAN, NAN)
+var _last_sent_dir_net: int = -9999
+
 # =========================================================
 # SIGNALS
 # =========================================================
@@ -73,12 +81,11 @@ signal level_up(new_level)
 # RPC
 # =========================================================
 
-@rpc("authority", "call_local", "unreliable_ordered")
+@rpc("authority", "call_remote", "unreliable_ordered")
 func rpc_set_position(pos: Vector2, dir: int) -> void:
-	if not is_local_player:
-		target_position = pos
-		target_direction = dir
-		interpolation_timer = 0.0
+	target_position = pos
+	target_direction = dir
+	interpolation_timer = 0.0
 
 @rpc("authority", "call_local")
 func rpc_take_damage(amount: int) -> void:
@@ -111,12 +118,17 @@ func _physics_process(delta: float) -> void:
 	if is_local_player:
 		move_and_slide()
 
-		# Отправляем позицию другим игрокам
-		if get_tree().get_multiplayer().get_multiplayer_peer():
-			rpc_set_position(
-				global_position,
-				current_dir
-			)
+		var mp := get_tree().get_multiplayer()
+		if mp.has_multiplayer_peer():
+			_pos_sync_accum += delta
+			if _pos_sync_accum >= POS_SYNC_MIN_INTERVAL_SEC:
+				_pos_sync_accum = 0.0
+				var pos_d2 := global_position.distance_squared_to(_last_sent_pos_net)
+				var dir_changed := current_dir != _last_sent_dir_net
+				if dir_changed or pos_d2 >= POS_SYNC_MIN_DIST_SQ or is_nan(_last_sent_pos_net.x):
+					_last_sent_pos_net = global_position
+					_last_sent_dir_net = current_dir
+					rpc_set_position.rpc(global_position, current_dir)
 
 	else:
 		# Интерполяция удаленных игроков
@@ -315,6 +327,15 @@ func attack(from_rpc: bool = false) -> void:
 		else:
 			rpc_attack.rpc_id(1, true)
 
+@rpc("any_peer", "call_remote", "reliable")
+func rpc_server_teleport_to(pos: Vector2) -> void:
+	if multiplayer.get_remote_sender_id() != NetworkManager.SERVER_ID:
+		return
+	global_position = pos
+	velocity = Vector2.ZERO
+	if is_local_player:
+		_last_sent_pos_net = Vector2(NAN, NAN)
+
 # =========================================================
 # DAMAGE
 # =========================================================
@@ -492,6 +513,43 @@ func _ready() -> void:
 	if not is_local_player:
 		if attack_joystick:
 			attack_joystick.set_process(false)
+		_hide_ui_for_remote_peer()
+	else:
+		add_to_group("local_player")
+		if has_node("Camera2D"):
+			var cam := $Camera2D as Camera2D
+			cam.enabled = true
+			cam.make_current()
+
+# =========================================================
+# MULTIPLAYER UI
+# =========================================================
+
+func _hide_ui_for_remote_peer() -> void:
+	if has_node("Camera2D"):
+		var cam := $Camera2D as Camera2D
+		cam.enabled = false
+		cam.visible = false
+
+	for node_name in [
+		"TextureProgressBar",
+		"TextureButton",
+		"InventoryButton",
+		"LevelUpPopup",
+	]:
+		if has_node(node_name):
+			var n := get_node(node_name)
+			n.visible = false
+			n.process_mode = Node.PROCESS_MODE_DISABLED
+
+	var mc := get_node_or_null("MobileController") as CanvasLayer
+	if mc:
+		mc.visible = false
+		for c in mc.get_children():
+			if c is Control:
+				(c as Control).visible = false
+				(c as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+				(c as Control).process_mode = Node.PROCESS_MODE_DISABLED
 
 # =========================================================
 # CONSTANTS UPDATE
@@ -565,6 +623,9 @@ func heal(amount: int) -> void:
 # =========================================================
 
 func add_experience(amount: int) -> void:
+	if get_tree().get_multiplayer().has_multiplayer_peer() and not is_local_player:
+		return
+
 	var multiplier = 1.0
 
 	if "PLAYER_EXP_MULTIPLIER_BONUS" in GameConstants:
@@ -596,6 +657,9 @@ func _calculate_exp_for_level(level: int) -> int:
 # =========================================================
 
 func level_up_player() -> void:
+	if get_tree().get_multiplayer().has_multiplayer_peer() and not is_local_player:
+		return
+
 	current_level += 1
 
 	GameConstants.PLAYER_LEVEL = current_level

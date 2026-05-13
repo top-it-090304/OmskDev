@@ -68,6 +68,10 @@ func add_artefact(artefact_data) -> void:
 		"description": artefact_data.artefact_description if "artefact_description" in artefact_data else ""
 	}
 
+	for a in collected_artefacts:
+		if a.get("name", "") == artefact_info["name"]:
+			return
+
 	collected_artefacts.append(artefact_info)
 
 	# Создаем иконку

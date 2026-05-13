@@ -8,8 +8,8 @@ func _ready():
 	parent_room_node = get_parent()
 	body_entered.connect(_on_body_entered)
 
-func _on_body_entered(body):
-	if body.name == "Player":
+func _on_body_entered(body: Node2D) -> void:
+	if body.is_in_group("player"):
 		var manager = get_tree().root.find_child("MapManager", true, false)
 		if manager:
 			# Передаем координаты комнаты, в которой лежит эта зона

@@ -140,7 +140,7 @@ func death():
 	queue_free()
 
 func _give_exp_to_player():
-	var player_node = get_tree().get_first_node_in_group("player")
+	var player_node := PlayerManager.get_player_for_local_rewards()
 	if player_node and player_node.has_method("add_experience"):
 		var exp_reward = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_GOBLIN_AXE_EXP_REWARD)
 		player_node.add_experience(exp_reward)

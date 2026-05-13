@@ -41,8 +41,20 @@ func _spawn_effect() -> void:
 	tween.tween_property(flash, "color:a", 0.0, 0.2)
 	tween.tween_callback(flash.queue_free)
 
+func _on_area_entered(_area: Area2D) -> void:
+	pass
+
+
 func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):
 		body.take_damage(GameConstants.SMITE_DAMAGE)
+		_disable_smite_hitbox()
 
-	
+
+func _disable_smite_hitbox() -> void:
+	# После удара зона не должна продолжать ловить коллизии / наносить урон
+	set_deferred("monitoring", false)
+	set_deferred("monitorable", false)
+	var cs := get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if cs:
+		cs.set_deferred("disabled", true)
