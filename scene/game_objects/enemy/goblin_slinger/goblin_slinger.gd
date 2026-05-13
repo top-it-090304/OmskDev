@@ -86,6 +86,23 @@ func update_direction(dir: Vector2):
 	else:
 		current_dir = Dir.UP if dir.y < 0 else Dir.DOWN
 
+
+func _sync_facing_dir_from_sprite_animation() -> void:
+	var s := str(anim.animation)
+	for suf_key in ["_up", "_down", "_left", "_right"]:
+		if s.ends_with(suf_key):
+			match suf_key:
+				"_up":
+					current_dir = Dir.UP
+				"_down":
+					current_dir = Dir.DOWN
+				"_left":
+					current_dir = Dir.LEFT
+				"_right":
+					current_dir = Dir.RIGHT
+			return
+
+
 func play_run_animation():
 	match current_dir:
 		Dir.UP: anim.play("run_up")
@@ -149,19 +166,41 @@ func death():
 	AudioManager.play_sfx("враг_смерть")
 	can_move = false
 	can_attack = false
+
+	if is_instance_valid(player):
+		update_direction(player.global_position - global_position)
+	elif velocity.length_squared() > 4.0:
+		update_direction(velocity)
+	else:
+		_sync_facing_dir_from_sprite_animation()
+
 	velocity = Vector2.ZERO
 	anim.stop()
-	animP.active = false
 	animP.stop(true)
-	
+
 	set_collision_layer_value(1, false)
 	set_collision_mask_value(1, false)
-	
+
+	var death_key := "death_down"
 	match current_dir:
-		Dir.UP: await _await_local_death_sprite(anim, "death_up")
-		Dir.DOWN: await _await_local_death_sprite(anim, "death_down")
-		Dir.LEFT: await _await_local_death_sprite(anim, "death_left")
-		Dir.RIGHT: await _await_local_death_sprite(anim, "death_right")
+		Dir.UP:
+			death_key = "death_up"
+		Dir.DOWN:
+			death_key = "death_down"
+		Dir.LEFT:
+			death_key = "death_left"
+		Dir.RIGHT:
+			death_key = "death_right"
+
+	# В библиотеке AnimationPlayer уже есть death_* с треками кадров — так надёжнее, чем только AnimatedSprite2D.play().
+	animP.active = true
+	if animP.has_animation(death_key):
+		animP.play(death_key)
+		await animP.animation_finished
+	else:
+		await _await_local_death_sprite(anim, death_key)
+	animP.stop(true)
+	animP.active = false
 	_give_exp_to_player()
 	queue_free()
 
