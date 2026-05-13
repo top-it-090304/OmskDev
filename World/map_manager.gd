@@ -342,9 +342,9 @@ func get_random_room_of_type(type):
 # --- ОТРИСОВКА ---
 func draw_map():
 	# Иначе повторный draw_map / load_dungeon_state оставляет старые комнаты и «битые» ссылки → queue_free на freed
-	for c in get_children():
+	for c in get_children().duplicate():
 		if is_instance_valid(c):
-			c.queue_free()
+			c.free()
 	spawned_rooms.clear()
 	boss_hatch = null
 
@@ -1022,12 +1022,12 @@ func _physics_process(delta: float) -> void:
 	if _enemy_net_sync_accum < ENEMY_NET_SYNC_INTERVAL:
 		return
 	_enemy_net_sync_accum = 0.0
+	# Только тело врага: в группе «enemys» ошибочно бывают hitbox/таймеры/спрайты — ломали путь и забивали unreliable RPC.
 	for n in get_tree().get_nodes_in_group("enemys"):
-		if not is_instance_valid(n) or not n is Node2D:
+		if not is_instance_valid(n) or not n is CharacterBody2D:
 			continue
 		if GameConstants.variant_to_bool(n.get("is_dead")):
 			continue
-		var vel := Vector2.ZERO
-		if "velocity" in n:
-			vel = n.velocity
-		NetworkManager.rpc_sync_enemy_transform.rpc(str(n.get_path()), (n as Node2D).global_position, vel)
+		var ch := n as CharacterBody2D
+		var vel := ch.velocity
+		NetworkManager.rpc_sync_enemy_transform.rpc(str(ch.get_path()), ch.global_position, vel)

@@ -2460,7 +2460,7 @@ disabled = true
 shape = SubResource("CapsuleShape2D_t58vs")
 debug_color = Color(1, 0, 0, 0.419608)
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." groups=["enemys"]]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_boadp")
 animation = &"shoot_up"
 autoplay = "idle_down"
