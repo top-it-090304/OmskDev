@@ -21,6 +21,15 @@ func _on_body_entered(body: Node2D):
 	_go_to_next_floor()
 
 func _go_to_next_floor():
+	# Сначала обновляем артефакты в SaveSystem из backpack
+	var backpack = get_tree().get_first_node_in_group("backpack")
+	if backpack and backpack.has_method("get_collected_artefact_names"):
+		SaveSystem.collected_artefacts = backpack.get_collected_artefact_names()
+		print("Артефакты синхронизированы перед переходом: ", SaveSystem.collected_artefacts.size())
+	
+	# Сбрасываем состояние люка для нового этажа
+	SaveSystem.set_boss_hatch_opened(false)
+	
 	GameConstants.CURRENT_FLOOR += 1
 	GameConstants.ROOMS_CLEARED = 0
 	GameConstants.save_to_disk()

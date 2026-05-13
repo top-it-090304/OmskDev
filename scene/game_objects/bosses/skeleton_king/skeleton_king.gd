@@ -615,7 +615,8 @@ func death():
 	
 	await anim.animation_finished
 	_give_exp_to_player()
-	_spawn_loot()
+	_spawn_loot_near_hatch()
+	_open_hatch_via_map_manager()
 	queue_free()
 
 func _give_exp_to_player():
@@ -623,7 +624,38 @@ func _give_exp_to_player():
 	if p and p.has_method("add_experience"):
 		p.add_experience(GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_EXP_REWARD))
 
-func _spawn_loot():
+func _spawn_loot_near_hatch():
+	var map_manager = get_tree().get_first_node_in_group("map_manager")
+	if not map_manager:
+		# Fallback - спавн на месте смерти босса
+		_spawn_loot_fallback()
+		return
+	
+	var hatch = map_manager.boss_hatch
+	if not hatch or not is_instance_valid(hatch):
+		_spawn_loot_fallback()
+		return
+	
+	# Спавним артефакты на 32 пикселя ниже люка
+	if player_took_damage:
+		var artefact = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()].instantiate()
+		artefact.z_index = 2
+		var spawn_pos = hatch.global_position + Vector2(0, 32)
+		hatch.get_parent().add_child(artefact)
+		artefact.global_position = spawn_pos
+	else:
+		var artefact1 = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()].instantiate()
+		var artefact2 = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()].instantiate()
+		artefact1.z_index = 2
+		artefact2.z_index = 2
+		var spawn_pos = hatch.global_position + Vector2(0, 32)
+		hatch.get_parent().add_child(artefact1)
+		hatch.get_parent().add_child(artefact2)
+		artefact1.global_position = spawn_pos + Vector2(-20, 0)
+		artefact2.global_position = spawn_pos + Vector2(20, 0)
+
+func _spawn_loot_fallback():
+	# Старый метод - спавн на месте смерти босса
 	if player_took_damage:
 		var artefact = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()].instantiate()
 		artefact.global_position = global_position
@@ -635,3 +667,8 @@ func _spawn_loot():
 		artefact2.global_position = global_position + Vector2(20, 0)
 		get_tree().current_scene.add_child(artefact1)
 		get_tree().current_scene.add_child(artefact2)
+
+func _open_hatch_via_map_manager():
+	var map_manager = get_tree().get_first_node_in_group("map_manager")
+	if map_manager and map_manager.has_method("open_boss_hatch"):
+		map_manager.open_boss_hatch()

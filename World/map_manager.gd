@@ -38,6 +38,9 @@ var item_draw_pile: Array[PackedScene] = []
 # Seed для генерации (для сохранения/загрузки)
 var generation_seed: int = 0
 
+# Люк в комнате босса
+var boss_hatch: Node2D = null
+
 #minimap
 var current_room_grid_pos = Vector2i(GameConstants.MAP_MANAGER_GRID_SIZE / 2, GameConstants.MAP_MANAGER_GRID_SIZE / 2)
 signal room_changed(new_grid_pos)
@@ -358,6 +361,17 @@ func _spawn_obstacles_in_room(room_node: Node2D, room_type: RoomType):
 	var space_state = get_world_2d().direct_space_state
 	var spawned_rects: Array[Rect2] = []
 	var padding = 8.0 
+	
+	# Размеры проходов (запретные зоны у дверей)
+	var room_width = GameConstants.MAP_MANAGER_ROOM_SIZE_X
+	var room_height = GameConstants.MAP_MANAGER_ROOM_SIZE_Y
+	var passage_half_width = 64  # Полуширина запретной зоны (проход ~64px)
+	var wall_margin_top = 128  # Отступ от верхней стены (стена 64px + проход 64px)
+	var wall_margin_sides_bottom = 64  # Отступ от остальных стен
+	
+	# Центры проходов на каждой стороне
+	var center_x = room_width / 2.0
+	var center_y = room_height / 2.0
 
 	for _i in range(obstacle_count):
 		var data 
@@ -390,8 +404,23 @@ func _spawn_obstacles_in_room(room_node: Node2D, room_type: RoomType):
 		var max_attempts = 30
 
 		for _attempt in range(max_attempts):
-			var local_x = randf_range(half_size.x + 64, GameConstants.MAP_MANAGER_ROOM_SIZE_X - half_size.x - 64)
-			var local_y = randf_range(half_size.y + 64, GameConstants.MAP_MANAGER_ROOM_SIZE_Y - half_size.y - 64)
+			var local_x = randf_range(half_size.x + wall_margin_sides_bottom, room_width - half_size.x - wall_margin_sides_bottom)
+			var local_y = randf_range(half_size.y + wall_margin_top, room_height - half_size.y - wall_margin_sides_bottom)
+			
+			# Проверяем, не попадает ли объект в зону прохода
+			# Верхний проход (y = 64, центр по x) - с учётом стены 64px сверху
+			if local_y <= wall_margin_top + passage_half_width + half_size.y and abs(local_x - center_x) <= passage_half_width + half_size.x:
+				continue
+			# Нижний проход (y = room_height - 64, центр по x)
+			if local_y >= room_height - wall_margin_sides_bottom - passage_half_width - half_size.y and abs(local_x - center_x) <= passage_half_width + half_size.x:
+				continue
+			# Левый проход (x = 64, центр по y)
+			if local_x <= wall_margin_sides_bottom + passage_half_width + half_size.x and abs(local_y - center_y) <= passage_half_width + half_size.y:
+				continue
+			# Правый проход (x = room_width - 64, центр по y)
+			if local_x >= room_width - wall_margin_sides_bottom - passage_half_width - half_size.x and abs(local_y - center_y) <= passage_half_width + half_size.y:
+				continue
+			
 			var local_pos = Vector2(local_x, local_y)
 			var global_pos = room_node.to_global(local_pos)
 			
@@ -475,13 +504,68 @@ func _spawn_boss(space_state, room_node):
 			
 			area_enemys.add_child(boss)
 			boss.global_position = global_point
+			
+			# Спавним закрытый люк в центре комнаты босса
+			_spawn_boss_hatch(room_node)
 			return 
+
+func _spawn_boss_hatch(room_node: Node2D):
+	var hatch_scene = preload("res://scene/pick_up/hatch.tscn")
+	var hatch = hatch_scene.instantiate()
+	
+	var local_x = (GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2.0)
+	var local_y = (GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2.0)
+	var global_center = room_node.to_global(Vector2(local_x, local_y))
+	
+	room_node.add_child(hatch)
+	hatch.global_position = global_center
+	hatch.z_index = 1
+	
+	# Сохраняем ссылку на люк
+	boss_hatch = hatch
+
+func open_boss_hatch():
+	if boss_hatch and is_instance_valid(boss_hatch):
+		boss_hatch.open_hatch()
+		# Сохраняем что люк открыт
+		SaveSystem.set_boss_hatch_opened(true)
+
+func restore_boss_hatch_state():
+	if SaveSystem.is_boss_hatch_opened() and boss_hatch and is_instance_valid(boss_hatch):
+		boss_hatch.open_hatch()
+		print("Люк босса восстановлен как открытый") 
 func _spawn_single_enemy(space_state, room_node):
 	var max_attempts = 30 
 	
+	# Размеры проходов (запретные зоны у дверей)
+	var room_width = GameConstants.MAP_MANAGER_ROOM_SIZE_X
+	var room_height = GameConstants.MAP_MANAGER_ROOM_SIZE_Y
+	var passage_half_width = 64  # Полуширина запретной зоны (проход ~64px)
+	var wall_margin_top = 128  # Отступ от верхней стены (стена 64px + проход 64px)
+	var wall_margin_sides_bottom = 64  # Отступ от остальных стен
+	
+	# Центры проходов на каждой стороне
+	var center_x = room_width / 2.0
+	var center_y = room_height / 2.0
+	
 	for _attempt in range(max_attempts):
-		var local_x = randf_range(64, GameConstants.MAP_MANAGER_ROOM_SIZE_X - 64)
-		var local_y = randf_range(64, GameConstants.MAP_MANAGER_ROOM_SIZE_Y - 64)
+		var local_x = randf_range(wall_margin_sides_bottom, room_width - wall_margin_sides_bottom)
+		var local_y = randf_range(wall_margin_top, room_height - wall_margin_sides_bottom)
+		
+		# Проверяем, не попадает ли враг в зону прохода
+		# Верхний проход (y = 64, центр по x) - с учётом стены 64px сверху
+		if local_y <= wall_margin_top + passage_half_width and abs(local_x - center_x) <= passage_half_width:
+			continue
+		# Нижний проход (y = room_height - 64, центр по x)
+		if local_y >= room_height - wall_margin_sides_bottom - passage_half_width and abs(local_x - center_x) <= passage_half_width:
+			continue
+		# Левый проход (x = 64, центр по y)
+		if local_x <= wall_margin_sides_bottom + passage_half_width and abs(local_y - center_y) <= passage_half_width:
+			continue
+		# Правый проход (x = room_width - 64, центр по y)
+		if local_x >= room_width - wall_margin_sides_bottom - passage_half_width and abs(local_y - center_y) <= passage_half_width:
+			continue
+		
 		var local_point = Vector2(local_x, local_y)
 		var global_point = room_node.to_global(local_point)
 
@@ -719,6 +803,9 @@ func load_dungeon_state():
 						for enemy in enemys_node.get_children():
 							enemy.queue_free()
 					break
+
+	# Восстанавливаем состояние люка босса
+	restore_boss_hatch_state()
 
 	# Очищаем "колоду" предметов, чтобы не было дубликатов
 	item_draw_pile.clear()

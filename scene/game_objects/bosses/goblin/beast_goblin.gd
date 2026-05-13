@@ -2,6 +2,15 @@ extends CharacterBody2D
 
 const HATCH_SCENE = preload("res://scene/pick_up/hatch.tscn")
 
+# Тематические артефакты для Beast Goblin (природные/зелёные)
+const ARTEFACT_SCENES = [
+	preload("res://scene/pick_up/artefacts/small_cactus.tscn"),  # Кактус - природный
+	preload("res://scene/pick_up/artefacts/lime_juice.tscn"),     # Лаймовый сок - зелёный
+	preload("res://scene/pick_up/artefacts/ramen_bowl.tscn"),     # Рамен - еда
+	preload("res://scene/pick_up/artefacts/bottle.tscn"),         # Бутылка - зелёная
+	preload("res://scene/pick_up/artefacts/coffee_mug.tscn")      # Кофе - энергетик
+]
+
 const TELEPORT_INTERVAL = 8.0
 const ATTACK_COOLDOWN   = 4.0
 
@@ -344,14 +353,33 @@ func death():
 	await anim.animation_finished
 	_give_exp_to_player()
 	if randf() <= 0.75: _spawn_loot()
-	_spawn_hatch()
+	_spawn_artefact_near_hatch()
+	_open_hatch_via_map_manager()
 	queue_free()
 
-func _spawn_hatch():
-	var hatch = HATCH_SCENE.instantiate()
-	hatch.global_position = global_position
-	get_tree().current_scene.add_child(hatch)
-	hatch.open_hatch()
+func _spawn_artefact_near_hatch():
+	var map_manager = get_tree().get_first_node_in_group("map_manager")
+	if not map_manager:
+		return
+	
+	var hatch = map_manager.boss_hatch
+	if not hatch or not is_instance_valid(hatch):
+		return
+	
+	# Спавним артефакт на 32 пикселя ниже люка
+	var artefact_scene = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
+	var artefact = artefact_scene.instantiate()
+	artefact.z_index = 2
+	
+	var spawn_pos = hatch.global_position + Vector2(0, 32)
+	
+	hatch.get_parent().add_child(artefact)
+	artefact.global_position = spawn_pos
+
+func _open_hatch_via_map_manager():
+	var map_manager = get_tree().get_first_node_in_group("map_manager")
+	if map_manager and map_manager.has_method("open_boss_hatch"):
+		map_manager.open_boss_hatch()
 
 func _give_exp_to_player():
 	var p = get_tree().get_first_node_in_group("player")
