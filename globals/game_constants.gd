@@ -141,9 +141,11 @@ var CURRENT_FLOOR: int:
 		if _current_floor_internal == value:
 			return
 		_current_floor_internal = value
-		var floor_label = get_tree().get_first_node_in_group("floor_label")
-		if floor_label and "text" in floor_label:
-			floor_label.text = "Floor %d" % _current_floor_internal
+		var tree := get_tree()
+		if tree != null:
+			var floor_label := tree.get_first_node_in_group("floor_label")
+			if is_instance_valid(floor_label) and "text" in floor_label:
+				floor_label.text = "Floor %d" % _current_floor_internal
 		constants_changed.emit()
 
 var ENEMY_LEVEL = 1
@@ -277,7 +279,9 @@ func apply_coop_start_state(state: Dictionary) -> void:
 		elif cur is String:
 			set(key, String(incoming))
 		else:
-			set(key, incoming)
+			var it := typeof(incoming)
+			if it == TYPE_INT or it == TYPE_FLOAT or it == TYPE_BOOL or it == TYPE_STRING:
+				set(key, incoming)
 	constants_changed.emit()
 
 

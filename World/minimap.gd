@@ -14,11 +14,11 @@ var grid_total_size = Vector2.ZERO
 
 func _ready():
 	await get_tree().process_frame
-	
-	if not map_manager:
-		push_error("MapManager не найден!")
+
+	if not is_instance_valid(map_manager):
+		push_error("MapManager не найден или уже освобождён!")
 		return
-		
+
 	build_grid()
 	
 	var cell_size = Vector2(12, 12) 
@@ -29,7 +29,8 @@ func _ready():
 	grid_total_size.x = cell_step * GameConstants.MAP_MANAGER_GRID_SIZE
 	grid_total_size.y = cell_step * GameConstants.MAP_MANAGER_GRID_SIZE
 
-	map_manager.room_changed.connect(_on_room_changed)
+	if not map_manager.room_changed.is_connected(_on_room_changed):
+		map_manager.room_changed.connect(_on_room_changed)
 	# У клиента layout заполняется только после sync данжа — до этого layout == [] и layout[0] падает
 	var watchdog := 600
 	while not _is_map_layout_ready():
@@ -42,7 +43,7 @@ func _ready():
 
 
 func _is_map_layout_ready() -> bool:
-	if map_manager == null:
+	if not is_instance_valid(map_manager):
 		return false
 	var l: Variant = map_manager.layout
 	if not l is Array:
@@ -90,7 +91,7 @@ func _on_room_changed(grid_pos: Vector2i):
 	center_map_on_room(grid_pos)
 
 func update_minimap_visuals():
-	if not _is_map_layout_ready():
+	if not is_instance_valid(map_manager) or not _is_map_layout_ready():
 		return
 	for y in range(GameConstants.MAP_MANAGER_GRID_SIZE):
 		for x in range(GameConstants.MAP_MANAGER_GRID_SIZE):
@@ -141,6 +142,7 @@ func _input(event):
 			var target_y = (viewport_size.y - grid_total_size.y) / 2.0
 			grid_container.position = Vector2(target_x, target_y)
 		else:
-			center_map_on_room(map_manager.current_room_grid_pos)
+			if is_instance_valid(map_manager):
+				center_map_on_room(map_manager.current_room_grid_pos)
 			
 		update_minimap_visuals()

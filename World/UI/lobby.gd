@@ -145,4 +145,5 @@ func _rpc_start_game(peers_to_spawn: Array, coop_sync: Dictionary = {}) -> void:
 	if not coop_sync.is_empty():
 		GameConstants.apply_coop_start_state(coop_sync)
 	PlayerManager.pending_peers = peers_to_spawn
-	get_tree().change_scene_to_file("res://World/layer.tscn")
+	# Не менять сцену синхронно из RPC: нода Lobby ещё в стеке вызова, возможны гонки с автозагрузами.
+	get_tree().call_deferred("change_scene_to_file", "res://World/layer.tscn")

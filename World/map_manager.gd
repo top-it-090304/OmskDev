@@ -643,15 +643,20 @@ func apply_room_cleared_for_network(grid: Vector2i) -> void:
 			break
 	if room_node == null:
 		return
+	var mp := get_tree().get_multiplayer()
 	var enode := room_node.find_child("Enemys", true, false)
 	if enode:
 		if enode.has_method("mark_cleared_by_network"):
 			enode.mark_cleared_by_network()
 		for child in enode.get_children():
-			if is_instance_valid(child):
-				child.queue_free()
+			if not is_instance_valid(child):
+				continue
+			# На хосте босс в коопе: is_dead=true уже в начале death(), но люк/лут — после await.
+			# Раньше queue_free здесь убивал узел до конца death() → без люка и артефакта.
+			if child.is_in_group("boss") and mp.has_multiplayer_peer() and mp.is_server():
+				continue
+			child.queue_free()
 	update_visibility()
-	var mp := get_tree().get_multiplayer()
 	if mp.has_multiplayer_peer() and mp.is_server():
 		GameConstants.on_room_cleared()
 		save_dungeon_state()

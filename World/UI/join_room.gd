@@ -24,17 +24,18 @@ func _on_connect_pressed() -> void:
 		return
 		
 	error_label.text = "Подключение к " + address + "..."
-	
+	# Код комнаты до join: после успеха join_room может быть уже освобождён — не читать code_input в колбэке.
+	NetworkManager.lobby_display_code = input
+
 	# Подключаем сигналы один раз
 	if not NetworkManager.connected_to_server.is_connected(_on_connected):
 		NetworkManager.connected_to_server.connect(_on_connected, CONNECT_ONE_SHOT)
 	if not NetworkManager.connection_failed.is_connected(_on_connection_failed):
 		NetworkManager.connection_failed.connect(_on_connection_failed, CONNECT_ONE_SHOT)
-	
+
 	NetworkManager.join_game(address)
 
 func _on_connected() -> void:
-	NetworkManager.lobby_display_code = code_input.text.strip_edges().to_upper()
 	get_tree().change_scene_to_file("res://World/UI/lobby.tscn")
 
 func _on_connection_failed() -> void:

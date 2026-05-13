@@ -54,37 +54,55 @@ func detector_has_living_player(detector: Area2D) -> bool:
 
 func _on_node_added(node: Node) -> void:
 	if node.name == "Layer" and node.get_parent() == get_tree().root:
-		_on_game_scene_ready()
+		# current_scene при node_added может ещё быть старой (уже в очереди на free) сценой —
+		# add_child в неё даёт "Trying to assign invalid previously freed instance".
+		call_deferred("_deferred_boot_players_on_layer", node)
 
-func _on_game_scene_ready() -> void:
+
+func _deferred_boot_players_on_layer(layer: Node) -> void:
+	if not is_instance_valid(layer):
+		return
+	_on_game_scene_ready(layer)
+
+
+func _on_game_scene_ready(game_root: Node) -> void:
+	if not is_instance_valid(game_root):
+		return
 	if NetworkManager.connection_state == NetworkManager.ConnectionState.DISCONNECTED:
 		NetworkManager.reset_coop_run_state()
 	if NetworkManager.connection_state != NetworkManager.ConnectionState.DISCONNECTED:
-		_spawn_player(NetworkManager.my_id)
-	
+		_spawn_player(NetworkManager.my_id, game_root)
+
 	for id in pending_peers:
 		if id != NetworkManager.my_id:
-			_spawn_player(id)
-	
+			_spawn_player(id, game_root)
+
 	pending_peers.clear()
 	NetworkManager.game_started.emit()
 
 
 func spawn_peer(peer_id: int) -> void:
-	_spawn_player(peer_id)
+	_spawn_player(peer_id, null)
 
-func _spawn_player(player_id: int) -> void:
+
+func _spawn_player(player_id: int, game_root: Node = null) -> void:
 	if players.has(player_id):
 		var existing: Variant = players[player_id]
 		if is_instance_valid(existing):
 			return
 		players.erase(player_id)
-	
-	var world = get_tree().current_scene
-	if not world:
-		push_error("PlayerManager: нет текущей сцены")
+
+	var world: Node = null
+	if game_root != null and is_instance_valid(game_root):
+		world = game_root
+	else:
+		var cs: Node = get_tree().current_scene
+		if cs != null and is_instance_valid(cs):
+			world = cs
+	if world == null:
+		push_error("PlayerManager: нет валидной сцены для спавна игрока")
 		return
-		
+
 	var instance = _player_scene.instantiate()
 	instance.name = "Player_%d" % player_id
 	instance.set_multiplayer_authority(player_id)
@@ -105,11 +123,8 @@ func finalize_network_spawns() -> void:
 	if NetworkManager.is_multiplayer_active() and network_spawn_finalize_done:
 		return
 	# Тайл-коллизии TileMapLayer попадают в дерево не сразу — без ожидания intersect_shape даёт «пусто» в стене
-	await get_tree().physics_frame
-	await get_tree().physics_frame
-	await get_tree().physics_frame
-	await get_tree().physics_frame
-	await get_tree().physics_frame
+	for _i in range(10):
+		await get_tree().physics_frame
 	var mm := get_tree().root.find_child("MapManager", true, false)
 	if mm == null or not mm.has_method("get_coop_spawn_points"):
 		return
@@ -132,27 +147,22 @@ func finalize_network_spawns() -> void:
 		if not is_instance_valid(inst):
 			players.erase(pid)
 			continue
-		var chosen: Vector2 = Vector2.INF
+		var hint := Vector2.INF
 		var n_cand: int = candidates.size()
 		for j in range(n_cand):
 			var cand: Vector2 = candidates[(i + j) % n_cand]
-			var refined := _find_valid_spawn_near(cand, 200.0, inst)
+			var refined := _find_valid_spawn_near(cand, 240.0, inst)
 			if refined != Vector2.INF and refined.is_finite():
-				chosen = refined
+				hint = refined
 				break
-		if chosen == Vector2.INF or not chosen.is_finite():
-			chosen = candidates[mini(i, n_cand - 1)]
-		chosen = _clamp_spawn_to_start_room(chosen, start_room)
-		var snap := _find_valid_spawn_near(chosen, 200.0, inst)
-		if snap != Vector2.INF and snap.is_finite():
-			chosen = snap
-		chosen = _clamp_spawn_to_start_room(chosen, start_room)
-		var snap2 := _find_valid_spawn_near(chosen, 160.0, inst)
-		if snap2 != Vector2.INF and snap2.is_finite():
-			chosen = snap2
+		if hint == Vector2.INF or not hint.is_finite():
+			hint = candidates[mini(i, n_cand - 1)]
+		var chosen := _resolve_coop_spawn_position(hint, start_room, inst)
 		inst.global_position = chosen
 		if inst is CharacterBody2D:
 			(inst as CharacterBody2D).velocity = Vector2.ZERO
+		if inst.has_method("flush_network_transform"):
+			inst.flush_network_transform()
 	if NetworkManager.is_multiplayer_active():
 		network_spawn_finalize_done = true
 
@@ -205,12 +215,15 @@ func _fallback_place_network_players(mm: Node) -> void:
 			continue
 		var off := Vector2((i - (n - 1) * 0.5) * 88.0, 0.0)
 		var cand := origin + off
-		var fixed := _find_valid_spawn_near(cand, 256.0, inst)
-		if fixed != Vector2.INF and fixed.is_finite():
-			cand = fixed
-		inst.global_position = cand
+		var start_rn: Node2D = null
+		if mm.has_method("get_coop_start_room_node"):
+			start_rn = mm.get_coop_start_room_node()
+		var placed := _resolve_coop_spawn_position(cand, start_rn, inst)
+		inst.global_position = placed
 		if inst is CharacterBody2D:
 			(inst as CharacterBody2D).velocity = Vector2.ZERO
+		if inst.has_method("flush_network_transform"):
+			inst.flush_network_transform()
 
 
 func _despawn_player(player_id: int) -> void:
@@ -281,6 +294,60 @@ func _clamp_spawn_to_start_room(pos: Vector2, room_node: Node2D) -> Vector2:
 	)
 
 
+## Все 32 слоя физики — часть стен/декора на верхних битах; 0xFFFF давала ложные «пусто» в тайле.
+const _SPAWN_QUERY_MASK: int = 4294967295
+
+
+func _resolve_coop_spawn_position(hint: Vector2, start_room: Node2D, inst: Node2D) -> Vector2:
+	var clamped := _clamp_spawn_to_start_room(hint, start_room)
+	var v := _find_valid_spawn_near(clamped, 320.0, inst)
+	if v != Vector2.INF and v.is_finite():
+		return v
+	v = _find_valid_spawn_near(hint, 400.0, inst)
+	if v != Vector2.INF and v.is_finite():
+		return v
+	if start_room != null and is_instance_valid(start_room):
+		var inner := _inner_walkable_rect_global(start_room)
+		if inner.size.x >= 48.0 and inner.size.y >= 48.0:
+			var center := inner.position + inner.size * 0.5
+			v = _find_valid_spawn_near(center, 480.0, inst)
+			if v != Vector2.INF and v.is_finite():
+				return v
+			v = _grid_search_spawn_in_rect(inner, inst)
+			if v != Vector2.INF and v.is_finite():
+				return v
+			v = _find_valid_spawn_near(center, 720.0, inst)
+			if v != Vector2.INF and v.is_finite():
+				return v
+	push_warning("PlayerManager: не удалось найти гарантированно свободную точку спавна в стартовой комнате")
+	return clamped if clamped.is_finite() else hint
+
+
+func _grid_search_spawn_in_rect(rect: Rect2, exclude_body: Node2D) -> Vector2:
+	var space_state := get_viewport().find_world_2d().direct_space_state
+	if space_state == null:
+		return Vector2.INF
+	var margin := 36.0
+	var x0 := rect.position.x + margin
+	var y0 := rect.position.y + margin
+	var x1 := rect.position.x + rect.size.x - margin
+	var y1 := rect.position.y + rect.size.y - margin
+	if x1 <= x0 or y1 <= y0:
+		return Vector2.INF
+	var step := 40.0
+	var x := x0
+	while x <= x1:
+		var y := y0
+		while y <= y1:
+			var p := Vector2(x, y)
+			var hit := _find_valid_spawn_near(p, 96.0, exclude_body)
+			if hit != Vector2.INF and hit.is_finite():
+				return hit
+			y += step
+		x += step
+	return Vector2.INF
+
+
 func _find_valid_spawn_near(center: Vector2, max_search_radius: float = 256.0, exclude_body: Node2D = null) -> Vector2:
 	var space_state := get_viewport().find_world_2d().direct_space_state
 	if space_state == null:
@@ -300,8 +367,7 @@ func _find_valid_spawn_near(center: Vector2, max_search_radius: float = 256.0, e
 			params.transform = Transform2D(0, check_pos + Vector2(0, 8))
 			params.collide_with_areas = true
 			params.collide_with_bodies = true
-			# Тайлсет стен: layer 1+8 (129) и др.; mask=3 давал ложные «пустые» точки в стене
-			params.collision_mask = 0x0000FFFF
+			params.collision_mask = _SPAWN_QUERY_MASK
 			if exclude_body != null and exclude_body is CollisionObject2D:
 				params.exclude = [(exclude_body as CollisionObject2D).get_rid()]
 			if space_state.intersect_shape(params).is_empty():
