@@ -47,7 +47,8 @@ func _on_area_entered(_area: Area2D) -> void:
 
 func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):
-		body.take_damage(GameConstants.SMITE_DAMAGE)
+		var dmg := GameConstants.get_scaled_enemy_stat(GameConstants.SMITE_DAMAGE)
+		body.take_damage(dmg)
 		_disable_smite_hitbox()
 
 

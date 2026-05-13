@@ -286,11 +286,24 @@ func rpc_report_player_death() -> void:
 	var sid := multiplayer.get_remote_sender_id()
 	if sid <= 0:
 		return
-	rpc_coop_game_over.rpc(sid)
+	server_broadcast_coop_game_over(sid)
 
 
-@rpc("authority", "call_local", "reliable")
-func rpc_coop_game_over(victim_peer_id: int) -> void:
+## Кооп: смерть игрока — хост сначала показывает game over выжившим у себя, затем только клиентам (без call_local: надёжнее с ENet).
+func server_broadcast_coop_game_over(victim_peer_id: int) -> void:
+	var mp := get_tree().get_multiplayer()
+	if not mp.has_multiplayer_peer() or not mp.is_server():
+		return
+	_coop_apply_survivor_game_over(victim_peer_id)
+	rpc_coop_game_over_to_clients.rpc(victim_peer_id)
+
+
+@rpc("authority", "call_remote", "reliable")
+func rpc_coop_game_over_to_clients(victim_peer_id: int) -> void:
+	_coop_apply_survivor_game_over(victim_peer_id)
+
+
+func _coop_apply_survivor_game_over(victim_peer_id: int) -> void:
 	var mp := get_tree().get_multiplayer()
 	if not mp.has_multiplayer_peer():
 		return
@@ -300,6 +313,65 @@ func rpc_coop_game_over(victim_peer_id: int) -> void:
 		return
 	mark_coop_run_finished()
 	PlayerManager.show_coop_game_over_survivor()
+
+
+## Кооп: урон по врагу от ближней атаки игрока — только хост меняет HP/смерть; все видят одинаковое состояние.
+func apply_melee_damage_to_enemy_from_player(enemy: Node, amount: int) -> void:
+	if not is_instance_valid(enemy):
+		return
+	if not is_multiplayer_active():
+		if enemy.has_method("take_damage"):
+			enemy.call("take_damage", amount)
+		return
+	var mp := get_tree().get_multiplayer()
+	if mp.is_server():
+		if enemy.has_method("take_damage"):
+			enemy.call("take_damage", amount)
+		_replicate_enemy_state_after_damage(enemy)
+	else:
+		rpc_request_enemy_damage.rpc_id(SERVER_ID, str(enemy.get_path()), amount)
+
+
+func _replicate_enemy_state_after_damage(enemy: Node) -> void:
+	if not is_instance_valid(enemy):
+		return
+	var mp := get_tree().get_multiplayer()
+	if not mp.has_multiplayer_peer() or not mp.is_server():
+		return
+	if mp.get_peers().size() == 0:
+		return
+	var h: int = int(enemy.get("hp")) if enemy.get("hp") != null else 0
+	var d: bool = bool(enemy.get("is_dead"))
+	var mx: int = int(enemy.get("max_hp")) if enemy.get("max_hp") != null else maxi(h, 1)
+	rpc_sync_enemy_after_damage.rpc(str(enemy.get_path()), maxi(0, h), mx, d)
+
+
+@rpc("authority", "call_remote", "reliable")
+func rpc_sync_enemy_after_damage(path_str: String, hp_val: int, max_hp_val: int, dead: bool) -> void:
+	var n := get_tree().root.get_node_or_null(NodePath(path_str))
+	if n == null or not is_instance_valid(n):
+		return
+	if n.get("hp") != null:
+		n.hp = hp_val
+	var bar := n.get_node_or_null("TextureProgressBar")
+	if bar and bar.has_method("update_hp"):
+		bar.call("update_hp", hp_val, max_hp_val)
+	if dead:
+		n.queue_free()
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func rpc_request_enemy_damage(enemy_path_str: String, amount: int) -> void:
+	if not is_server():
+		return
+	var n := get_tree().root.get_node_or_null(NodePath(enemy_path_str))
+	if n == null or not is_instance_valid(n):
+		return
+	if not n.is_in_group("enemys"):
+		return
+	if n.has_method("take_damage"):
+		n.call("take_damage", amount)
+	_replicate_enemy_state_after_damage(n)
 
 
 @rpc("authority", "call_local", "reliable")
@@ -318,3 +390,34 @@ func rpc_report_room_enter_to_server(grid_x: int, grid_y: int, entering_peer_id:
 	var mm := get_tree().get_first_node_in_group("map_manager")
 	if mm and mm.has_method("server_handle_coop_room_enter"):
 		mm.server_handle_coop_room_enter(Vector2i(grid_x, grid_y), entering_peer_id)
+
+
+## Общий прогресс/статы GameConstants после левелапа (одна «экономика» на всех в коопе).
+@rpc("authority", "call_local", "reliable")
+func rpc_replicate_player_stats(state: Dictionary) -> void:
+	GameConstants.apply_coop_start_state(state)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func rpc_submit_progress_after_level_up(state: Dictionary) -> void:
+	if not is_server():
+		return
+	rpc_replicate_player_stats.rpc(state)
+
+
+## Люк босса: сначала локально открываем на машине, где умер босс; затем синхронизируем остальных.
+@rpc("any_peer", "call_remote", "reliable")
+func rpc_request_server_boss_hatch_open() -> void:
+	if not is_server():
+		return
+	var mm := get_tree().get_first_node_in_group("map_manager")
+	if mm and mm.has_method("apply_boss_hatch_opened_visual"):
+		mm.apply_boss_hatch_opened_visual()
+	rpc_boss_hatch_open_to_peers.rpc()
+
+
+@rpc("authority", "call_remote", "reliable")
+func rpc_boss_hatch_open_to_peers() -> void:
+	var mm := get_tree().get_first_node_in_group("map_manager")
+	if mm and mm.has_method("apply_boss_hatch_opened_visual"):
+		mm.apply_boss_hatch_opened_visual()

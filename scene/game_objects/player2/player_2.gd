@@ -418,6 +418,15 @@ func die():
 	if is_dead:
 		return
 
+	var mp := get_tree().get_multiplayer()
+	if mp.has_multiplayer_peer() and is_local_player:
+		if not NetworkManager.coop_run_finished:
+			if mp.is_server():
+				NetworkManager.server_broadcast_coop_game_over(get_multiplayer_authority())
+			else:
+				NetworkManager.rpc_report_player_death.rpc_id(NetworkManager.SERVER_ID)
+		NetworkManager.mark_coop_run_finished()
+
 	is_dead = true
 	can_anim = false
 	velocity = Vector2.ZERO
@@ -478,7 +487,7 @@ func _ready() -> void:
 	if get_tree().get_multiplayer().get_multiplayer_peer() == null:
 		is_local_player = true
 	else:
-		is_local_player = (get_multiplayer_authority() == get_tree().get_multiplayer().get_unique_id())
+		is_local_player = is_multiplayer_authority()
 
 	current_level = GameConstants.PLAYER_LEVEL
 	current_exp = GameConstants.PLAYER_EXPERIENCE
@@ -549,7 +558,7 @@ func _on_hitbox_attack_body_entered(body: Node2D) -> void:
 			dmg = int(dmg * GameConstants.PLAYER_CRIT_MULTIPLIER)
 			is_crit = true
 
-		body.take_damage(dmg)
+		NetworkManager.apply_melee_damage_to_enemy_from_player(body, dmg)
 		
 		# Показываем урон над врагом
 		if GameConstants.SHOW_DAMAGE_NUMBERS:
@@ -669,6 +678,14 @@ func level_up_player() -> void:
 		current_exp,
 		exp_to_next_level
 	)
+
+	var mp := get_tree().get_multiplayer()
+	if mp.has_multiplayer_peer():
+		var snap := GameConstants.capture_coop_start_state()
+		if mp.is_server():
+			NetworkManager.rpc_replicate_player_stats.rpc(snap)
+		else:
+			NetworkManager.rpc_submit_progress_after_level_up.rpc_id(NetworkManager.SERVER_ID, snap)
 
 # =========================================================
 # POPUP

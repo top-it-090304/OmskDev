@@ -5,7 +5,7 @@ extends MultiplayerSynchronizer
 
 func _ready():
 	# Only process for the local player.
-	set_process(get_multiplayer_authority() == multiplayer.get_unique_id())
+	set_process(is_multiplayer_authority())
 
 func _process(delta):
 	# Reset jump state each frame (we'll set it via RPC when jump button is pressed)

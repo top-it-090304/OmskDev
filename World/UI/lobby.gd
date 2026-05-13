@@ -134,16 +134,15 @@ func _on_start_button_pressed() -> void:
 	if not NetworkManager.is_hosting():
 		return
 	var peers_to_spawn: Array = _peers.duplicate()
-	_rpc_start_game.rpc(peers_to_spawn)
+	var coop_sync: Dictionary = GameConstants.capture_coop_start_state()
+	_rpc_start_game.rpc(peers_to_spawn, coop_sync)
 
 
 @rpc("authority", "call_local", "reliable")
-func _rpc_start_game(peers_to_spawn: Array) -> void:
-	_load_game(peers_to_spawn)
-
-
-func _load_game(peers_to_spawn: Array) -> void:
+func _rpc_start_game(peers_to_spawn: Array, coop_sync: Dictionary = {}) -> void:
 	if NetworkManager.is_hosting():
 		SaveSystem.delete_dungeon_state()
+	if not coop_sync.is_empty():
+		GameConstants.apply_coop_start_state(coop_sync)
 	PlayerManager.pending_peers = peers_to_spawn
 	get_tree().change_scene_to_file("res://World/layer.tscn")

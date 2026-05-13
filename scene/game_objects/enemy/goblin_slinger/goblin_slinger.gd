@@ -36,12 +36,15 @@ func _ready() -> void:
 	
 	hp_bar.update_hp(hp, max_hp)
 	
-	player = get_tree().get_first_node_in_group("player") as Node2D
+	player = PlayerManager.get_player_for_local_rewards() as Node2D
 	parent_node = get_parent()
 	attack_timer.start(1.0)
 
 func _physics_process(_delta: float) -> void:
 	if is_dead: return
+
+	if NetworkManager.is_multiplayer_active():
+		player = PlayerManager.get_player_for_local_rewards() as Node2D
 
 	var is_aggressive = parent_node and parent_node.get("aggression")
 
@@ -101,6 +104,19 @@ func attack():
 	if not is_dead:
 		can_move = true
 		attack_timer.start()
+
+func shoot_poison() -> void:
+	if not player or not is_instance_valid(player) or is_dead:
+		return
+	var projectile_instance = GameConstants.GOBLIN_SLINGER_PROJECTILE.instantiate()
+	projectile_instance.global_position = global_position
+	var target_dir := (player.global_position - global_position).normalized()
+	if target_dir == Vector2.ZERO:
+		target_dir = Vector2.RIGHT
+	projectile_instance.direction = target_dir
+	projectile_instance.rotation = target_dir.angle()
+	get_tree().current_scene.add_child.call_deferred(projectile_instance)
+	AudioManager.play_sfx("враг_яд_выстрел")
 
 func take_damage(amount: int):
 	if is_dead: return

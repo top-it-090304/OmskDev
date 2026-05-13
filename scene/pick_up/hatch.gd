@@ -26,6 +26,11 @@ func _apply_hatch_open_visual() -> void:
 	tween.tween_property(self, "modulate:a", 1.0, 0.6)
 
 
+## Публичная обёртка для MapManager / RPC (приватный _apply не виден has_method на некоторых версиях Godot).
+func apply_hatch_open_visual() -> void:
+	_apply_hatch_open_visual()
+
+
 ## Восстановление после загрузки сейва (без RPC / твина)
 func apply_save_open_state() -> void:
 	is_open = true

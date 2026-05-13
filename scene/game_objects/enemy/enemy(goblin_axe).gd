@@ -26,14 +26,22 @@ func _ready() -> void:
 	hp = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_GOBLIN_AXE_HP)
 	speed = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_GOBLIN_AXE_MAX_SPEED)
 	hp_bar.update_hp(hp, hp)
-	player = get_tree().get_first_node_in_group("player") as Node2D
+	player = PlayerManager.get_player_for_local_rewards() as Node2D
 	parent_node = get_parent()
+
+func _is_player_in_attack_radius() -> bool:
+	if not is_instance_valid(player):
+		return false
+	return global_position.distance_squared_to(player.global_position) <= GameConstants.ENEMY_GOBLIN_AXE_ATTACK_RANGE * GameConstants.ENEMY_GOBLIN_AXE_ATTACK_RANGE
 
 func _physics_process(delta: float) -> void:
 	_apply_knockback_logic(delta)
 	
 	if is_dead: 
 		return
+
+	if NetworkManager.is_multiplayer_active():
+		player = PlayerManager.get_player_for_local_rewards() as Node2D
 
 	if not can_walk:
 		velocity = Vector2.ZERO
@@ -77,6 +85,9 @@ func _process(_delta):
 
 func attack():
 	if not can_attack or not player_in_range or is_dead:
+		return
+	if not _is_player_in_attack_radius():
+		attack_timer.start(0.2)
 		return
 	can_attack = false
 	can_anim = false
@@ -151,7 +162,10 @@ func _spawn_loot():
 	get_tree().current_scene.add_child(potion)
 
 func swing():
-	if not is_instance_valid(player) or is_dead: return
+	if not is_instance_valid(player) or is_dead:
+		return
+	if not _is_player_in_attack_radius():
+		return
 	smite_instance = GameConstants.ENEMY_GOBLIN_AXE_SMITE.instantiate()
 	add_child(smite_instance)
 	smite_instance.visible = false
@@ -164,6 +178,11 @@ func swing():
 	AudioManager.play_sfx("враг_атака_ближний")
 
 func activate_smite():
+	if not _is_player_in_attack_radius():
+		if is_instance_valid(smite_instance):
+			smite_instance.queue_free()
+			smite_instance = null
+		return
 	if is_instance_valid(smite_instance) and not is_dead:
 		smite_instance.visible = true
 		smite_instance.monitoring = true
@@ -192,5 +211,7 @@ func _on_hitbox_area_entered(_area: Area2D) -> void:
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player") and body.has_method("take_damage"):
+		if not _is_player_in_attack_radius():
+			return
 		var damage = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_GOBLIN_AXE_DAMAGE)
 		body.take_damage(damage)

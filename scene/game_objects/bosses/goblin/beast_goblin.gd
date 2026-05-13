@@ -317,7 +317,7 @@ func _on_detector_slap_body_exited(body):   if body.is_in_group("player"): playe
 func _on_detector_shoot_body_entered(body): if body.is_in_group("player"): player_in_shoot_zone = true
 func _on_detector_shoot_body_exited(body):  if body.is_in_group("player"): player_in_shoot_zone = false
 
-func _on_hitbox_area_entered(_area): take_damage(GameConstants.ENEMY_BEASTGOBLIN_TAKE_DAMAGE)
+func _on_hitbox_area_entered(_area): take_damage(GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_TAKE_DAMAGE))
 func _on_attack_timer_timeout(): pass  # кулдауны теперь через delta
 
 func update_run_animation(direction: Vector2):
@@ -339,6 +339,8 @@ func _play_idle_animation():
 	if anim.animation != "idle_down": anim.play("idle_down")
 
 func death():
+	if is_dead:
+		return
 	is_dead = true
 	can_walk = false
 	is_attacking = false
@@ -348,7 +350,6 @@ func death():
 	animP.stop()
 	if is_instance_valid(smite_instance): smite_instance.queue_free()
 	var d_anim = "death_" + _get_dir_string()
-	if _get_dir_string() == "down": d_anim = "death_dowm"
 	anim.play(d_anim)
 	await anim.animation_finished
 	_give_exp_to_player()

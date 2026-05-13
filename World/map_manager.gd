@@ -573,8 +573,19 @@ func _spawn_boss(space_state, room_node):
 
 
 func open_boss_hatch() -> void:
-	if boss_hatch != null and is_instance_valid(boss_hatch) and boss_hatch.has_method("open_hatch"):
-		boss_hatch.open_hatch()
+	apply_boss_hatch_opened_visual()
+	var mp := get_tree().get_multiplayer()
+	if not mp.has_multiplayer_peer():
+		return
+	if mp.is_server():
+		NetworkManager.rpc_boss_hatch_open_to_peers.rpc()
+	else:
+		NetworkManager.rpc_request_server_boss_hatch_open.rpc_id(NetworkManager.SERVER_ID)
+
+
+func apply_boss_hatch_opened_visual() -> void:
+	if boss_hatch != null and is_instance_valid(boss_hatch) and boss_hatch.has_method("apply_hatch_open_visual"):
+		boss_hatch.apply_hatch_open_visual()
 	SaveSystem.set_boss_hatch_opened(true)
 
 
