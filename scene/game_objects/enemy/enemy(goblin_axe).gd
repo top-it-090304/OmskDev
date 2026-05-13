@@ -136,7 +136,8 @@ func death():
 	can_attack = false
 	velocity = Vector2.ZERO
 	anim.stop()
-	animP.stop()
+	animP.active = false
+	animP.stop(true)
 	set_collision_layer_value(1, false)
 	set_collision_mask_value(1, false)
 	match current_dir:

@@ -315,15 +315,15 @@ func _coop_apply_survivor_game_over(victim_peer_id: int) -> void:
 	PlayerManager.show_coop_game_over_survivor()
 
 
-## Кооп: урон по врагу от ближней атаки игрока — только хост меняет HP/смерть; все видят одинаковое состояние.
+## Урон по врагу от атаки игрока: без пира — чистый офлайн (локальный take_damage); с пиром — только хост + репликация.
 func apply_melee_damage_to_enemy_from_player(enemy: Node, amount: int) -> void:
 	if not is_instance_valid(enemy):
 		return
-	if not is_multiplayer_active():
+	var mp := get_tree().get_multiplayer()
+	if not mp.has_multiplayer_peer():
 		if enemy.has_method("take_damage"):
 			enemy.call("take_damage", amount)
 		return
-	var mp := get_tree().get_multiplayer()
 	if mp.is_server():
 		if enemy.has_method("take_damage"):
 			enemy.call("take_damage", amount)

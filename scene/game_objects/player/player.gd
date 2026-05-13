@@ -212,14 +212,6 @@ func _process(delta: float) -> void:
 			remove_poison()
 
 	# =====================================================
-	# СМЕРТЬ
-	# =====================================================
-
-	if health_int <= 0:
-		die()
-		return
-
-	# =====================================================
 	# АТАКА ДЖОЙСТИКОМ
 	# =====================================================
 
@@ -402,7 +394,7 @@ func apply_knockback(source_position: Vector2, force: float):
 
 
 func take_damage(amount: int):
-	if not can_take_damage or is_dead:
+	if is_dead:
 		return
 
 	if get_tree().get_multiplayer().has_multiplayer_peer() and NetworkManager.coop_run_finished:
@@ -417,6 +409,10 @@ func take_damage(amount: int):
 		1,
 		amount - GameConstants.PLAYER_ARMOR
 	)
+
+	# Неуязвимость не должна блокировать добивающий удар — иначе 0 HP без die() (замирание).
+	if not can_take_damage and health_int > final_amount:
+		return
 
 	can_take_damage = false
 
@@ -485,6 +481,10 @@ func die():
 
 	AudioManager.play_sfx("игрок_смерть")
 
+	if animP:
+		animP.active = false
+		animP.stop(true)
+
 	var death_anim := "death_down"
 	match current_dir:
 		Dir.UP:
@@ -508,10 +508,14 @@ func die():
 	add_child(over)
 
 
-func _await_player_death_sprite(anim_name: String, fallback_sec: float = 1.2) -> void:
+func _await_player_death_sprite(anim_name: String, fallback_sec: float = 1.0, max_wait_sec: float = 3.5) -> void:
 	if anim.sprite_frames != null and anim.sprite_frames.has_animation(anim_name):
 		anim.play(anim_name)
-		await anim.animation_finished
+		var deadline_ms := Time.get_ticks_msec() + int(max_wait_sec * 1000.0)
+		while anim.is_playing() and Time.get_ticks_msec() < deadline_ms:
+			await get_tree().process_frame
+		if anim.is_playing():
+			anim.stop()
 	else:
 		await get_tree().create_timer(fallback_sec).timeout
 

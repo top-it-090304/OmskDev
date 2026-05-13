@@ -135,7 +135,8 @@ func death():
 	can_attack = false
 	velocity = Vector2.ZERO
 	anim.stop()
-	animP.stop()
+	animP.active = false
+	animP.stop(true)
 	
 	set_collision_layer_value(1, false)
 	set_collision_mask_value(1, false)
@@ -186,9 +187,18 @@ func _on_hitbox_body_entered(body: Node2D) -> void:
 		body.take_damage(damage)
 
 
-func _await_local_death_sprite(sprite: AnimatedSprite2D, anim_name: String, fallback_sec: float = 0.75) -> void:
+func _await_local_death_sprite(
+	sprite: AnimatedSprite2D,
+	anim_name: String,
+	fallback_sec: float = 0.75,
+	max_wait_sec: float = 3.5
+) -> void:
 	if sprite.sprite_frames != null and sprite.sprite_frames.has_animation(anim_name):
 		sprite.play(anim_name)
-		await sprite.animation_finished
+		var deadline_ms := Time.get_ticks_msec() + int(max_wait_sec * 1000.0)
+		while sprite.is_playing() and Time.get_ticks_msec() < deadline_ms:
+			await get_tree().process_frame
+		if sprite.is_playing():
+			sprite.stop()
 	else:
 		await get_tree().create_timer(fallback_sec).timeout

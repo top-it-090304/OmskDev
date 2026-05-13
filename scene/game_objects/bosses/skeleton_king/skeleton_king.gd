@@ -622,7 +622,7 @@ func _give_exp_to_player():
 		p.add_experience(GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_EXP_REWARD))
 
 func _spawn_loot_near_hatch():
-	var map_manager = get_tree().get_first_node_in_group("map_manager")
+	var map_manager := _find_map_manager()
 	if not map_manager:
 		# Fallback - спавн на месте смерти босса
 		_spawn_loot_fallback()
@@ -636,14 +636,15 @@ func _spawn_loot_near_hatch():
 	# Артефакты на 48 px ниже люка (центр дропа)
 	var parent_n := hatch.get_parent() as Node2D
 	if parent_n == null:
+		_spawn_loot_fallback()
 		return
-	var spawn_pos := hatch.global_position + Vector2(0, 48)
+	var spawn_pos: Vector2 = (hatch as Node2D).global_position + Vector2(0, 48)
 	if player_took_damage:
-		var ps := ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
+		var ps: PackedScene = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
 		NetworkManager.server_spawn_boss_loot_for_coop(ps.resource_path, parent_n, spawn_pos)
 	else:
-		var ps1 := ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
-		var ps2 := ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
+		var ps1: PackedScene = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
+		var ps2: PackedScene = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
 		NetworkManager.server_spawn_boss_loot_for_coop(ps1.resource_path, parent_n, spawn_pos + Vector2(-20, 0))
 		NetworkManager.server_spawn_boss_loot_for_coop(ps2.resource_path, parent_n, spawn_pos + Vector2(20, 0))
 
@@ -651,37 +652,51 @@ func _spawn_loot_fallback():
 	var scene_root := get_tree().current_scene
 	var parent_n := scene_root as Node2D
 	if player_took_damage:
-		var ps := ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
+		var ps: PackedScene = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
 		if parent_n != null:
 			NetworkManager.server_spawn_boss_loot_for_coop(ps.resource_path, parent_n, global_position)
 		else:
-			var artefact = ps.instantiate()
+			var artefact: Node2D = ps.instantiate() as Node2D
 			artefact.global_position = global_position
 			scene_root.add_child(artefact)
 	else:
-		var ps1 := ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
-		var ps2 := ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
+		var ps1: PackedScene = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
+		var ps2: PackedScene = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
 		if parent_n != null:
 			NetworkManager.server_spawn_boss_loot_for_coop(ps1.resource_path, parent_n, global_position + Vector2(-20, 0))
 			NetworkManager.server_spawn_boss_loot_for_coop(ps2.resource_path, parent_n, global_position + Vector2(20, 0))
 		else:
-			var artefact1 = ps1.instantiate()
-			var artefact2 = ps2.instantiate()
+			var artefact1: Node2D = ps1.instantiate() as Node2D
+			var artefact2: Node2D = ps2.instantiate() as Node2D
 			artefact1.global_position = global_position + Vector2(-20, 0)
 			artefact2.global_position = global_position + Vector2(20, 0)
 			scene_root.add_child(artefact1)
 			scene_root.add_child(artefact2)
 
 func _open_hatch_via_map_manager():
-	var map_manager = get_tree().get_first_node_in_group("map_manager")
+	var map_manager := _find_map_manager()
 	if map_manager and map_manager.has_method("open_boss_hatch"):
-		map_manager.call_deferred("open_boss_hatch")
+		map_manager.open_boss_hatch()
+
+
+func _find_map_manager() -> Node:
+	var mm := get_tree().get_first_node_in_group("map_manager")
+	if mm != null:
+		return mm
+	mm = get_tree().root.find_child("MapManager", true, false)
+	if mm != null:
+		return mm
+	return get_tree().root.find_child("MapManager2", true, false)
 
 
 func _await_boss_death_animation(anim_name: String) -> void:
 	if anim.sprite_frames != null and anim.sprite_frames.has_animation(anim_name):
 		anim.play(anim_name)
-		await anim.animation_finished
+		var deadline_ms := Time.get_ticks_msec() + int(4000.0)
+		while anim.is_playing() and Time.get_ticks_msec() < deadline_ms:
+			await get_tree().process_frame
+		if anim.is_playing():
+			anim.stop()
 	else:
 		push_warning("skeleton_king: нет анимации %s" % anim_name)
 		await get_tree().create_timer(1.0).timeout

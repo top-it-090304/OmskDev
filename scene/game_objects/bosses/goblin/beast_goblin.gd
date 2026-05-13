@@ -363,31 +363,64 @@ func death():
 	queue_free()
 
 func _spawn_artefact_near_hatch():
-	var map_manager = get_tree().get_first_node_in_group("map_manager")
+	var map_manager := _find_map_manager()
 	if not map_manager:
+		_spawn_artefact_fallback()
 		return
-	
+
 	var hatch = map_manager.boss_hatch
 	if not hatch or not is_instance_valid(hatch):
+		_spawn_artefact_fallback()
 		return
-	
+
 	var parent_n := hatch.get_parent() as Node2D
 	if parent_n == null:
+		_spawn_artefact_fallback()
 		return
-	var spawn_pos := hatch.global_position + Vector2(0, 48)
-	var ps := ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
+	var spawn_pos: Vector2 = (hatch as Node2D).global_position + Vector2(0, 48)
+	var ps: PackedScene = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
 	NetworkManager.server_spawn_boss_loot_for_coop(ps.resource_path, parent_n, spawn_pos)
 
+
+func _spawn_artefact_fallback() -> void:
+	var scene_root := get_tree().current_scene
+	var parent_n := scene_root as Node2D
+	var ps: PackedScene = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
+	if parent_n != null:
+		NetworkManager.server_spawn_boss_loot_for_coop(ps.resource_path, parent_n, global_position)
+	else:
+		var inst: Node2D = ps.instantiate() as Node2D
+		inst.global_position = global_position
+		scene_root.add_child(inst)
+
+
 func _open_hatch_via_map_manager():
-	var map_manager = get_tree().get_first_node_in_group("map_manager")
+	var map_manager := _find_map_manager()
 	if map_manager and map_manager.has_method("open_boss_hatch"):
-		map_manager.call_deferred("open_boss_hatch")
+		map_manager.open_boss_hatch()
+
+
+func _find_map_manager() -> Node:
+	var mm := get_tree().get_first_node_in_group("map_manager")
+	if mm != null:
+		return mm
+	mm = get_tree().root.find_child("MapManager", true, false)
+	if mm != null:
+		return mm
+	return get_tree().root.find_child("MapManager2", true, false)
 
 
 func _await_boss_death_animation(anim_name: String) -> void:
+	if animP:
+		animP.active = false
+		animP.stop(true)
 	if anim.sprite_frames != null and anim.sprite_frames.has_animation(anim_name):
 		anim.play(anim_name)
-		await anim.animation_finished
+		var deadline_ms := Time.get_ticks_msec() + int(4000.0)
+		while anim.is_playing() and Time.get_ticks_msec() < deadline_ms:
+			await get_tree().process_frame
+		if anim.is_playing():
+			anim.stop()
 	else:
 		push_warning("beast_goblin: нет анимации %s" % anim_name)
 		await get_tree().create_timer(1.0).timeout
