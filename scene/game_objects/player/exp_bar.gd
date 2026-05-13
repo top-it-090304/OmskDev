@@ -10,10 +10,16 @@ func _ready():
 	# Ждем один кадр, чтобы игрок успел инициализироваться
 	await get_tree().process_frame
 
-	# Находим игрока
-	player = get_tree().get_first_node_in_group("player")
+	# Только локальный игрок (в коопе в группе "player" несколько нод)
+	player = get_tree().get_first_node_in_group("local_player")
+	if not player:
+		await get_tree().process_frame
+		player = get_tree().get_first_node_in_group("local_player")
 
 	if player:
+		if get_tree().get_multiplayer().has_multiplayer_peer() and not player.is_in_group("local_player"):
+			push_warning("ExpBar: узел не в группе local_player — HUD опыта не подключён")
+			return
 		# Подключаемся к сигналам
 		if not player.exp_changed.is_connected(_on_exp_changed):
 			player.exp_changed.connect(_on_exp_changed)

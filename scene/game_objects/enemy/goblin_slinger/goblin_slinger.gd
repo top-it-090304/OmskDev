@@ -1,7 +1,8 @@
 extends CharacterBody2D
 
-@export var hp = 0
+@export var hp = 10
 var max_speed = 0.0
+var max_hp = 0
 
 @onready var animP = $AnimationPlayer
 @onready var attack_timer = $attack_timer
@@ -23,12 +24,18 @@ var can_anim = true
 
 func _ready() -> void:
 	add_to_group("enemys")
-	hp = GameConstants.get_scaled_enemy_stat(GameConstants.GOBLIN_SLINGER_HP)
-	max_speed = randf_range(
-		GameConstants.get_scaled_enemy_stat(GameConstants.GOBLIN_SLINGER_SPEED_MIN),
-		GameConstants.get_scaled_enemy_stat(GameConstants.GOBLIN_SLINGER_SPEED_MAX)
-	)
-	hp_bar.update_hp(hp, hp)
+	
+	# Расчет статов при спавне (используем Гоблина как пример)
+	var base_hp = GameConstants.GOBLIN_SLINGER_HP
+	max_hp = GameConstants.get_scaled_enemy_stat(base_hp)
+	hp = max_hp
+	
+	var min_s = GameConstants.get_scaled_enemy_stat(GameConstants.GOBLIN_SLINGER_SPEED_MIN)
+	var max_s = GameConstants.get_scaled_enemy_stat(GameConstants.GOBLIN_SLINGER_SPEED_MAX)
+	max_speed = randf_range(min_s, max_s)
+	
+	hp_bar.update_hp(hp, max_hp)
+	
 	player = get_tree().get_first_node_in_group("player") as Node2D
 	parent_node = get_parent()
 	attack_timer.start(1.0)
@@ -44,11 +51,11 @@ func _physics_process(_delta: float) -> void:
 	if not player or not is_instance_valid(player) or not can_move:
 		velocity = Vector2.ZERO
 		if not animP.is_playing() and can_anim:
-			play_idle_animation()
+			anim.play("idle_down")
 		move_and_slide()
 		return
 
-	var to_player: Vector2 = player.global_position - global_position
+	var to_player = player.global_position - global_position
 	var direction = to_player.normalized()
 	update_direction(direction)
 
@@ -60,7 +67,7 @@ func _physics_process(_delta: float) -> void:
 	else:
 		velocity = Vector2.ZERO
 		if can_anim:
-			play_idle_animation()
+			anim.play("idle_down")
 
 func _process(_delta):
 	if hp <= 0 and not is_dead:
@@ -79,11 +86,6 @@ func play_run_animation():
 		Dir.LEFT: anim.play("run_left")
 		Dir.RIGHT: anim.play("run_right")
 
-func play_idle_animation():
-	if is_dead: return
-	if anim.animation != "idle_down":
-		anim.play("idle_down")
-
 func attack():
 	if not can_attack or not player_in_range or is_dead:
 		return
@@ -94,6 +96,7 @@ func attack():
 		Dir.DOWN: animP.play("attack_down")
 		Dir.LEFT: animP.play("attack_left")
 		Dir.RIGHT: animP.play("attack_right")
+	
 	await animP.animation_finished
 	if not is_dead:
 		can_move = true
@@ -102,25 +105,16 @@ func attack():
 func take_damage(amount: int):
 	if is_dead: return
 	hp -= amount
-	var max_hp = GameConstants.get_scaled_enemy_stat(GameConstants.GOBLIN_SLINGER_HP)
 	hp_bar.update_hp(hp, max_hp)
+	
 	if hp <= 0:
 		death()
 		return
+		
 	AudioManager.play_sfx("враг_урон")
 	var tween = create_tween()
 	tween.tween_property(anim, "modulate", Color(1, 0, 0, 1), 0.0)
 	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.15)
-
-func shoot_poison():
-	if not player or not is_instance_valid(player) or is_dead: return
-	var projectile_instance = GameConstants.GOBLIN_SLINGER_PROJECTILE.instantiate()
-	projectile_instance.global_position = global_position
-	var target_dir = (player.global_position - global_position).normalized()
-	projectile_instance.direction = target_dir
-	projectile_instance.rotation = target_dir.angle()
-	get_tree().current_scene.add_child.call_deferred(projectile_instance)
-	AudioManager.play_sfx("враг_яд_выстрел")
 
 func death():
 	if is_dead: return
@@ -131,29 +125,26 @@ func death():
 	velocity = Vector2.ZERO
 	anim.stop()
 	animP.stop()
+	
 	set_collision_layer_value(1, false)
 	set_collision_mask_value(1, false)
+	
 	match current_dir:
 		Dir.UP: anim.play("death_up")
 		Dir.DOWN: anim.play("death_down")
 		Dir.LEFT: anim.play("death_left")
 		Dir.RIGHT: anim.play("death_right")
+		
 	await anim.animation_finished
 	_give_exp_to_player()
-	if randf() <= 0.25:
-		_spawn_loot()
 	queue_free()
 
 func _give_exp_to_player():
-	var player_node = get_tree().get_first_node_in_group("player")
+	var player_node := PlayerManager.get_player_for_local_rewards()
 	if player_node and player_node.has_method("add_experience"):
+		# Замените на нужную константу опыта
 		var exp_reward = GameConstants.get_scaled_enemy_stat(GameConstants.GOBLIN_SLINGER_EXP_REWARD)
 		player_node.add_experience(exp_reward)
-
-func _spawn_loot():
-	var potion = GameConstants.HEALTH_POTION.instantiate()
-	potion.global_position = global_position
-	get_tree().current_scene.add_child(potion)
 
 func _on_detector_body_entered(body: Node2D) -> void:
 	if is_dead: return
@@ -162,7 +153,7 @@ func _on_detector_body_entered(body: Node2D) -> void:
 		get_closer = false
 		if can_attack:
 			can_attack = false
-			attack_timer.start(1.0)
+			attack_timer.start(0.4)
 
 func _on_detector_body_exited(body: Node2D) -> void:
 	if body.is_in_group("player"):
@@ -176,5 +167,6 @@ func _on_attack_timer_timeout():
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player") and body.has_method("take_damage"):
+		# Исправлено: теперь эта переменная есть в GameConstants
 		var damage = GameConstants.get_scaled_enemy_stat(GameConstants.GOBLIN_SLINGER_BODY_DAMAGE)
 		body.take_damage(damage)

@@ -63,32 +63,52 @@ func _on_area_2d_area_entered(area: Area2D) -> void:
 func pickup(player: Node) -> void:
 	if is_picked_up:
 		return
+	var mp := get_tree().get_multiplayer()
+	if mp.has_multiplayer_peer():
+		var rid := _get_treasure_room_grid()
+		if mp.is_server():
+			server_run_pickup_effects(false)
+			NetworkManager.rpc_client_mirror_artefact_pickup.rpc(scene_file_path, rid.x, rid.y, mp.get_unique_id())
+		else:
+			NetworkManager.rpc_request_artefact_pickup_from_client.rpc_id(
+				NetworkManager.SERVER_ID,
+				scene_file_path,
+				rid.x,
+				rid.y,
+				mp.get_unique_id()
+			)
+		return
+	server_run_pickup_effects(false)
+
+
+func _get_treasure_room_grid() -> Vector2i:
+	if has_meta("_treasure_room_grid"):
+		return get_meta("_treasure_room_grid")
+	var room = get_parent()
+	if room != null and "grid_x" in room:
+		return Vector2i(room.grid_x, room.grid_y)
+	return Vector2i(-1, -1)
+
+
+## quiet: без попапа/частиц (когда подбор обрабатывает хост по запросу клиента)
+func server_run_pickup_effects(quiet: bool) -> void:
+	if is_picked_up:
+		return
 	is_picked_up = true
-
-	# Очищаем массив изменений
 	stat_changes.clear()
-
-	# Применяем эффекты
 	apply_effects()
-
-	# Particles on pickup
-	if artefact_particles:
+	if not quiet and artefact_particles:
 		var particles = artefact_particles.instantiate()
 		particles.global_position = global_position
 		get_tree().current_scene.add_child(particles)
-
-	# Показываем popup
-	show_stat_popup()
-
-	# Добавляем в рюкзак
+	if not quiet:
+		show_stat_popup()
 	add_to_backpack()
-
-	# Отмечаем комнату как собранную
 	mark_room_as_collected()
-
-	# Анимация подбора
-	play_pickup_animation()
-
+	if quiet:
+		queue_free()
+	else:
+		play_pickup_animation()
 	print("Подобран артефакт: ", artefact_name)
 
 func apply_effects() -> void:

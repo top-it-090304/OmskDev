@@ -57,10 +57,10 @@ var bone_projectile_instance: Node2D = null
 
 func _ready() -> void:
 	add_to_group("enemys")
-	hp    = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_HP)
+	hp = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_HP)
 	speed = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_MAX_SPEED)
 	hp_bar.update_hp(hp, hp)
-	player      = get_tree().get_first_node_in_group("player") as Node2D
+	player = get_tree().get_first_node_in_group("player") as Node2D
 	parent_node = get_parent()
 	attack_timer.one_shot = true
 	player_took_damage = false
@@ -619,7 +619,7 @@ func death():
 	queue_free()
 
 func _give_exp_to_player():
-	var p = get_tree().get_first_node_in_group("player")
+	var p := PlayerManager.get_player_for_local_rewards()
 	if p and p.has_method("add_experience"):
 		p.add_experience(GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_EXP_REWARD))
 

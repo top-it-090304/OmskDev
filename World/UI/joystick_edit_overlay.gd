@@ -146,7 +146,8 @@ func _save_joystick_settings() -> void:
 		cfg.set_value("joystick", "attack_pos_x", attack_joystick.position.x)
 		cfg.set_value("joystick", "attack_pos_y", attack_joystick.position.y)
 		cfg.set_value("joystick", "attack_scale", attack_joystick.scale.x)
-	
+
+	cfg.set_value("joystick", "layout_version", 3)
 	cfg.save(CFG_PATH)
 	print("Joystick settings saved!")
 
@@ -154,17 +155,22 @@ func _load_joystick_settings() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(CFG_PATH) != OK:
 		return
-	
+
+	var vps := get_viewport().get_visible_rect().size
+	var def_y := clampf(vps.y * 0.58, 168.0, maxf(160.0, vps.y - 140.0))
+	var def_move := Vector2(maxf(16.0, vps.x * 0.035), def_y)
+	var def_attack := Vector2(clampf(vps.x * 0.72, def_move.x + 130.0, vps.x - 20.0), def_y)
+
 	if move_joystick:
-		var pos_x = float(cfg.get_value("joystick", "move_pos_x", 16.0))
-		var pos_y = float(cfg.get_value("joystick", "move_pos_y", 84.0))
+		var pos_x = float(cfg.get_value("joystick", "move_pos_x", def_move.x))
+		var pos_y = float(cfg.get_value("joystick", "move_pos_y", def_move.y))
 		var scale_val = float(cfg.get_value("joystick", "move_scale", 0.3))
 		move_joystick.position = Vector2(pos_x, pos_y)
 		move_joystick.scale = Vector2(scale_val, scale_val)
-	
+
 	if attack_joystick:
-		var pos_x = float(cfg.get_value("joystick", "attack_pos_x", 427.0))
-		var pos_y = float(cfg.get_value("joystick", "attack_pos_y", 84.0))
+		var pos_x = float(cfg.get_value("joystick", "attack_pos_x", def_attack.x))
+		var pos_y = float(cfg.get_value("joystick", "attack_pos_y", def_attack.y))
 		var scale_val = float(cfg.get_value("joystick", "attack_scale", 0.3))
 		attack_joystick.position = Vector2(pos_x, pos_y)
 		attack_joystick.scale = Vector2(scale_val, scale_val)
