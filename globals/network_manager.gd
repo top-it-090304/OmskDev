@@ -6,6 +6,14 @@ var connection_state := ConnectionState.DISCONNECTED
 const SERVER_ID = 1
 var my_id: int = 0
 
+## Кооп: забег завершён (кто-то умер) — без нового подключения не сбрасывается
+var coop_run_finished: bool = false
+
+## Сколько **гостей** может подключиться к хосту (ещё +1 сам хост в «комнате»).
+const MAX_CLIENT_PEERS: int = 7
+## HEX-код комнаты для лобби (хост задаёт из IP, гость — из ввода при входе).
+var lobby_display_code: String = ""
+
 const CONNECTION_TIMEOUT := 10.0
 var connection_timer: Timer = null
 
@@ -34,11 +42,12 @@ func _ready() -> void:
 
 func host_game(port: int = 4242) -> void:
 	var peer := ENetMultiplayerPeer.new()
-	if peer.create_server(port) != OK:
+	if peer.create_server(port, MAX_CLIENT_PEERS) != OK:
 		return
 	get_tree().get_multiplayer().multiplayer_peer = peer
 	connection_state = ConnectionState.HOSTING
 	my_id = SERVER_ID
+	reset_coop_run_state()
 	_apply_network_rpc_authority()
 	emit_signal("connected_to_server")
 
@@ -49,6 +58,7 @@ func join_game(address: String, port: int = 4242) -> void:
 		return
 	get_tree().get_multiplayer().multiplayer_peer = peer
 	connection_state = ConnectionState.CONNECTING
+	reset_coop_run_state()
 	connection_timer.start()
 	_apply_network_rpc_authority()
 
@@ -56,6 +66,8 @@ func disconnect_game() -> void:
 	get_tree().get_multiplayer().multiplayer_peer = null
 	connection_state = ConnectionState.DISCONNECTED
 	my_id = 0
+	lobby_display_code = ""
+	reset_coop_run_state()
 	if not connection_timer.is_stopped():
 		connection_timer.stop()
 
@@ -75,6 +87,14 @@ func is_multiplayer_active() -> bool:
 func is_server() -> bool:
 	var mp := get_tree().get_multiplayer()
 	return mp.has_multiplayer_peer() and mp.is_server()
+
+
+func mark_coop_run_finished() -> void:
+	coop_run_finished = true
+
+
+func reset_coop_run_state() -> void:
+	coop_run_finished = false
 
 func is_client() -> bool:
 	var mp := get_tree().get_multiplayer()
@@ -116,6 +136,31 @@ func rpc_request_dungeon_resync() -> void:
 		return
 	host_publish_dungeon_state()
 
+
+# --- Люк / следующий этаж в коопе: все пиры меняют сцену вместе ---
+var _last_coop_floor_transition_ms: int = -9999999
+
+
+@rpc("authority", "call_local", "reliable")
+func rpc_coop_transition_next_floor() -> void:
+	var now := Time.get_ticks_msec()
+	if now - _last_coop_floor_transition_ms < 2000:
+		return
+	_last_coop_floor_transition_ms = now
+	SaveSystem.delete_dungeon_state()
+	GameConstants.CURRENT_FLOOR += 1
+	GameConstants.ROOMS_CLEARED = 0
+	GameConstants.save_to_disk()
+	get_tree().change_scene_to_file("res://World/layer.tscn")
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func rpc_request_coop_next_floor() -> void:
+	if not is_server():
+		return
+	rpc_coop_transition_next_floor.rpc()
+
+
 func encode_ip(ip: String) -> String:
 	var parts := ip.split(".")
 	if parts.size() != 4: return ""
@@ -135,6 +180,7 @@ func decode_code(code: String) -> String:
 func _on_client_connected() -> void:
 	my_id = get_tree().get_multiplayer().get_unique_id()
 	connection_state = ConnectionState.CONNECTED
+	reset_coop_run_state()
 	_apply_network_rpc_authority()
 	if not connection_timer.is_stopped():
 		connection_timer.stop()
@@ -148,10 +194,12 @@ func _on_connection_timeout() -> void:
 func _on_disconnected() -> void:
 	connection_state = ConnectionState.DISCONNECTED
 	my_id = 0
+	reset_coop_run_state()
 	emit_signal("disconnected_from_server")
 
 func _on_connection_failed() -> void:
 	connection_state = ConnectionState.DISCONNECTED
+	reset_coop_run_state()
 	emit_signal("connection_failed")
 
 func _on_peer_connected(id: int) -> void:
@@ -181,10 +229,15 @@ func _find_artefact_pickup_node(resource_path: String, room: Vector2i) -> Node:
 func rpc_request_artefact_pickup_from_client(resource_path: String, room_x: int, room_y: int, picker_peer_id: int) -> void:
 	if not is_server():
 		return
+	if multiplayer.get_remote_sender_id() != picker_peer_id:
+		return
 	var node := _find_artefact_pickup_node(resource_path, Vector2i(room_x, room_y))
 	if node == null:
 		return
-	node.server_run_pickup_effects(true)
+	if node.has_method("server_consume_world_only_for_remote_client_pickup"):
+		node.server_consume_world_only_for_remote_client_pickup()
+	else:
+		node.queue_free()
 	rpc_client_mirror_artefact_pickup.rpc(resource_path, room_x, room_y, picker_peer_id)
 
 
@@ -197,14 +250,69 @@ func rpc_client_mirror_artefact_pickup(resource_path: String, room_x: int, room_
 	var n := _find_artefact_pickup_node(resource_path, room)
 	if n:
 		n.queue_free()
+	if multiplayer.get_unique_id() != picker_peer_id:
+		return
 	var res := load(resource_path)
 	if res == null:
 		return
 	var pickup = res.instantiate()
 	if pickup.has_method("apply_effects"):
 		pickup.apply_effects()
-	if multiplayer.get_unique_id() == picker_peer_id and pickup.has_method("show_stat_popup"):
-		pickup.show_stat_popup()
 	if pickup.has_method("add_to_backpack"):
 		pickup.add_to_backpack()
+	if pickup.has_method("show_stat_popup"):
+		pickup.show_stat_popup()
 	pickup.queue_free()
+
+
+@rpc("authority", "call_local", "reliable")
+func rpc_cleanup_cleared_room(grid_x: int, grid_y: int) -> void:
+	var mm := get_tree().get_first_node_in_group("map_manager")
+	if mm and mm.has_method("apply_room_cleared_for_network"):
+		mm.apply_room_cleared_for_network(Vector2i(grid_x, grid_y))
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func rpc_request_room_cleared(grid_x: int, grid_y: int) -> void:
+	if not is_server():
+		return
+	rpc_cleanup_cleared_room.rpc(grid_x, grid_y)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func rpc_report_player_death() -> void:
+	if not is_server():
+		return
+	var sid := multiplayer.get_remote_sender_id()
+	if sid <= 0:
+		return
+	rpc_coop_game_over.rpc(sid)
+
+
+@rpc("authority", "call_local", "reliable")
+func rpc_coop_game_over(victim_peer_id: int) -> void:
+	var mp := get_tree().get_multiplayer()
+	if not mp.has_multiplayer_peer():
+		return
+	if coop_run_finished:
+		return
+	if mp.get_unique_id() == victim_peer_id:
+		return
+	mark_coop_run_finished()
+	PlayerManager.show_coop_game_over_survivor()
+
+
+@rpc("authority", "call_local", "reliable")
+func rpc_sync_coop_room(grid_x: int, grid_y: int, entered_peer_id: int) -> void:
+	var mm := get_tree().get_first_node_in_group("map_manager")
+	if mm and mm.has_method("apply_coop_room_sync_all"):
+		mm.apply_coop_room_sync_all(Vector2i(grid_x, grid_y), entered_peer_id)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func rpc_report_room_enter_to_server(grid_x: int, grid_y: int) -> void:
+	if not is_server():
+		return
+	var mm := get_tree().get_first_node_in_group("map_manager")
+	if mm and mm.has_method("server_handle_coop_room_enter"):
+		mm.server_handle_coop_room_enter(Vector2i(grid_x, grid_y), multiplayer.get_remote_sender_id())

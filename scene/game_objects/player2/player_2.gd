@@ -311,9 +311,20 @@ func attack(from_rpc: bool = false) -> void:
 
 	await animP.animation_finished
 
+	animP.stop()
 	animP.speed_scale = 1.0
 
 	can_anim = true
+	if from_rpc:
+		if velocity.length_squared() > 100.0:
+			play_walk_animation()
+		else:
+			play_idle_animation()
+	else:
+		if movement_vector() != Vector2.ZERO:
+			play_walk_animation()
+		else:
+			play_idle_animation()
 
 	attack_timer.start(
 		attack_timer.wait_time / GameConstants.PLAYER_ATTACK_SPEED

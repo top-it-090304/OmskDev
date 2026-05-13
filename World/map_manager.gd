@@ -16,6 +16,9 @@ extends Node2D
 @export var treasure_items: Array[PackedScene] = []
 
 @export var player_scene:PackedScene
+# Люк на следующий этаж — в центре комнаты босса, ссылка для лута боссов
+const HATCH_SCENE := preload("res://scene/pick_up/hatch.tscn")
+var boss_hatch: Area2D = null
 # Гибкий массив препятствий
 @export var obstacle_data: Array[Dictionary] = [
 	{"scene": preload("res://sprites/Rocks/rock_1.tscn"), "size": Vector2(32, 32)},
@@ -47,6 +50,8 @@ var seen_rooms = []
 
 func _ready() -> void:
 	add_to_group("map_manager")
+	if get_tree().get_multiplayer().has_multiplayer_peer():
+		set_multiplayer_authority(NetworkManager.SERVER_ID)
 	get_tree().auto_accept_quit = false  # Перехватываем попытки выхода
 
 	if start_room_variations.is_empty() or normal_room_variations.is_empty() or boss_room_variations.is_empty():
@@ -114,8 +119,9 @@ func _boot_dungeon_async() -> void:
 
 func get_coop_spawn_points() -> Array[Vector2]:
 	var out: Array[Vector2] = []
+	var start_cell: Vector2i = get_safe_room_position()
 	for room_data in spawned_rooms:
-		if room_data["type"] != RoomType.START:
+		if room_data["grid_pos"] != start_cell:
 			continue
 		var room_node := room_data["node"] as Node2D
 		var base: Vector2
@@ -128,18 +134,26 @@ func get_coop_spawn_points() -> Array[Vector2]:
 				GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2.0
 			)
 			base = room_node.to_global(lc)
+		# Небольшой разнос внутри комнаты (раньше ±72 выталкивал в коридор / «за стену»)
 		var offsets: Array[Vector2] = [
 			Vector2.ZERO,
-			Vector2(72, 0),
-			Vector2(-72, 0),
-			Vector2(0, 72),
-			Vector2(48, 48),
-			Vector2(-48, -48),
+			Vector2(48, 0),
+			Vector2(-48, 0),
+			Vector2(0, 40),
+			Vector2(0, -40),
 		]
 		for off in offsets:
 			out.append(base + off)
 		break
 	return out
+
+
+func get_coop_start_room_node() -> Node2D:
+	var start_cell: Vector2i = get_safe_room_position()
+	for room_data in spawned_rooms:
+		if room_data["grid_pos"] == start_cell:
+			return room_data["node"] as Node2D
+	return null
 
 func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
@@ -546,7 +560,23 @@ func _spawn_boss(space_state, room_node):
 		
 		area_enemys.add_child(boss)
 		boss.global_position = global_point
-		return 
+		# Люк в геометрическом центре комнаты босса (локальные координаты комнаты)
+		if boss_hatch != null and is_instance_valid(boss_hatch):
+			boss_hatch.queue_free()
+		var hatch_inst := HATCH_SCENE.instantiate() as Area2D
+		room_node.add_child(hatch_inst)
+		hatch_inst.position = local_point
+		boss_hatch = hatch_inst
+		if SaveSystem.is_boss_hatch_opened() and hatch_inst.has_method("apply_save_open_state"):
+			hatch_inst.apply_save_open_state()
+		return
+
+
+func open_boss_hatch() -> void:
+	if boss_hatch != null and is_instance_valid(boss_hatch) and boss_hatch.has_method("open_hatch"):
+		boss_hatch.open_hatch()
+	SaveSystem.set_boss_hatch_opened(true)
+
 
 func _spawn_single_enemy(space_state, room_node):
 	var max_attempts = 30 
@@ -578,6 +608,71 @@ func _spawn_single_enemy(space_state, room_node):
 			area_enemys.add_child(enemy)
 			enemy.global_position = global_point
 			return 
+
+## Кооп: зачистка комнаты на всех машинах + прогресс только на хосте
+func apply_room_cleared_for_network(grid: Vector2i) -> void:
+	var room_node: Node2D = null
+	for room_data in spawned_rooms:
+		if room_data["grid_pos"] == grid:
+			room_node = room_data["node"] as Node2D
+			break
+	if room_node == null:
+		return
+	var enode := room_node.find_child("Enemys", true, false)
+	if enode:
+		if enode.has_method("mark_cleared_by_network"):
+			enode.mark_cleared_by_network()
+		for child in enode.get_children():
+			child.queue_free()
+	update_visibility()
+	var mp := get_tree().get_multiplayer()
+	if mp.has_multiplayer_peer() and mp.is_server():
+		GameConstants.on_room_cleared()
+		save_dungeon_state()
+		NetworkManager.host_publish_dungeon_state()
+	else:
+		GameConstants.on_room_cleared_clients_sync()
+
+
+## Кооп: хост рассылает вход в комнату всем (включая вошедшего клиента)
+func server_handle_coop_room_enter(grid: Vector2i, entering_peer_id: int) -> void:
+	var mp := get_tree().get_multiplayer()
+	if not mp.has_multiplayer_peer() or not mp.is_server():
+		return
+	NetworkManager.rpc_sync_coop_room.rpc(grid.x, grid.y, entering_peer_id)
+
+
+func apply_coop_room_sync_all(grid: Vector2i, entered_peer_id: int) -> void:
+	change_current_room(grid.x, grid.y)
+	_move_local_players_to_follow_peer(entered_peer_id)
+
+
+func _move_local_players_to_follow_peer(entered_peer_id: int) -> void:
+	var mp := get_tree().get_multiplayer()
+	if not mp.has_multiplayer_peer():
+		return
+	if mp.get_unique_id() == entered_peer_id:
+		return
+	var leader: Node2D = null
+	for n in get_tree().get_nodes_in_group("player"):
+		if n is Node2D and n.get_multiplayer_authority() == entered_peer_id:
+			leader = n as Node2D
+			break
+	if leader == null:
+		return
+	var target := PlayerManager.find_safe_spawn_near_global(leader.global_position)
+	if target == Vector2.INF or not target.is_finite():
+		target = leader.global_position + Vector2(48, 0)
+	for n in get_tree().get_nodes_in_group("player"):
+		if not n.get("is_local_player"):
+			continue
+		if n.get_multiplayer_authority() == entered_peer_id:
+			continue
+		if n is CharacterBody2D:
+			(n as CharacterBody2D).global_position = target
+			(n as CharacterBody2D).velocity = Vector2.ZERO
+		break
+
 
 func change_current_room(new_x, new_y):
 	var new_pos = Vector2i(new_x, new_y)

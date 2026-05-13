@@ -1,5 +1,7 @@
 extends Node
 
+const _COOP_GAME_OVER_SCENE := preload("res://World/UI/game_over.tscn")
+
 var players: Dictionary = {}
 var pending_peers: Array = []  # Устанавливается лобби перед сменой сцены
 var _player_scene: PackedScene
@@ -27,6 +29,8 @@ func _on_node_added(node: Node) -> void:
 		_on_game_scene_ready()
 
 func _on_game_scene_ready() -> void:
+	if NetworkManager.connection_state == NetworkManager.ConnectionState.DISCONNECTED:
+		NetworkManager.reset_coop_run_state()
 	if NetworkManager.connection_state != NetworkManager.ConnectionState.DISCONNECTED:
 		_spawn_player(NetworkManager.my_id)
 	
@@ -76,6 +80,9 @@ func finalize_network_spawns() -> void:
 	var mm := get_tree().root.find_child("MapManager", true, false)
 	if mm == null or not mm.has_method("get_coop_spawn_points"):
 		return
+	var start_room: Node2D = null
+	if mm.has_method("get_coop_start_room_node"):
+		start_room = mm.get_coop_start_room_node()
 	var candidates: Array = mm.get_coop_spawn_points()
 	if candidates.is_empty():
 		_fallback_place_network_players(mm)
@@ -93,15 +100,16 @@ func finalize_network_spawns() -> void:
 		var n_cand: int = candidates.size()
 		for j in range(n_cand):
 			var cand: Vector2 = candidates[(i + j) % n_cand]
-			var refined := _find_valid_spawn_near(cand)
+			var refined := _find_valid_spawn_near(cand, 120.0)
 			if refined != Vector2.INF and refined.is_finite():
 				chosen = refined
 				break
 		if chosen == Vector2.INF or not chosen.is_finite():
 			chosen = candidates[mini(i, n_cand - 1)]
-		var snap := _find_valid_spawn_near(chosen)
+		var snap := _find_valid_spawn_near(chosen, 120.0)
 		if snap != Vector2.INF and snap.is_finite():
 			chosen = snap
+		chosen = _clamp_spawn_to_start_room(chosen, start_room)
 		inst.global_position = chosen
 		if inst is CharacterBody2D:
 			(inst as CharacterBody2D).velocity = Vector2.ZERO
@@ -113,11 +121,16 @@ func finalize_network_spawns() -> void:
 func _fallback_place_network_players(mm: Node) -> void:
 	var origin: Vector2 = Vector2.ZERO
 	var found := false
+	var start_cell: Vector2i = Vector2i.ZERO
+	if mm.has_method("get_safe_room_position"):
+		start_cell = mm.get_safe_room_position()
 	var rooms_var: Variant = mm.get("spawned_rooms")
 	if rooms_var != null and rooms_var is Array:
 		var rooms: Array = rooms_var
 		for room_data in rooms:
 			if not room_data is Dictionary:
+				continue
+			if room_data.get("grid_pos") != start_cell:
 				continue
 			var rn: Node2D = room_data.get("node") as Node2D
 			if rn == null or not is_instance_valid(rn):
@@ -173,7 +186,7 @@ func _position_new_player(instance: Node2D, player_id: int) -> void:
 				break
 	
 	if search_origin != Vector2.INF:
-		var spawn_pos = _find_valid_spawn_near(search_origin)
+		var spawn_pos = _find_valid_spawn_near(search_origin, 256.0)
 		if spawn_pos != Vector2.INF:
 			instance.global_position = spawn_pos
 			return
@@ -183,16 +196,27 @@ func _position_new_player(instance: Node2D, player_id: int) -> void:
 	if map_manager and map_manager.has_method("get_spawn_point"):
 		instance.global_position = map_manager.get_spawn_point()
 
-func _find_valid_spawn_near(center: Vector2) -> Vector2:
+func _clamp_spawn_to_start_room(pos: Vector2, room_node: Node2D) -> Vector2:
+	if room_node == null or not is_instance_valid(room_node):
+		return pos
+	var tl := room_node.global_position
+	var margin := 56.0
+	var rz := Vector2(GameConstants.MAP_MANAGER_ROOM_SIZE_X, GameConstants.MAP_MANAGER_ROOM_SIZE_Y)
+	return Vector2(
+		clampf(pos.x, tl.x + margin, tl.x + rz.x - margin),
+		clampf(pos.y, tl.y + margin, tl.y + rz.y - margin)
+	)
+
+
+func _find_valid_spawn_near(center: Vector2, max_search_radius: float = 256.0) -> Vector2:
 	var space_state = get_viewport().find_world_2d().direct_space_state
 	var radius = 64.0
-	var max_radius = 256.0
 	var step = 32.0
 	
 	var shape = RectangleShape2D.new()
 	shape.size = Vector2(32, 32)
 	
-	while radius <= max_radius:
+	while radius <= max_search_radius:
 		for i in range(8):
 			var angle = i * PI / 4.0
 			var check_pos = center + Vector2(cos(angle), sin(angle)) * radius
@@ -218,6 +242,21 @@ func _on_disconnected() -> void:
 
 func find_safe_spawn_near_global(center: Vector2) -> Vector2:
 	return _find_valid_spawn_near(center)
+
+
+## Кооп: союзник умер — показать тот же game over, что и у погибшего (Soul Knight)
+func show_coop_game_over_survivor() -> void:
+	var tree := get_tree()
+	if tree == null:
+		return
+	SaveSystem.save_game()
+	var map_manager := tree.get_first_node_in_group("map_manager")
+	if map_manager and map_manager.has_method("save_dungeon_state"):
+		map_manager.save_dungeon_state()
+	var world := tree.current_scene
+	if world == null:
+		return
+	world.add_child(_COOP_GAME_OVER_SCENE.instantiate())
 
 
 func host_pull_co_players_into_combat_room(enemys_node: Node) -> void:

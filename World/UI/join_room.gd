@@ -34,6 +34,7 @@ func _on_connect_pressed() -> void:
 	NetworkManager.join_game(address)
 
 func _on_connected() -> void:
+	NetworkManager.lobby_display_code = code_input.text.strip_edges().to_upper()
 	get_tree().change_scene_to_file("res://World/UI/lobby.tscn")
 
 func _on_connection_failed() -> void:

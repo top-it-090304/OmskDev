@@ -151,6 +151,14 @@ func on_room_cleared() -> void:
 	save_to_disk()
 	constants_changed.emit()
 
+
+## Только счётчики (без save) — для гостей при синхроне зачистки с хоста
+func on_room_cleared_clients_sync() -> void:
+	ROOMS_CLEARED += 1
+	if ROOMS_CLEARED > 0 and ROOMS_CLEARED % 2 == 0:
+		ENEMY_LEVEL += 1
+	constants_changed.emit()
+
 func save_to_disk() -> void:
 	var cfg = ConfigFile.new()
 	cfg.set_value("stats", "ENEMY_LEVEL", ENEMY_LEVEL)

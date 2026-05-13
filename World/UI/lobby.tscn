@@ -213,7 +213,7 @@ alignment = 1
 layout_mode = 2
 theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 16
-text = "Комната"
+text = "Комната ожидания"
 horizontal_alignment = 1
 
 [node name="CodeRow" type="HBoxContainer" parent="Panel/VBoxContainer"]
@@ -224,7 +224,7 @@ alignment = 1
 layout_mode = 2
 theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 12
-text = "Код: "
+text = "Код для друзей: "
 
 [node name="code_label" type="Label" parent="Panel/VBoxContainer/CodeRow"]
 layout_mode = 2

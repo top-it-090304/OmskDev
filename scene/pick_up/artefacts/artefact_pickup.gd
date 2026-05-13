@@ -90,6 +90,15 @@ func _get_treasure_room_grid() -> Vector2i:
 	return Vector2i(-1, -1)
 
 
+## Только мир: подбор клиентом обрабатывается на хосте без бонусов на машине хоста
+func server_consume_world_only_for_remote_client_pickup() -> void:
+	if is_picked_up:
+		return
+	is_picked_up = true
+	mark_room_as_collected()
+	queue_free()
+
+
 ## quiet: без попапа/частиц (когда подбор обрабатывает хост по запросу клиента)
 func server_run_pickup_effects(quiet: bool) -> void:
 	if is_picked_up:

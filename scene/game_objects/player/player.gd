@@ -115,10 +115,15 @@ func _physics_process(delta: float) -> void:
 	if is_dead:
 		return
 
+	var mp := get_tree().get_multiplayer()
+	if mp.has_multiplayer_peer() and NetworkManager.coop_run_finished and is_local_player:
+		velocity = Vector2.ZERO
+		move_and_slide()
+		return
+
 	if is_local_player:
 		move_and_slide()
 
-		var mp := get_tree().get_multiplayer()
 		if mp.has_multiplayer_peer():
 			_pos_sync_accum += delta
 			if _pos_sync_accum >= POS_SYNC_MIN_INTERVAL_SEC:
@@ -156,6 +161,9 @@ func _physics_process(delta: float) -> void:
 
 func _process(delta: float) -> void:
 	if is_dead:
+		return
+
+	if get_tree().get_multiplayer().has_multiplayer_peer() and NetworkManager.coop_run_finished:
 		return
 
 	if not is_local_player:
@@ -312,9 +320,20 @@ func attack(from_rpc: bool = false) -> void:
 
 	await animP.animation_finished
 
+	animP.stop()
 	animP.speed_scale = 1.0
 
 	can_anim = true
+	if from_rpc:
+		if velocity.length_squared() > 100.0:
+			play_walk_animation()
+		else:
+			play_idle_animation()
+	else:
+		if movement_vector() != Vector2.ZERO:
+			play_walk_animation()
+		else:
+			play_idle_animation()
 
 	attack_timer.start(
 		attack_timer.wait_time / GameConstants.PLAYER_ATTACK_SPEED
@@ -353,6 +372,9 @@ func apply_knockback(source_position: Vector2, force: float):
 
 func take_damage(amount: int):
 	if not can_take_damage or is_dead:
+		return
+
+	if get_tree().get_multiplayer().has_multiplayer_peer() and NetworkManager.coop_run_finished:
 		return
 
 	# Уклонение
@@ -416,6 +438,15 @@ func take_damage(amount: int):
 func die():
 	if is_dead:
 		return
+
+	var mp := get_tree().get_multiplayer()
+	if mp.has_multiplayer_peer() and is_local_player:
+		if not NetworkManager.coop_run_finished:
+			if mp.is_server():
+				NetworkManager.rpc_coop_game_over.rpc(multiplayer.get_multiplayer_authority())
+			else:
+				NetworkManager.rpc_report_player_death.rpc_id(NetworkManager.SERVER_ID)
+		NetworkManager.mark_coop_run_finished()
 
 	is_dead = true
 	can_anim = false

@@ -3,6 +3,8 @@ extends Node
 var aggression: bool = false
 var _players_in_room: int = 0
 var _room_was_cleared = false  # Флаг для отслеживания зачистки комнаты
+var _had_alive_enemy: bool = false  # Были живые враги (после queue_free детей уже 0)
+var _network_clear_in_flight: bool = false  # Уже отправили зачистку в сеть (хост/клиент)
 
 
 func _process(_delta: float) -> void:
@@ -28,6 +30,7 @@ func _update_aggression() -> void:
 	for child in get_children():
 		if child.has_method("take_damage") and not child.get("is_dead"):
 			alive_enemies += 1
+			_had_alive_enemy = true
 			# Определяем тип босса по имени файла сцены
 			if child.scene_file_path:
 				if "skeleton_king" in child.scene_file_path:
@@ -55,6 +58,21 @@ func _update_aggression() -> void:
 		if not mp.has_multiplayer_peer() or mp.is_server():
 			PlayerManager.host_pull_co_players_into_combat_room(self)
 
-	if alive_enemies == 0 and not _room_was_cleared and get_child_count() > 0:
-		_room_was_cleared = true
-		GameConstants.on_room_cleared()
+	if alive_enemies == 0 and not _room_was_cleared and _had_alive_enemy:
+		var mp := get_tree().get_multiplayer()
+		var room = get_parent()
+		if mp.has_multiplayer_peer() and room != null and "grid_x" in room and "grid_y" in room:
+			if not _network_clear_in_flight:
+				_network_clear_in_flight = true
+				if mp.is_server():
+					NetworkManager.rpc_cleanup_cleared_room.rpc(room.grid_x, room.grid_y)
+				else:
+					NetworkManager.rpc_request_room_cleared.rpc_id(NetworkManager.SERVER_ID, room.grid_x, room.grid_y)
+		else:
+			_room_was_cleared = true
+			GameConstants.on_room_cleared()
+
+
+func mark_cleared_by_network() -> void:
+	_room_was_cleared = true
+	_network_clear_in_flight = false
