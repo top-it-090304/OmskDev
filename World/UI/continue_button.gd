@@ -16,6 +16,8 @@ func _on_pressed() -> void:
 
 	# Загружаем сохранение
 	if SaveSystem.load_game():
+		# Перезапускаем музыку перед сменой сцены
+		AudioManager.restart_music()
 		# Запускаем игру
 		get_tree().change_scene_to_packed(target_scene)
 	else:

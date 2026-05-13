@@ -1,0 +1,4 @@
+[gd_scene load_steps=2 format=3 uid="uid://fairy_bottle123"]
+[ext_resource type="Script" path="res://scene/pick_up/artefacts/fairy_bottle.gd" id="1"]
+[node name="fairy_bottle" type="Node2D"]
+script = ExtResource("1")

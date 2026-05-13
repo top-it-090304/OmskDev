@@ -2,11 +2,21 @@ extends CharacterBody2D
 
 const HATCH_SCENE = preload("res://scene/pick_up/hatch.tscn")
 
+# Тематические артефакты для Beast Goblin (природные/зелёные)
+const ARTEFACT_SCENES = [
+	preload("res://scene/pick_up/artefacts/small_cactus.tscn"),  # Кактус - природный
+	preload("res://scene/pick_up/artefacts/lime_juice.tscn"),     # Лаймовый сок - зелёный
+	preload("res://scene/pick_up/artefacts/ramen_bowl.tscn"),     # Рамен - еда
+	preload("res://scene/pick_up/artefacts/bottle.tscn"),         # Бутылка - зелёная
+	preload("res://scene/pick_up/artefacts/coffee_mug.tscn")      # Кофе - энергетик
+]
+
 const TELEPORT_INTERVAL = 8.0
 const ATTACK_COOLDOWN   = 4.0
 
 var hp = 0
 var speed = GameConstants.ENEMY_BEASTGOBLIN_MAX_SPEED
+var player_took_damage: bool = false
 
 @onready var anim = $AnimatedSprite2D
 @onready var animP = $AnimationPlayer
@@ -44,6 +54,7 @@ func _ready() -> void:
 	player      = get_tree().get_first_node_in_group("player") as Node2D
 	parent_node = get_parent()
 	attack_timer.one_shot = true
+	player_took_damage = false
 	_play_idle_animation()
 
 func _physics_process(delta: float) -> void:
@@ -254,23 +265,24 @@ func spawn_slap_effect():
 	circle.global_position = global_position
 	get_tree().current_scene.add_child(circle)
 
-	# Много частиц-осколков во все стороны
-	var particles = CPUParticles2D.new()
-	particles.emitting = true
-	particles.one_shot = true
-	particles.explosiveness = 1.0
-	particles.amount = 60
-	particles.lifetime = 0.5
-	particles.spread = 180.0
-	particles.initial_velocity_min = 90.0
-	particles.initial_velocity_max = 180.0
-	particles.scale_amount_min = 3.0
-	particles.scale_amount_max = 7.0
-	particles.color = Color(0.65, 0.62, 0.58, 1.0)
-	particles.gravity = Vector2(0, 60)
-	particles.z_index = 10
-	particles.global_position = global_position
-	get_tree().current_scene.add_child(particles)
+	# Много частиц-осколков во все стороны (только если включены)
+	if GameConstants.show_particles:
+		var particles = CPUParticles2D.new()
+		particles.emitting = true
+		particles.one_shot = true
+		particles.explosiveness = 1.0
+		particles.amount = 60
+		particles.lifetime = 0.5
+		particles.spread = 180.0
+		particles.initial_velocity_min = 90.0
+		particles.initial_velocity_max = 180.0
+		particles.scale_amount_min = 3.0
+		particles.scale_amount_max = 7.0
+		particles.color = Color(0.65, 0.62, 0.58, 1.0)
+		particles.gravity = Vector2(0, 60)
+		particles.z_index = 10
+		particles.global_position = global_position
+		get_tree().current_scene.add_child(particles)
 
 	var tween = create_tween()
 	tween.tween_property(circle, "color:a", 0.0, 0.3)
@@ -288,6 +300,7 @@ func _on_slap_body_entered(body: Node2D) -> void:
 func take_damage(amount: int):
 	if is_dead: return
 	hp -= amount
+	player_took_damage = true
 	hp_bar.update_hp(hp, GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_HP))
 	if hp <= 0:
 		death()
@@ -340,17 +353,36 @@ func death():
 	await anim.animation_finished
 	_give_exp_to_player()
 	if randf() <= 0.75: _spawn_loot()
-	_spawn_hatch()
+	_spawn_artefact_near_hatch()
+	_open_hatch_via_map_manager()
 	queue_free()
 
-func _spawn_hatch():
-	var hatch = HATCH_SCENE.instantiate()
-	hatch.global_position = global_position
-	get_tree().current_scene.add_child(hatch)
-	hatch.open_hatch()
+func _spawn_artefact_near_hatch():
+	var map_manager = get_tree().get_first_node_in_group("map_manager")
+	if not map_manager:
+		return
+	
+	var hatch = map_manager.boss_hatch
+	if not hatch or not is_instance_valid(hatch):
+		return
+	
+	# Спавним артефакт на 32 пикселя ниже люка
+	var artefact_scene = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
+	var artefact = artefact_scene.instantiate()
+	artefact.z_index = 2
+	
+	var spawn_pos = hatch.global_position + Vector2(0, 32)
+	
+	hatch.get_parent().add_child(artefact)
+	artefact.global_position = spawn_pos
+
+func _open_hatch_via_map_manager():
+	var map_manager = get_tree().get_first_node_in_group("map_manager")
+	if map_manager and map_manager.has_method("open_boss_hatch"):
+		map_manager.open_boss_hatch()
 
 func _give_exp_to_player():
-	var p = get_tree().get_first_node_in_group("player")
+	var p := PlayerManager.get_player_for_local_rewards()
 	if p and p.has_method("add_experience"):
 		p.add_experience(GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_EXP_REWARD))
 

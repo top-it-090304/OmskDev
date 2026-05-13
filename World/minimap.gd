@@ -30,7 +30,31 @@ func _ready():
 	grid_total_size.y = cell_step * GameConstants.MAP_MANAGER_GRID_SIZE
 
 	map_manager.room_changed.connect(_on_room_changed)
+	# У клиента layout заполняется только после sync данжа — до этого layout == [] и layout[0] падает
+	var watchdog := 600
+	while not _is_map_layout_ready():
+		watchdog -= 1
+		if watchdog <= 0:
+			push_warning("minimap: layout ещё не готов (таймаут ожидания); первое обновление при room_changed")
+			return
+		await get_tree().process_frame
 	_on_room_changed(map_manager.current_room_grid_pos)
+
+
+func _is_map_layout_ready() -> bool:
+	if map_manager == null:
+		return false
+	var l: Variant = map_manager.layout
+	if not l is Array:
+		return false
+	var g: int = GameConstants.MAP_MANAGER_GRID_SIZE
+	if (l as Array).size() < g:
+		return false
+	for i in g:
+		var row: Variant = (l as Array)[i]
+		if not row is Array or (row as Array).size() < g:
+			return false
+	return true
 
 func build_grid():
 	for child in grid_container.get_children():
@@ -65,6 +89,8 @@ func _on_room_changed(grid_pos: Vector2i):
 	center_map_on_room(grid_pos)
 
 func update_minimap_visuals():
+	if not _is_map_layout_ready():
+		return
 	for y in range(GameConstants.MAP_MANAGER_GRID_SIZE):
 		for x in range(GameConstants.MAP_MANAGER_GRID_SIZE):
 			var cell = room_cells[y][x]

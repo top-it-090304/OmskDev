@@ -1,0 +1,207 @@
+[gd_scene load_steps=5 format=3 uid="uid://bxrcjv0a80e1w"]
+
+[ext_resource type="Script" uid="uid://wldggetlxy7v" path="res://World/UI/settings.gd" id="1_fcveu"]
+[ext_resource type="Texture2D" uid="uid://b70s4hl2nftxd" path="res://assets/Button/GenericPanel.png" id="1_p77nn"]
+[ext_resource type="Texture2D" uid="uid://lgt42mdbxna2" path="res://assets/Button/GenericTextField.png" id="2_083ek"]
+[ext_resource type="FontFile" uid="uid://wbjr6hf3uxdc" path="res://Font/PixelRpgFont-Regular.ttf" id="5_o0o4q"]
+
+[node name="settings" type="Control"]
+z_index = 4096
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_fcveu")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+custom_minimum_size = Vector2(280, 400)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.25
+anchor_top = 0.1
+anchor_right = 0.75
+anchor_bottom = 0.9
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GenericPanel" type="Sprite2D" parent="VBoxContainer"]
+position = Vector2(140, 433)
+scale = Vector2(6.5, 19.7083)
+texture = ExtResource("1_p77nn")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer"]
+custom_minimum_size = Vector2(260, 500)
+layout_mode = 2
+
+[node name="SettingsList" type="VBoxContainer" parent="VBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="AudioLabel" type="Label" parent="VBoxContainer/ScrollContainer/SettingsList"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_o0o4q")
+text = "=== ЗВУК ==="
+horizontal_alignment = 1
+
+[node name="MusicLabel" type="Label" parent="VBoxContainer/ScrollContainer/SettingsList"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_o0o4q")
+text = "Музыка"
+
+[node name="MusicSlider" type="HSlider" parent="VBoxContainer/ScrollContainer/SettingsList"]
+custom_minimum_size = Vector2(200, 20)
+layout_mode = 2
+min_value = -40.0
+max_value = 6.0
+
+[node name="SFXLabel" type="Label" parent="VBoxContainer/ScrollContainer/SettingsList"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_o0o4q")
+text = "Эффекты"
+
+[node name="SFXSlider" type="HSlider" parent="VBoxContainer/ScrollContainer/SettingsList"]
+custom_minimum_size = Vector2(200, 20)
+layout_mode = 2
+min_value = -40.0
+max_value = 6.0
+
+[node name="ControlsLabel" type="Label" parent="VBoxContainer/ScrollContainer/SettingsList"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_o0o4q")
+text = "=== УПРАВЛЕНИЕ ==="
+horizontal_alignment = 1
+
+[node name="MoveLabel" type="Label" parent="VBoxContainer/ScrollContainer/SettingsList"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_o0o4q")
+text = "Джойстик движения"
+
+[node name="MoveSizeLabel" type="Label" parent="VBoxContainer/ScrollContainer/SettingsList"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_o0o4q")
+text = "Размер"
+
+[node name="MoveSizeSlider" type="HSlider" parent="VBoxContainer/ScrollContainer/SettingsList"]
+custom_minimum_size = Vector2(200, 20)
+layout_mode = 2
+min_value = 0.1
+max_value = 1.0
+step = 0.05
+value = 0.3
+
+[node name="MovePosLabel" type="Label" parent="VBoxContainer/ScrollContainer/SettingsList"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_o0o4q")
+text = "Позиция X"
+
+[node name="MovePosX" type="SpinBox" parent="VBoxContainer/ScrollContainer/SettingsList"]
+layout_mode = 2
+min_value = -500.0
+max_value = 500.0
+value = 16.0
+
+[node name="MovePosLabelY" type="Label" parent="VBoxContainer/ScrollContainer/SettingsList"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_o0o4q")
+text = "Позиция Y"
+
+[node name="MovePosY" type="SpinBox" parent="VBoxContainer/ScrollContainer/SettingsList"]
+layout_mode = 2
+min_value = -500.0
+max_value = 500.0
+value = -108.0
+
+[node name="AttackLabel" type="Label" parent="VBoxContainer/ScrollContainer/SettingsList"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_o0o4q")
+text = "Джойстик атаки"
+
+[node name="AttackSizeLabel" type="Label" parent="VBoxContainer/ScrollContainer/SettingsList"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_o0o4q")
+text = "Размер"
+
+[node name="AttackSizeSlider" type="HSlider" parent="VBoxContainer/ScrollContainer/SettingsList"]
+custom_minimum_size = Vector2(200, 20)
+layout_mode = 2
+min_value = 0.1
+max_value = 1.0
+step = 0.05
+value = 0.3
+
+[node name="AttackPosLabel" type="Label" parent="VBoxContainer/ScrollContainer/SettingsList"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_o0o4q")
+text = "Позиция X"
+
+[node name="AttackPosX" type="SpinBox" parent="VBoxContainer/ScrollContainer/SettingsList"]
+layout_mode = 2
+min_value = -500.0
+max_value = 500.0
+value = -113.0
+
+[node name="AttackPosLabelY" type="Label" parent="VBoxContainer/ScrollContainer/SettingsList"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_o0o4q")
+text = "Позиция Y"
+
+[node name="AttackPosY" type="SpinBox" parent="VBoxContainer/ScrollContainer/SettingsList"]
+layout_mode = 2
+min_value = -500.0
+max_value = 500.0
+value = -108.0
+
+[node name="DisplayLabel" type="Label" parent="VBoxContainer/ScrollContainer/SettingsList"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_o0o4q")
+text = "=== ОТОБРАЖЕНИЕ ==="
+horizontal_alignment = 1
+
+[node name="CheckButtonDamage" type="CheckButton" parent="VBoxContainer/ScrollContainer/SettingsList"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Цифры урона"
+
+[node name="CheckButtonHeal" type="CheckButton" parent="VBoxContainer/ScrollContainer/SettingsList"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Цифры хила"
+
+[node name="CheckButtonDodge" type="CheckButton" parent="VBoxContainer/ScrollContainer/SettingsList"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Показывать уклон"
+
+[node name="TextureButton4" type="TextureButton" parent="VBoxContainer/ScrollContainer/SettingsList"]
+custom_minimum_size = Vector2(200, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+texture_normal = ExtResource("2_083ek")
+
+[node name="Label" type="Label" parent="VBoxContainer/ScrollContainer/SettingsList/TextureButton4"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("5_o0o4q")
+text = "Назад"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="value_changed" from="VBoxContainer/ScrollContainer/SettingsList/MusicSlider" to="." method="_on_music_slider_value_changed"]
+[connection signal="value_changed" from="VBoxContainer/ScrollContainer/SettingsList/SFXSlider" to="." method="_on_sfx_slider_value_changed"]
+[connection signal="value_changed" from="VBoxContainer/ScrollContainer/SettingsList/MoveSizeSlider" to="." method="_on_move_size_slider_value_changed"]
+[connection signal="value_changed" from="VBoxContainer/ScrollContainer/SettingsList/MovePosX" to="." method="_on_move_pos_x_value_changed"]
+[connection signal="value_changed" from="VBoxContainer/ScrollContainer/SettingsList/MovePosY" to="." method="_on_move_pos_y_value_changed"]
+[connection signal="value_changed" from="VBoxContainer/ScrollContainer/SettingsList/AttackSizeSlider" to="." method="_on_attack_size_slider_value_changed"]
+[connection signal="value_changed" from="VBoxContainer/ScrollContainer/SettingsList/AttackPosX" to="." method="_on_attack_pos_x_value_changed"]
+[connection signal="value_changed" from="VBoxContainer/ScrollContainer/SettingsList/AttackPosY" to="." method="_on_attack_pos_y_value_changed"]
+[connection signal="toggled" from="VBoxContainer/ScrollContainer/SettingsList/CheckButtonDamage" to="." method="_on_check_button_damage_toggled"]
+[connection signal="toggled" from="VBoxContainer/ScrollContainer/SettingsList/CheckButtonHeal" to="." method="_on_check_button_heal_toggled"]
+[connection signal="toggled" from="VBoxContainer/ScrollContainer/SettingsList/CheckButtonDodge" to="." method="_on_check_button_dodge_toggled"]
+[connection signal="pressed" from="VBoxContainer/ScrollContainer/SettingsList/TextureButton4" to="." method="_on_texture_button_4_pressed"]

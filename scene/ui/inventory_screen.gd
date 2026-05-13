@@ -23,11 +23,10 @@ var _stats_popup: Control
 
 func _ready() -> void:
 	add_to_group("inventory_screen")
-	add_to_group("backpack")
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build_ui()
 	hide_inventory()
-	call_deferred("_restore_from_save")
+	# НЕ загружаем артефакты здесь - это делает backpack.gd и синхронизирует с нами
 
 func _build_ui() -> void:
 	var root = Control.new()
@@ -270,9 +269,28 @@ func add_artefact(artefact_info) -> void:
 			"icon_path": artefact_info.artefact_icon.resource_path if ("artefact_icon" in artefact_info and artefact_info.artefact_icon) else "",
 			"description": artefact_info.get("artefact_description") if "artefact_description" in artefact_info else ""
 		}
+	
+	# Проверяем на дубликаты
+	var artefact_name = info.get("name", "")
+	for existing in _artefacts:
+		if existing.get("name", "") == artefact_name:
+			print("Артефакт уже есть в inventory_screen, пропускаем: ", artefact_name)
+			return
+	
 	_artefacts.append(info)
-	if _visible:
+	_add_artefact_icon(info)
+
+func clear_and_sync(artefacts_list: Array) -> void:
+	# Полная синхронизация - очищаем и пересоздаём
+	_artefacts.clear()
+	for child in _grid.get_children():
+		child.queue_free()
+	
+	for info in artefacts_list:
+		_artefacts.append(info)
 		_add_artefact_icon(info)
+	
+	print("inventory_screen синхронизирован, артефактов: ", _artefacts.size())
 
 func _add_artefact_icon(art: Dictionary) -> void:
 	var btn = TextureButton.new()
@@ -297,16 +315,3 @@ func get_collected_artefact_names() -> Array:
 			"description": art.get("description", "")
 		})
 	return result
-
-func _restore_from_save() -> void:
-	if not SaveSystem.has_collected_artefacts(): return
-	for data in SaveSystem.get_collected_artefacts():
-		var icon = null
-		if data.get("icon_path", "") != "":
-			icon = load(data["icon_path"])
-		add_artefact({
-			"name": data.get("name", ""),
-			"icon": icon,
-			"icon_path": data.get("icon_path", ""),
-			"description": data.get("description", "")
-		})

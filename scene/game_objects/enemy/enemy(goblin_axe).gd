@@ -1,4 +1,4 @@
-extends CharacterBody2D
+extends "res://scene/game_objects/enemy/enemy_base.gd"
 
 var hp = 0
 
@@ -20,7 +20,6 @@ var can_attack = true
 var can_anim = true
 var player_in_range = false
 var smite_instance: Node2D = null
-var is_dead = false
 
 func _ready() -> void:
 	add_to_group("enemys")
@@ -30,8 +29,11 @@ func _ready() -> void:
 	player = get_tree().get_first_node_in_group("player") as Node2D
 	parent_node = get_parent()
 
-func _physics_process(_delta: float) -> void:
-	if is_dead: return
+func _physics_process(delta: float) -> void:
+	_apply_knockback_logic(delta)
+	
+	if is_dead: 
+		return
 
 	if not can_walk:
 		velocity = Vector2.ZERO
@@ -43,12 +45,12 @@ func _physics_process(_delta: float) -> void:
 	if is_instance_valid(player) and is_aggressive:
 		var to_player = player.global_position - global_position
 		var direction = to_player.normalized()
-		velocity = direction * speed
+		velocity = direction * speed + knockback_velocity
 		move_and_slide()
 		if can_anim:
 			update_run_animation(direction)
 	else:
-		velocity = Vector2.ZERO
+		velocity = velocity.move_toward(Vector2.ZERO, speed)
 		move_and_slide()
 		if can_anim:
 			play_idle_animation()
@@ -112,6 +114,9 @@ func take_damage(amount: int):
 	tween.tween_property(anim, "modulate", Color(1, 0, 0, 1), 0.0)
 	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.15)
 
+func apply_knockback(source_position: Vector2, strength: float) -> void:
+	super.apply_knockback(source_position, strength)
+
 func death():
 	if is_dead: return
 	is_dead = true
@@ -135,7 +140,7 @@ func death():
 	queue_free()
 
 func _give_exp_to_player():
-	var player_node = get_tree().get_first_node_in_group("player")
+	var player_node := PlayerManager.get_player_for_local_rewards()
 	if player_node and player_node.has_method("add_experience"):
 		var exp_reward = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_GOBLIN_AXE_EXP_REWARD)
 		player_node.add_experience(exp_reward)

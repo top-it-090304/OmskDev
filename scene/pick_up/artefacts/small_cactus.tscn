@@ -1,0 +1,4 @@
+[gd_scene load_steps=2 format=3 uid="uid://small_cactus123"]
+[ext_resource type="Script" path="res://scene/pick_up/artefacts/small_cactus.gd" id="1"]
+[node name="small_cactus" type="Node2D"]
+script = ExtResource("1")

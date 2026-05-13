@@ -14,6 +14,9 @@ var collected_artefacts: Array = []
 # Комнаты, в которых артефакты уже собраны
 var collected_treasure_rooms: Array = []
 
+# Флаг что люк босса открыт
+var boss_hatch_opened: bool = false
+
 # Базовые значения для сброса
 const BASE_VALUES = {
 	"PLAYER_MAX_SPEED": 200,
@@ -80,34 +83,37 @@ func save_game() -> bool:
 			"enemy_level": GameConstants.ENEMY_LEVEL,
 			"current_floor": GameConstants.CURRENT_FLOOR,
 		},
-
-		# Позиция игрока (будет добавлена позже)
-		"player_position": {
-			"x": 0,
-			"y": 0,
-			"room_x": 0,
-			"room_y": 0,
-		}
 	}
 
-	# Сохраняем текущее здоровье игрока
+	# Сохраняем текущее здоровье и позицию игрока
 	var player = get_tree().get_first_node_in_group("player")
 	if player and "health_int" in player:
 		save_data["player_current_health"] = player.health_int
-		save_data["player_position"]["x"] = player.global_position.x
-		save_data["player_position"]["y"] = player.global_position.y
+		save_data["player_position"] = {
+			"x": player.global_position.x,
+			"y": player.global_position.y,
+		}
 		print("Сохранено здоровье игрока: ", player.health_int)
-		print("Сохранена позиция игрока: ", player.global_position)
+	else:
+		save_data["player_current_health"] = saved_player_health if saved_player_health > 0 else GameConstants.PLAYER_MAX_HEALTH
+		print("Используем сохраненные данные: health=", save_data["player_current_health"])
 
-	# Сохраняем собранные артефакты
+	# Сохраняем собранные артефакты (сначала обновляем из backpack)
 	var backpack = get_tree().get_first_node_in_group("backpack")
 	if backpack and backpack.has_method("get_collected_artefact_names"):
-		save_data["collected_artefacts"] = backpack.get_collected_artefact_names()
-		print("Сохранено артефактов: ", save_data["collected_artefacts"].size())
+		collected_artefacts = backpack.get_collected_artefact_names()
+		print("Артефакты синхронизированы из backpack: ", collected_artefacts.size())
+	
+	save_data["collected_artefacts"] = collected_artefacts
+	print("Сохранено артефактов: ", collected_artefacts.size())
 
 	# Сохраняем комнаты с собранными сокровищами
 	save_data["collected_treasure_rooms"] = collected_treasure_rooms
 	print("Сохранено комнат с собранными сокровищами: ", collected_treasure_rooms.size())
+	
+	# Сохраняем состояние люка босса
+	save_data["boss_hatch_opened"] = boss_hatch_opened
+	print("Люк босса открыт: ", boss_hatch_opened)
 
 	var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file:
@@ -179,24 +185,30 @@ func load_game() -> bool:
 		GameConstants.ENEMY_LEVEL = progress.get("enemy_level", BASE_VALUES["ENEMY_LEVEL"])
 		GameConstants.CURRENT_FLOOR = progress.get("current_floor", BASE_VALUES["CURRENT_FLOOR"])
 
-	# Сохраняем данные для восстановления здоровья и позиции
+	# Сохраняем данные для восстановления здоровья
 	if "player_current_health" in save_data:
 		saved_player_health = save_data["player_current_health"]
 		should_restore_player = true
 
-	if "player_position" in save_data:
-		var pos = save_data["player_position"]
-		saved_player_position = Vector2(pos.get("x", 0), pos.get("y", 0))
+	# При полной загрузке игрок ВСЕГДА появляется в стартовой комнате (4, 4)
+	# Позиция НЕ восстанавливается из сохранения
+	saved_player_position = Vector2.ZERO
 
-	# Загружаем собранные артефакты
+	# Загружаем собранные артефакты (очищаем перед загрузкой во избежание дублей)
+	collected_artefacts.clear()
 	if "collected_artefacts" in save_data:
 		collected_artefacts = save_data["collected_artefacts"]
 		print("Загружено артефактов: ", collected_artefacts.size())
 
-	# Загружаем комнаты с собранными сокровищами
+	# Загружаем комнаты с собранными сокровищами (очищаем перед загрузкой)
+	collected_treasure_rooms.clear()
 	if "collected_treasure_rooms" in save_data:
 		collected_treasure_rooms = save_data["collected_treasure_rooms"]
 		print("Загружено комнат с собранными сокровищами: ", collected_treasure_rooms.size())
+	
+	# Загружаем состояние люка босса
+	boss_hatch_opened = save_data.get("boss_hatch_opened", false)
+	print("Люк босса открыт: ", boss_hatch_opened)
 
 	GameConstants.save_to_disk()
 
@@ -225,6 +237,9 @@ func reset_to_base_values():
 	# Очищаем собранные артефакты
 	clear_collected_artefacts()
 	clear_collected_treasure_rooms()
+	
+	# Сбрасываем состояние люка босса
+	boss_hatch_opened = false
 
 	print("Все значения сброшены к базовым")
 	print("================================")
@@ -338,3 +353,10 @@ func mark_treasure_collected(room_pos: Vector2i):
 
 func clear_collected_treasure_rooms():
 	collected_treasure_rooms.clear()
+
+func set_boss_hatch_opened(opened: bool):
+	boss_hatch_opened = opened
+	print("Люк босса отмечен как ", "открытый" if opened else "закрытый")
+
+func is_boss_hatch_opened() -> bool:
+	return boss_hatch_opened

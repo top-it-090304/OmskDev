@@ -1,0 +1,68 @@
+[gd_scene load_steps=4 format=3 uid="uid://dkgoa4jajp8yf"]
+
+[ext_resource type="Script" uid="uid://7vu5lco48apf" path="res://World/UI/joystick_edit_overlay.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://4oxwsurkv5fc" path="res://assets/Button/GenericButton.png" id="2_btn"]
+[ext_resource type="FontFile" uid="uid://wbjr6hf3uxdc" path="res://Font/PixelRpgFont-Regular.ttf" id="3_font"]
+
+[node name="JoystickEditOverlay" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_script")
+
+[node name="ButtonContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.30463
+anchor_top = 0.884615
+anchor_right = 0.69537
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 10
+metadata/_edit_use_anchors_ = true
+
+[node name="SaveButton" type="TextureButton" parent="ButtonContainer"]
+custom_minimum_size = Vector2(100, 28)
+layout_mode = 2
+texture_normal = ExtResource("2_btn")
+stretch_mode = 0
+
+[node name="Label" type="Label" parent="ButtonContainer/SaveButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 11
+text = "Сохранить"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CancelButton" type="TextureButton" parent="ButtonContainer"]
+custom_minimum_size = Vector2(100, 28)
+layout_mode = 2
+texture_normal = ExtResource("2_btn")
+stretch_mode = 0
+
+[node name="Label" type="Label" parent="ButtonContainer/CancelButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 11
+text = "Отмена"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="pressed" from="ButtonContainer/SaveButton" to="." method="_on_save_pressed"]
+[connection signal="pressed" from="ButtonContainer/CancelButton" to="." method="_on_cancel_pressed"]

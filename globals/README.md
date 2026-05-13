@@ -181,7 +181,7 @@ map_manager.save_dungeon_state()
 ```gdscript
 # В player.gd _ready()
 if SaveSystem.should_restore_player:
-    SaveSystem.restore_player_state()
+	SaveSystem.restore_player_state()
 ```
 
 ---

@@ -1,0 +1,311 @@
+[gd_scene load_steps=47 format=3 uid="uid://cqp4gcbg50r85"]
+
+[ext_resource type="Script" uid="uid://cbqbxgsak3e4" path="res://World/UI/join_room.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://4oxwsurkv5fc" path="res://assets/Button/GenericButton.png" id="2_btn"]
+[ext_resource type="Texture2D" uid="uid://duibchuhwk256" path="res://assets/Button/GenericButtonPressed.png" id="3_btnp"]
+[ext_resource type="Texture2D" uid="uid://b70s4hl2nftxd" path="res://assets/Button/GenericPanel.png" id="5_panel"]
+[ext_resource type="FontFile" uid="uid://wbjr6hf3uxdc" path="res://Font/PixelRpgFont-Regular.ttf" id="6_font"]
+[ext_resource type="Texture2D" uid="uid://dximqnf5n0poh" path="res://assets/menu/Main Menu animated background 1.png" id="11_bg"]
+[ext_resource type="Texture2D" uid="uid://dvodolln4qtu" path="res://assets/menu/Main Menu animated background 2.png" id="12_bg"]
+[ext_resource type="Texture2D" uid="uid://73iq3m2iy5t4" path="res://assets/menu/Main Menu animated background 3.png" id="13_bg"]
+[ext_resource type="Texture2D" uid="uid://cinu8mvbph3op" path="res://assets/menu/Main Menu animated background 4.png" id="14_bg"]
+[ext_resource type="Texture2D" uid="uid://33gvscx0qm4a" path="res://assets/menu/Main Menu animated background 5.png" id="15_bg"]
+[ext_resource type="Texture2D" uid="uid://baxjhdo1qi76w" path="res://assets/menu/Main Menu animated background 6.png" id="16_bg"]
+[ext_resource type="Texture2D" uid="uid://gaeu1k5oxxs8" path="res://assets/menu/Main Menu animated background 7.png" id="17_bg"]
+[ext_resource type="Texture2D" uid="uid://bsguec8lm17q" path="res://assets/menu/Main Menu animated background 8.png" id="18_bg"]
+[ext_resource type="Texture2D" uid="uid://cnf0tg3nh0vw4" path="res://assets/menu/Main Menu animated background 9.png" id="19_bg"]
+[ext_resource type="Texture2D" uid="uid://cgl2f5bh3erdm" path="res://assets/menu/Main Menu animated background 10.png" id="20_bg"]
+[ext_resource type="Texture2D" uid="uid://b1eimchahapec" path="res://assets/menu/Main Menu animated background 11.png" id="21_bg"]
+[ext_resource type="Texture2D" uid="uid://chiqlol7pbys4" path="res://assets/menu/Main Menu animated background 12.png" id="22_bg"]
+[ext_resource type="Texture2D" uid="uid://blktn2i613kaq" path="res://assets/menu/Main Menu animated background 13.png" id="23_bg"]
+[ext_resource type="Texture2D" uid="uid://h4wh5muks46k" path="res://assets/menu/Main Menu animated background 14.png" id="24_bg"]
+[ext_resource type="Texture2D" uid="uid://bf4tm4ro1gg1m" path="res://assets/menu/Main Menu animated background 15.png" id="25_bg"]
+[ext_resource type="Texture2D" uid="uid://d0bqxaeg5mpji" path="res://assets/menu/Main Menu animated background 16.png" id="26_bg"]
+[ext_resource type="Texture2D" uid="uid://b0olwalrgohwe" path="res://assets/menu/Main Menu animated background 17.png" id="27_bg"]
+[ext_resource type="Texture2D" uid="uid://b8db1plngt3a" path="res://assets/menu/Main Menu animated background 18.png" id="28_bg"]
+[ext_resource type="Texture2D" uid="uid://bq3r1c2u610aa" path="res://assets/menu/Main Menu animated background 19.png" id="29_bg"]
+[ext_resource type="Texture2D" uid="uid://cdr7tkq3f0j6w" path="res://assets/menu/Main Menu animated background 20.png" id="30_bg"]
+[ext_resource type="Texture2D" uid="uid://qph0e66ew5x" path="res://assets/menu/Main Menu animated background 21.png" id="31_bg"]
+[ext_resource type="Texture2D" uid="uid://dgnyx5uavn0v3" path="res://assets/menu/Main Menu animated background 22.png" id="32_bg"]
+[ext_resource type="Texture2D" uid="uid://8wju5qg0ed62" path="res://assets/menu/Main Menu animated background 23.png" id="33_bg"]
+[ext_resource type="Texture2D" uid="uid://cy86rtf7ahl5u" path="res://assets/menu/Main Menu animated background 24.png" id="34_bg"]
+[ext_resource type="Texture2D" uid="uid://owbndifyt3sj" path="res://assets/menu/Main Menu animated background 25.png" id="35_bg"]
+[ext_resource type="Texture2D" uid="uid://dtj2nbru5dsas" path="res://assets/menu/Main Menu animated background 26.png" id="36_bg"]
+[ext_resource type="Texture2D" uid="uid://j841pt6pf32q" path="res://assets/menu/Main Menu animated background 27.png" id="37_bg"]
+[ext_resource type="Texture2D" uid="uid://d1efsnq16s612" path="res://assets/menu/Main Menu animated background 28.png" id="38_bg"]
+[ext_resource type="Texture2D" uid="uid://bae0du7u1onwd" path="res://assets/menu/Main Menu animated background 29.png" id="39_bg"]
+[ext_resource type="Texture2D" uid="uid://drf6dnml85isl" path="res://assets/menu/Main Menu animated background 30.png" id="40_bg"]
+[ext_resource type="Texture2D" uid="uid://supyhdobc32d" path="res://assets/menu/Main Menu animated background 31.png" id="41_bg"]
+[ext_resource type="Texture2D" uid="uid://dugo8ol4rkdoj" path="res://assets/menu/Main Menu animated background 32.png" id="42_bg"]
+[ext_resource type="Texture2D" uid="uid://b5v0kjx5hi108" path="res://assets/menu/Main Menu animated background 33.png" id="43_bg"]
+[ext_resource type="Texture2D" uid="uid://ckscsufx0w7hu" path="res://assets/menu/Main Menu animated background 34.png" id="44_bg"]
+[ext_resource type="Texture2D" uid="uid://obh8yeu476ti" path="res://assets/menu/Main Menu animated background 35.png" id="45_bg"]
+[ext_resource type="Texture2D" uid="uid://la1lt8o7xma4" path="res://assets/menu/Main Menu animated background 36.png" id="46_bg"]
+[ext_resource type="Texture2D" uid="uid://c7qbd5284x4ef" path="res://assets/menu/Main Menu animated background 37.png" id="47_bg"]
+[ext_resource type="Texture2D" uid="uid://u6reet2bdjg7" path="res://assets/menu/Main Menu animated background 38.png" id="48_bg"]
+[ext_resource type="Texture2D" uid="uid://bsfd2gitdnquq" path="res://assets/menu/Main Menu animated background 39.png" id="49_bg"]
+[ext_resource type="Texture2D" uid="uid://c5x2kkafq3ial" path="res://assets/menu/Main Menu animated background 40.png" id="50_bg"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_bg"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("11_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("12_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("13_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("14_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("15_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("16_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("17_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("18_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("19_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("20_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("21_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("22_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("24_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("25_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("26_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("27_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("28_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("29_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("30_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("31_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("32_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("33_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("34_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("35_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("36_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("37_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("38_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("39_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("40_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("41_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("42_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("43_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("44_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("45_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("46_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("47_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("48_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("49_bg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("50_bg")
+}],
+"loop": true,
+"name": &"new_animation",
+"speed": 8.0
+}]
+
+[node name="JoinRoom" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="AnimatedSprite2D" parent="."]
+position = Vector2(270, 130)
+sprite_frames = SubResource("SpriteFrames_bg")
+animation = &"new_animation"
+autoplay = "new_animation"
+
+[node name="Panel" type="Panel" parent="."]
+self_modulate = Color(0, 0, 0, 0.6)
+layout_mode = 0
+anchor_left = 0.25
+anchor_top = 0.18
+anchor_right = 0.75
+anchor_bottom = 0.85
+
+[node name="Border" type="Sprite2D" parent="Panel"]
+position = Vector2(135, 85)
+scale = Vector2(5.5, 4.8)
+texture = ExtResource("5_panel")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="Title" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("6_font")
+theme_override_font_sizes/font_size = 14
+text = "Подключение к комнате"
+horizontal_alignment = 1
+
+[node name="CodeInput" type="LineEdit" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(125, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("6_font")
+theme_override_font_sizes/font_size = 13
+placeholder_text = "Введите код"
+alignment = 1
+max_length = 8
+
+[node name="PasteButton" type="TextureButton" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(125, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+texture_normal = ExtResource("2_btn")
+texture_pressed = ExtResource("3_btnp")
+stretch_mode = 0
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/PasteButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("6_font")
+theme_override_font_sizes/font_size = 14
+text = "📋 Вставить"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ErrorLabel" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
+theme_override_fonts/font = ExtResource("6_font")
+theme_override_font_sizes/font_size = 10
+horizontal_alignment = 1
+
+[node name="ConnectButton" type="TextureButton" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(125, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+texture_normal = ExtResource("2_btn")
+texture_pressed = ExtResource("3_btnp")
+stretch_mode = 0
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/ConnectButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("6_font")
+theme_override_font_sizes/font_size = 14
+text = "Подключиться"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BackButton" type="TextureButton" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(125, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+texture_normal = ExtResource("2_btn")
+texture_pressed = ExtResource("3_btnp")
+stretch_mode = 0
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer/BackButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("6_font")
+theme_override_font_sizes/font_size = 14
+text = "Назад"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="pressed" from="Panel/VBoxContainer/PasteButton" to="." method="_on_paste_pressed"]
+[connection signal="pressed" from="Panel/VBoxContainer/ConnectButton" to="." method="_on_connect_pressed"]
+[connection signal="pressed" from="Panel/VBoxContainer/BackButton" to="." method="_on_back_pressed"]

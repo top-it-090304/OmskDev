@@ -7,6 +7,12 @@ var lifetime = 5.0
 func _ready() -> void:
 	speed = GameConstants.POISON_PROJECTILE_SPEED
 	lifetime = GameConstants.POISON_DURATION
+	
+	# Управляем частицами через настройку
+	var particles = get_node_or_null("PoisonParticles")
+	if particles:
+		particles.emitting = GameConstants.show_particles
+	
 	await get_tree().create_timer(lifetime).timeout
 	if is_instance_valid(self):
 		queue_free()

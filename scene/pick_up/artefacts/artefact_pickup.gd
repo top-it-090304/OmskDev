@@ -24,6 +24,7 @@ class_name ArtefactPickup
 @export_group("Visual")
 @export var pickup_sound: AudioStream
 @export var glow_color: Color = Color(1, 1, 0, 0.5)
+@export var artefact_particles: PackedScene
 
 const ARTEFACT_POPUP = preload("res://scene/ui/artefact_popup.tscn")
 
@@ -62,26 +63,61 @@ func _on_area_2d_area_entered(area: Area2D) -> void:
 func pickup(player: Node) -> void:
 	if is_picked_up:
 		return
+	var mp := get_tree().get_multiplayer()
+	if mp.has_multiplayer_peer():
+		var rid := _get_treasure_room_grid()
+		if mp.is_server():
+			server_run_pickup_effects(false)
+			NetworkManager.rpc_client_mirror_artefact_pickup.rpc(scene_file_path, rid.x, rid.y, mp.get_unique_id())
+		else:
+			NetworkManager.rpc_request_artefact_pickup_from_client.rpc_id(
+				NetworkManager.SERVER_ID,
+				scene_file_path,
+				rid.x,
+				rid.y,
+				mp.get_unique_id()
+			)
+		return
+	server_run_pickup_effects(false)
+
+
+func _get_treasure_room_grid() -> Vector2i:
+	if has_meta("_treasure_room_grid"):
+		return get_meta("_treasure_room_grid")
+	var room = get_parent()
+	if room != null and "grid_x" in room:
+		return Vector2i(room.grid_x, room.grid_y)
+	return Vector2i(-1, -1)
+
+
+## Только мир: подбор клиентом обрабатывается на хосте без бонусов на машине хоста
+func server_consume_world_only_for_remote_client_pickup() -> void:
+	if is_picked_up:
+		return
 	is_picked_up = true
-
-	# Очищаем массив изменений
-	stat_changes.clear()
-
-	# Применяем эффекты
-	apply_effects()
-
-	# Показываем popup
-	show_stat_popup()
-
-	# Добавляем в рюкзак
-	add_to_backpack()
-
-	# Отмечаем комнату как собранную
 	mark_room_as_collected()
+	queue_free()
 
-	# Анимация подбора
-	play_pickup_animation()
 
+## quiet: без попапа/частиц (когда подбор обрабатывает хост по запросу клиента)
+func server_run_pickup_effects(quiet: bool) -> void:
+	if is_picked_up:
+		return
+	is_picked_up = true
+	stat_changes.clear()
+	apply_effects()
+	if not quiet and artefact_particles:
+		var particles = artefact_particles.instantiate()
+		particles.global_position = global_position
+		get_tree().current_scene.add_child(particles)
+	if not quiet:
+		show_stat_popup()
+	add_to_backpack()
+	mark_room_as_collected()
+	if quiet:
+		queue_free()
+	else:
+		play_pickup_animation()
 	print("Подобран артефакт: ", artefact_name)
 
 func apply_effects() -> void:

@@ -1,7 +1,8 @@
 extends CharacterBody2D
 
-@export var hp = 0
+@export var hp = 10 # Установлено значение по умолчанию > 0
 var max_speed = 0.0
+var max_hp = 0
 
 @onready var animP = $AnimationPlayer
 @onready var attack_timer = $attack_timer
@@ -23,12 +24,14 @@ var can_anim = true
 
 func _ready() -> void:
 	add_to_group("enemys")
-	hp = GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_HP)
-	max_speed = randf_range(
-		GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_SPEED_MIN),
-		GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_SPEED_MAX)
-	)
-	hp_bar.update_hp(hp, hp)
+	
+	# Инициализация статов
+	max_hp = GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_HP)
+	hp = max_hp
+	max_speed = GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_SPEED_MAX)
+	
+	hp_bar.update_hp(hp, max_hp)
+	
 	player = get_tree().get_first_node_in_group("player") as Node2D
 	parent_node = get_parent()
 	attack_timer.start(1.0)
@@ -81,8 +84,8 @@ func play_run_animation():
 
 func play_idle_animation():
 	if is_dead: return
-	if anim.animation != "idle_down":
-		anim.play("idle_down")
+	# Здесь можно добавить проигрывание idle в зависимости от направления
+	anim.play("idle_down") 
 
 func attack():
 	if not can_attack or not player_in_range or is_dead:
@@ -94,6 +97,7 @@ func attack():
 		Dir.DOWN: animP.play("attack_down")
 		Dir.LEFT: animP.play("attack_left")
 		Dir.RIGHT: animP.play("attack_right")
+	
 	await animP.animation_finished
 	if not is_dead:
 		can_move = true
@@ -102,11 +106,12 @@ func attack():
 func take_damage(amount: int):
 	if is_dead: return
 	hp -= amount
-	var max_hp = GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_HP)
 	hp_bar.update_hp(hp, max_hp)
+	
 	if hp <= 0:
 		death()
 		return
+		
 	AudioManager.play_sfx("враг_урон")
 	var tween = create_tween()
 	tween.tween_property(anim, "modulate", Color(1, 0, 0, 1), 0.0)
@@ -131,13 +136,16 @@ func death():
 	velocity = Vector2.ZERO
 	anim.stop()
 	animP.stop()
+	
 	set_collision_layer_value(1, false)
 	set_collision_mask_value(1, false)
+	
 	match current_dir:
 		Dir.UP: anim.play("death_up")
 		Dir.DOWN: anim.play("death_down")
 		Dir.LEFT: anim.play("death_left")
 		Dir.RIGHT: anim.play("death_right")
+		
 	await anim.animation_finished
 	_give_exp_to_player()
 	if randf() <= 0.25:
@@ -145,7 +153,7 @@ func death():
 	queue_free()
 
 func _give_exp_to_player():
-	var player_node = get_tree().get_first_node_in_group("player")
+	var player_node := PlayerManager.get_player_for_local_rewards()
 	if player_node and player_node.has_method("add_experience"):
 		var exp_reward = GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_EXP_REWARD)
 		player_node.add_experience(exp_reward)

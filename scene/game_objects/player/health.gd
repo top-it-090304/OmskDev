@@ -8,8 +8,8 @@ func _ready():
 	setup_player_connection()
 
 func setup_player_connection():
-	player = get_tree().get_first_node_in_group("player") as CharacterBody2D
-	
+	player = get_parent() as CharacterBody2D
+
 	if player:
 		# Если сигнал уже был подключен ранее, отключаем (на всякий случай)
 		if player.is_connected("health_changed", _on_health_changed):
