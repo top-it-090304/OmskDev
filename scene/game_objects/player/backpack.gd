@@ -73,9 +73,9 @@ func add_artefact(artefact_data) -> void:
 	# Создаем иконку
 	create_icon(artefact_info)
 
-	# Уведомляем инвентарь
+	# Уведомляем инвентарь (только добавляем, не пересоздаём)
 	var inventory = get_tree().get_first_node_in_group("inventory_screen")
-	if inventory:
+	if inventory and inventory.has_method("add_artefact"):
 		inventory.add_artefact(artefact_info)
 
 	print("Артефакт добавлен в рюкзак: ", artefact_info["name"])
@@ -159,6 +159,5 @@ func get_collected_artefact_names() -> Array:
 
 func _sync_inventory_on_load() -> void:
 	var inventory = get_tree().get_first_node_in_group("inventory_screen")
-	if inventory:
-		for artefact_info in collected_artefacts:
-			inventory.add_artefact(artefact_info)
+	if inventory and inventory.has_method("clear_and_sync"):
+		inventory.clear_and_sync(collected_artefacts)
