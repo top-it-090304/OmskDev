@@ -9,13 +9,18 @@ extends Control
 @onready var grid_container: GridContainer
 
 var collected_artefacts: Array = []
+var is_initialized_from_save: bool = false  # Флаг что уже загружено из сохранения
 
 func _ready():
 	add_to_group("backpack")
 	setup_grid()
-
+	
+	# Очищаем локальный массив перед загрузкой из сохранения
+	collected_artefacts.clear()
+	
 	# Восстанавливаем артефакты из сохранения
 	if SaveSystem.has_collected_artefacts():
+		is_initialized_from_save = true
 		var saved_artefacts = SaveSystem.get_collected_artefacts()
 		for artefact_data in saved_artefacts:
 			# Загружаем иконку из пути
@@ -30,7 +35,7 @@ func _ready():
 			}
 			collected_artefacts.append(artefact_info)
 			create_icon(artefact_info)
-		print("Восстановлено артефактов: ", saved_artefacts.size())
+		print("Восстановлено артефактов из сохранения: ", collected_artefacts.size())
 		# Синхронизируем с инвентарём (он может ещё не быть готов — откладываем на следующий кадр)
 		call_deferred("_sync_inventory_on_load")
 
@@ -49,9 +54,15 @@ func setup_grid():
 	grid_container.position = Vector2(10, 10)
 
 func add_artefact(artefact_data) -> void:
+	# Проверяем, нет ли уже такого артефакта (защита от дублей)
+	var artefact_name = artefact_data.artefact_name if "artefact_name" in artefact_data else "Unknown"
+	if has_artefact(artefact_name):
+		print("Артефакт уже есть в рюкзаке, пропускаем: ", artefact_name)
+		return
+	
 	# Сохраняем данные артефакта
 	var artefact_info = {
-		"name": artefact_data.artefact_name if "artefact_name" in artefact_data else "Unknown",
+		"name": artefact_name,
 		"icon": artefact_data.artefact_icon if "artefact_icon" in artefact_data else null,
 		"icon_path": artefact_data.artefact_icon.resource_path if (artefact_data.artefact_icon and "artefact_icon" in artefact_data) else "",
 		"description": artefact_data.artefact_description if "artefact_description" in artefact_data else ""
