@@ -26,3 +26,11 @@ func _apply_knockback_logic(delta: float) -> void:
 			Vector2.ZERO,
 			knockback_decay * delta
 		)
+
+
+func _await_enemy_death_sprite(sprite: AnimatedSprite2D, anim_name: String, fallback_sec: float = 0.75) -> void:
+	if sprite.sprite_frames != null and sprite.sprite_frames.has_animation(anim_name):
+		sprite.play(anim_name)
+		await sprite.animation_finished
+	else:
+		await get_tree().create_timer(fallback_sec).timeout

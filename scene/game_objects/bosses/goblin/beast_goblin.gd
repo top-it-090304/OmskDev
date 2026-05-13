@@ -48,6 +48,7 @@ var _teleport_timer := 0.0
 
 func _ready() -> void:
 	add_to_group("enemys")
+	add_to_group("boss")
 	hp    = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_HP)
 	speed = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_MAX_SPEED)
 	hp_bar.update_hp(hp, hp)
@@ -317,7 +318,11 @@ func _on_detector_slap_body_exited(body):   if body.is_in_group("player"): playe
 func _on_detector_shoot_body_entered(body): if body.is_in_group("player"): player_in_shoot_zone = true
 func _on_detector_shoot_body_exited(body):  if body.is_in_group("player"): player_in_shoot_zone = false
 
-func _on_hitbox_area_entered(_area): take_damage(GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_TAKE_DAMAGE))
+func _on_hitbox_area_entered(_area) -> void:
+	if is_dead:
+		return
+	var dmg := GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_TAKE_DAMAGE)
+	NetworkManager.apply_melee_damage_to_enemy_from_player(self, dmg)
 func _on_attack_timer_timeout(): pass  # кулдауны теперь через delta
 
 func update_run_animation(direction: Vector2):
@@ -350,8 +355,7 @@ func death():
 	animP.stop()
 	if is_instance_valid(smite_instance): smite_instance.queue_free()
 	var d_anim = "death_" + _get_dir_string()
-	anim.play(d_anim)
-	await anim.animation_finished
+	await _await_boss_death_animation(d_anim)
 	_give_exp_to_player()
 	if randf() <= 0.75: _spawn_loot()
 	_spawn_artefact_near_hatch()
@@ -367,20 +371,26 @@ func _spawn_artefact_near_hatch():
 	if not hatch or not is_instance_valid(hatch):
 		return
 	
-	# Спавним артефакт на 32 пикселя ниже люка
-	var artefact_scene = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
-	var artefact = artefact_scene.instantiate()
-	artefact.z_index = 2
-	
-	var spawn_pos = hatch.global_position + Vector2(0, 32)
-	
-	hatch.get_parent().add_child(artefact)
-	artefact.global_position = spawn_pos
+	var parent_n := hatch.get_parent() as Node2D
+	if parent_n == null:
+		return
+	var spawn_pos := hatch.global_position + Vector2(0, 48)
+	var ps := ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
+	NetworkManager.server_spawn_boss_loot_for_coop(ps.resource_path, parent_n, spawn_pos)
 
 func _open_hatch_via_map_manager():
 	var map_manager = get_tree().get_first_node_in_group("map_manager")
 	if map_manager and map_manager.has_method("open_boss_hatch"):
-		map_manager.open_boss_hatch()
+		map_manager.call_deferred("open_boss_hatch")
+
+
+func _await_boss_death_animation(anim_name: String) -> void:
+	if anim.sprite_frames != null and anim.sprite_frames.has_animation(anim_name):
+		anim.play(anim_name)
+		await anim.animation_finished
+	else:
+		push_warning("beast_goblin: нет анимации %s" % anim_name)
+		await get_tree().create_timer(1.0).timeout
 
 func _give_exp_to_player():
 	var p := PlayerManager.get_player_for_local_rewards()

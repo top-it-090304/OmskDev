@@ -57,6 +57,7 @@ var bone_projectile_instance: Node2D = null
 
 func _ready() -> void:
 	add_to_group("enemys")
+	add_to_group("boss")
 	hp = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_HP)
 	speed = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_MAX_SPEED)
 	hp_bar.update_hp(hp, hp)
@@ -582,10 +583,11 @@ func _on_detector_charge_body_exited(body: Node2D) -> void:
 	if body.is_in_group("player"):
 		player_in_charge_zone = false
 
-func _on_hitbox_area_entered(area: Area2D) -> void:
-	if is_dead: return
-	# Любая Area2D (атака игрока) наносит урон
-	take_damage(GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_TAKE_DAMAGE))
+func _on_hitbox_area_entered(_area: Area2D) -> void:
+	if is_dead:
+		return
+	var dmg := GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_TAKE_DAMAGE)
+	NetworkManager.apply_melee_damage_to_enemy_from_player(self, dmg)
 
 func _on_attack_timer_timeout(): pass  # не используется, кулдауны через delta
 
@@ -602,18 +604,13 @@ func death():
 	if bone_projectile_instance and is_instance_valid(bone_projectile_instance):
 		bone_projectile_instance.queue_free()
 	var d_anim = "death_" + _get_dir_string()
-	anim.play(d_anim)
-	
 	# ТРЯСКА ЭКРАНА при смерти босса!
 	var shaker = get_tree().get_first_node_in_group("camera_shaker")
 	if not shaker:
-		# Пробуем найти просто по пути или имени
 		shaker = get_tree().root.find_child("CameraShaker", true, false)
 	if shaker and shaker.has_method("add_trauma"):
-		shaker.add_trauma(0.8)  # Сильная тряска (0.8 из 1.0)
-		print("Тряска камеры: 0.8")
-	
-	await anim.animation_finished
+		shaker.add_trauma(0.8)
+	await _await_boss_death_animation(d_anim)
 	_give_exp_to_player()
 	_spawn_loot_near_hatch()
 	_open_hatch_via_map_manager()
@@ -636,39 +633,55 @@ func _spawn_loot_near_hatch():
 		_spawn_loot_fallback()
 		return
 	
-	# Спавним артефакты на 32 пикселя ниже люка
+	# Артефакты на 48 px ниже люка (центр дропа)
+	var parent_n := hatch.get_parent() as Node2D
+	if parent_n == null:
+		return
+	var spawn_pos := hatch.global_position + Vector2(0, 48)
 	if player_took_damage:
-		var artefact = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()].instantiate()
-		artefact.z_index = 2
-		var spawn_pos = hatch.global_position + Vector2(0, 32)
-		hatch.get_parent().add_child(artefact)
-		artefact.global_position = spawn_pos
+		var ps := ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
+		NetworkManager.server_spawn_boss_loot_for_coop(ps.resource_path, parent_n, spawn_pos)
 	else:
-		var artefact1 = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()].instantiate()
-		var artefact2 = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()].instantiate()
-		artefact1.z_index = 2
-		artefact2.z_index = 2
-		var spawn_pos = hatch.global_position + Vector2(0, 32)
-		hatch.get_parent().add_child(artefact1)
-		hatch.get_parent().add_child(artefact2)
-		artefact1.global_position = spawn_pos + Vector2(-20, 0)
-		artefact2.global_position = spawn_pos + Vector2(20, 0)
+		var ps1 := ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
+		var ps2 := ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
+		NetworkManager.server_spawn_boss_loot_for_coop(ps1.resource_path, parent_n, spawn_pos + Vector2(-20, 0))
+		NetworkManager.server_spawn_boss_loot_for_coop(ps2.resource_path, parent_n, spawn_pos + Vector2(20, 0))
 
 func _spawn_loot_fallback():
-	# Старый метод - спавн на месте смерти босса
+	var scene_root := get_tree().current_scene
+	var parent_n := scene_root as Node2D
 	if player_took_damage:
-		var artefact = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()].instantiate()
-		artefact.global_position = global_position
-		get_tree().current_scene.add_child(artefact)
+		var ps := ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
+		if parent_n != null:
+			NetworkManager.server_spawn_boss_loot_for_coop(ps.resource_path, parent_n, global_position)
+		else:
+			var artefact = ps.instantiate()
+			artefact.global_position = global_position
+			scene_root.add_child(artefact)
 	else:
-		var artefact1 = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()].instantiate()
-		var artefact2 = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()].instantiate()
-		artefact1.global_position = global_position + Vector2(-20, 0)
-		artefact2.global_position = global_position + Vector2(20, 0)
-		get_tree().current_scene.add_child(artefact1)
-		get_tree().current_scene.add_child(artefact2)
+		var ps1 := ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
+		var ps2 := ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
+		if parent_n != null:
+			NetworkManager.server_spawn_boss_loot_for_coop(ps1.resource_path, parent_n, global_position + Vector2(-20, 0))
+			NetworkManager.server_spawn_boss_loot_for_coop(ps2.resource_path, parent_n, global_position + Vector2(20, 0))
+		else:
+			var artefact1 = ps1.instantiate()
+			var artefact2 = ps2.instantiate()
+			artefact1.global_position = global_position + Vector2(-20, 0)
+			artefact2.global_position = global_position + Vector2(20, 0)
+			scene_root.add_child(artefact1)
+			scene_root.add_child(artefact2)
 
 func _open_hatch_via_map_manager():
 	var map_manager = get_tree().get_first_node_in_group("map_manager")
 	if map_manager and map_manager.has_method("open_boss_hatch"):
-		map_manager.open_boss_hatch()
+		map_manager.call_deferred("open_boss_hatch")
+
+
+func _await_boss_death_animation(anim_name: String) -> void:
+	if anim.sprite_frames != null and anim.sprite_frames.has_animation(anim_name):
+		anim.play(anim_name)
+		await anim.animation_finished
+	else:
+		push_warning("skeleton_king: нет анимации %s" % anim_name)
+		await get_tree().create_timer(1.0).timeout

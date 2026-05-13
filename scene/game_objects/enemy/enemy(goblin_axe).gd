@@ -140,11 +140,10 @@ func death():
 	set_collision_layer_value(1, false)
 	set_collision_mask_value(1, false)
 	match current_dir:
-		Dir.UP: anim.play("death_up")
-		Dir.DOWN: anim.play("death_down")
-		Dir.LEFT: anim.play("death_left")
-		Dir.RIGHT: anim.play("death_right")
-	await anim.animation_finished
+		Dir.UP: await _await_enemy_death_sprite(anim, "death_up")
+		Dir.DOWN: await _await_enemy_death_sprite(anim, "death_down")
+		Dir.LEFT: await _await_enemy_death_sprite(anim, "death_left")
+		Dir.RIGHT: await _await_enemy_death_sprite(anim, "death_right")
 	_give_exp_to_player()
 	if randf() <= 0.25:
 		_spawn_loot()
@@ -206,7 +205,9 @@ func _on_attack_timer_timeout():
 		attack()
 
 func _on_hitbox_area_entered(_area: Area2D) -> void:
-	take_damage(GameConstants.ENEMY_GOBLIN_AXE_TAKE_DAMAGE)
+	if is_dead:
+		return
+	NetworkManager.apply_melee_damage_to_enemy_from_player(self, GameConstants.ENEMY_GOBLIN_AXE_TAKE_DAMAGE)
 
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if is_dead: return

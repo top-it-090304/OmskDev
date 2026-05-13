@@ -470,6 +470,10 @@ func die():
 	if is_dead:
 		return
 
+	is_dead = true
+	can_anim = false
+	velocity = Vector2.ZERO
+
 	var mp := get_tree().get_multiplayer()
 	if mp.has_multiplayer_peer() and is_local_player:
 		if not NetworkManager.coop_run_finished:
@@ -479,26 +483,19 @@ func die():
 				NetworkManager.rpc_report_player_death.rpc_id(NetworkManager.SERVER_ID)
 		NetworkManager.mark_coop_run_finished()
 
-	is_dead = true
-	can_anim = false
-	velocity = Vector2.ZERO
-
 	AudioManager.play_sfx("игрок_смерть")
 
+	var death_anim := "death_down"
 	match current_dir:
 		Dir.UP:
-			anim.play("death_up")
-
+			death_anim = "death_up"
 		Dir.DOWN:
-			anim.play("death_down")
-
+			death_anim = "death_down"
 		Dir.LEFT:
-			anim.play("death_left")
-
+			death_anim = "death_left"
 		Dir.RIGHT:
-			anim.play("death_right")
-
-	await anim.animation_finished
+			death_anim = "death_right"
+	await _await_player_death_sprite(death_anim)
 
 	SaveSystem.save_game()
 
@@ -509,6 +506,14 @@ func die():
 
 	var over = gameover.instantiate()
 	add_child(over)
+
+
+func _await_player_death_sprite(anim_name: String, fallback_sec: float = 1.2) -> void:
+	if anim.sprite_frames != null and anim.sprite_frames.has_animation(anim_name):
+		anim.play(anim_name)
+		await anim.animation_finished
+	else:
+		await get_tree().create_timer(fallback_sec).timeout
 
 # =========================================================
 # HITBOX

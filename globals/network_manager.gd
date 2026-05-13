@@ -357,7 +357,42 @@ func rpc_sync_enemy_after_damage(path_str: String, hp_val: int, max_hp_val: int,
 	if bar and bar.has_method("update_hp"):
 		bar.call("update_hp", hp_val, max_hp_val)
 	if dead:
-		n.queue_free()
+		if n.get("is_dead") != null:
+			n.set("is_dead", true)
+		# Боссов не удаляем здесь: на хосте должна отработать полная death() (люк, дроп). Клиент только скрывает копию.
+		if n.is_in_group("boss"):
+			n.visible = false
+			n.process_mode = Node.PROCESS_MODE_DISABLED
+			if n is CollisionObject2D:
+				(n as CollisionObject2D).set_collision_layer_value(1, false)
+				(n as CollisionObject2D).set_collision_mask_value(1, false)
+		else:
+			n.queue_free()
+
+
+## Клиенты: тот же артефакт под люком, что заспавнил хост (сцена не синхронится сама по сети).
+@rpc("authority", "call_remote", "reliable")
+func rpc_spawn_boss_loot_at(scene_res_path: String, parent_node_path: String, global_pos: Vector2) -> void:
+	var parent := get_tree().root.get_node_or_null(NodePath(parent_node_path)) as Node2D
+	if parent == null or not is_instance_valid(parent):
+		return
+	var ps := load(scene_res_path) as PackedScene
+	if ps == null:
+		return
+	var item := ps.instantiate() as Node2D
+	item.z_index = 2
+	parent.add_child(item)
+	item.global_position = global_pos
+
+
+func server_spawn_boss_loot_for_coop(scene_res_path: String, parent: Node2D, global_pos: Vector2) -> void:
+	var inst := (load(scene_res_path) as PackedScene).instantiate() as Node2D
+	inst.z_index = 2
+	parent.add_child(inst)
+	inst.global_position = global_pos
+	var mp := get_tree().get_multiplayer()
+	if mp.has_multiplayer_peer() and mp.is_server() and mp.get_peers().size() > 0:
+		rpc_spawn_boss_loot_at.rpc(scene_res_path, str(parent.get_path()), global_pos)
 
 
 @rpc("any_peer", "call_remote", "reliable")

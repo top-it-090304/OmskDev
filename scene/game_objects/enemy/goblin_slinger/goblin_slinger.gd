@@ -146,12 +146,10 @@ func death():
 	set_collision_mask_value(1, false)
 	
 	match current_dir:
-		Dir.UP: anim.play("death_up")
-		Dir.DOWN: anim.play("death_down")
-		Dir.LEFT: anim.play("death_left")
-		Dir.RIGHT: anim.play("death_right")
-		
-	await anim.animation_finished
+		Dir.UP: await _await_local_death_sprite(anim, "death_up")
+		Dir.DOWN: await _await_local_death_sprite(anim, "death_down")
+		Dir.LEFT: await _await_local_death_sprite(anim, "death_left")
+		Dir.RIGHT: await _await_local_death_sprite(anim, "death_right")
 	_give_exp_to_player()
 	queue_free()
 
@@ -186,3 +184,11 @@ func _on_hitbox_body_entered(body: Node2D) -> void:
 		# Исправлено: теперь эта переменная есть в GameConstants
 		var damage = GameConstants.get_scaled_enemy_stat(GameConstants.GOBLIN_SLINGER_BODY_DAMAGE)
 		body.take_damage(damage)
+
+
+func _await_local_death_sprite(sprite: AnimatedSprite2D, anim_name: String, fallback_sec: float = 0.75) -> void:
+	if sprite.sprite_frames != null and sprite.sprite_frames.has_animation(anim_name):
+		sprite.play(anim_name)
+		await sprite.animation_finished
+	else:
+		await get_tree().create_timer(fallback_sec).timeout
