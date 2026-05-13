@@ -310,9 +310,11 @@ func rpc_sync_coop_room(grid_x: int, grid_y: int, entered_peer_id: int) -> void:
 
 
 @rpc("any_peer", "call_remote", "reliable")
-func rpc_report_room_enter_to_server(grid_x: int, grid_y: int) -> void:
+func rpc_report_room_enter_to_server(grid_x: int, grid_y: int, entering_peer_id: int) -> void:
 	if not is_server():
+		return
+	if entering_peer_id <= 0:
 		return
 	var mm := get_tree().get_first_node_in_group("map_manager")
 	if mm and mm.has_method("server_handle_coop_room_enter"):
-		mm.server_handle_coop_room_enter(Vector2i(grid_x, grid_y), multiplayer.get_remote_sender_id())
+		mm.server_handle_coop_room_enter(Vector2i(grid_x, grid_y), entering_peer_id)

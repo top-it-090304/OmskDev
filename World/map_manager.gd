@@ -644,10 +644,59 @@ func server_handle_coop_room_enter(grid: Vector2i, entering_peer_id: int) -> voi
 
 func apply_coop_room_sync_all(grid: Vector2i, entered_peer_id: int) -> void:
 	change_current_room(grid.x, grid.y)
-	_move_local_players_to_follow_peer(entered_peer_id)
+	_move_local_players_to_follow_peer(entered_peer_id, grid)
 
 
-func _move_local_players_to_follow_peer(entered_peer_id: int) -> void:
+## Точка для союзника: та же комната по сетке, рядом с лидером, не в коридоре
+func get_coop_follower_spawn_global(
+	room_grid: Vector2i,
+	leader_global: Vector2,
+	follower_peer_id: int,
+	leader_peer_id: int
+) -> Vector2:
+	var room_node: Node2D = null
+	for room_data in spawned_rooms:
+		if room_data["grid_pos"] == room_grid:
+			room_node = room_data["node"] as Node2D
+			break
+	if room_node == null:
+		return leader_global + Vector2(48, 0)
+	var tl := room_node.global_position
+	var margin := 56.0
+	var rz := Vector2(GameConstants.MAP_MANAGER_ROOM_SIZE_X, GameConstants.MAP_MANAGER_ROOM_SIZE_Y)
+	var offsets: Array[Vector2] = []
+	if follower_peer_id < leader_peer_id:
+		offsets = [
+			Vector2(-56, 0),
+			Vector2(56, 0),
+			Vector2(0, 56),
+			Vector2(0, -56),
+			Vector2(-40, 48),
+			Vector2(40, -48),
+		]
+	else:
+		offsets = [
+			Vector2(56, 0),
+			Vector2(-56, 0),
+			Vector2(0, 56),
+			Vector2(0, -56),
+			Vector2(40, 48),
+			Vector2(-40, -48),
+		]
+	for off in offsets:
+		var p := leader_global + off
+		var cx := clampf(p.x, tl.x + margin, tl.x + rz.x - margin)
+		var cy := clampf(p.y, tl.y + margin, tl.y + rz.y - margin)
+		var c := Vector2(cx, cy)
+		if c.distance_squared_to(leader_global) > 100.0:
+			return c
+	return Vector2(
+		clampf(leader_global.x, tl.x + margin, tl.x + rz.x - margin),
+		clampf(leader_global.y, tl.y + margin, tl.y + rz.y - margin)
+	)
+
+
+func _move_local_players_to_follow_peer(entered_peer_id: int, room_grid: Vector2i) -> void:
 	var mp := get_tree().get_multiplayer()
 	if not mp.has_multiplayer_peer():
 		return
@@ -660,18 +709,19 @@ func _move_local_players_to_follow_peer(entered_peer_id: int) -> void:
 			break
 	if leader == null:
 		return
-	var target := PlayerManager.find_safe_spawn_near_global(leader.global_position)
-	if target == Vector2.INF or not target.is_finite():
-		target = leader.global_position + Vector2(48, 0)
+	var follower_pid := mp.get_unique_id()
+	var target := get_coop_follower_spawn_global(room_grid, leader.global_position, follower_pid, entered_peer_id)
 	for n in get_tree().get_nodes_in_group("player"):
 		if not n.get("is_local_player"):
 			continue
 		if n.get_multiplayer_authority() == entered_peer_id:
 			continue
 		if n is CharacterBody2D:
-			(n as CharacterBody2D).global_position = target
-			(n as CharacterBody2D).velocity = Vector2.ZERO
-		break
+			var ch := n as CharacterBody2D
+			ch.global_position = target
+			ch.velocity = Vector2.ZERO
+			if n.has_method("flush_network_transform"):
+				n.flush_network_transform()
 
 
 func change_current_room(new_x, new_y):

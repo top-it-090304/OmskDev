@@ -21,6 +21,11 @@ func _on_body_entered(body: Node2D) -> void:
 		if mp.is_server():
 			manager.server_handle_coop_room_enter(Vector2i(gx, gy), body.get_multiplayer_authority())
 		else:
-			NetworkManager.rpc_report_room_enter_to_server.rpc_id(NetworkManager.SERVER_ID, gx, gy)
+			NetworkManager.rpc_report_room_enter_to_server.rpc_id(
+				NetworkManager.SERVER_ID,
+				gx,
+				gy,
+				body.get_multiplayer_authority()
+			)
 		return
 	manager.change_current_room(gx, gy)

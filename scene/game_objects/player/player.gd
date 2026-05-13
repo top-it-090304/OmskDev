@@ -86,6 +86,15 @@ func rpc_set_position(pos: Vector2, dir: int) -> void:
 	target_position = pos
 	target_direction = dir
 	interpolation_timer = 0.0
+	if is_local_player:
+		return
+	var dist2 := global_position.distance_squared_to(pos)
+	if dist2 > 1225.0:
+		global_position = pos
+	current_dir = dir
+	if can_anim and not is_dead and dist2 > 1225.0:
+		play_idle_animation()
+
 
 @rpc("authority", "call_local")
 func rpc_take_damage(amount: int) -> void:
@@ -154,6 +163,15 @@ func _physics_process(delta: float) -> void:
 			current_dir = target_direction
 			velocity = Vector2.ZERO
 			move_and_slide()
+			if can_anim and not is_dead:
+				play_idle_animation()
+		elif global_position.distance_squared_to(target_position) > 64.0 and can_anim and not is_dead:
+			var to_t := target_position - global_position
+			if to_t.length_squared() > 4.0:
+				update_direction(to_t)
+				play_walk_animation()
+			else:
+				play_idle_animation()
 
 # =========================================================
 # PROCESS
@@ -354,6 +372,19 @@ func rpc_server_teleport_to(pos: Vector2) -> void:
 	velocity = Vector2.ZERO
 	if is_local_player:
 		_last_sent_pos_net = Vector2(NAN, NAN)
+		flush_network_transform()
+
+
+## После телепорта коопа — сразу обновить марионетку на другой машине
+func flush_network_transform() -> void:
+	if not is_local_player:
+		return
+	var mp := get_tree().get_multiplayer()
+	if not mp.has_multiplayer_peer():
+		return
+	_last_sent_pos_net = global_position
+	_last_sent_dir_net = current_dir
+	rpc_set_position.rpc(global_position, current_dir)
 
 # =========================================================
 # DAMAGE
