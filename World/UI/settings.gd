@@ -21,7 +21,7 @@ func _load_settings() -> void:
 	var lang: String = str(cfg.get_value("settings", "language", "ru"))
 	lang_option.selected = LANGS.find(lang) if LANGS.has(lang) else 0
 	# Загружаем настройку частиц
-	particles_check.button_pressed = bool(cfg.get_value("graphics", "show_particles", true))
+	particles_check.button_pressed = GameConstants.variant_to_bool(cfg.get_value("graphics", "show_particles", true))
 	# Применяем загруженные настройки громкости
 	_apply_bus("SFX", sound_slider.value)
 	_apply_bus("Music", music_slider.value)

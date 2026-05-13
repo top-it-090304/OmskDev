@@ -42,6 +42,8 @@ func _ready() -> void:
 	attack_timer.start(1.0)
 
 func _physics_process(_delta: float) -> void:
+	if NetworkManager.enemy_client_interpolate_if_needed(self, _delta):
+		return
 	if is_dead: return
 
 	player = PlayerManager.get_nearest_target_player_node(global_position) as Node2D
@@ -119,6 +121,13 @@ func shoot_poison() -> void:
 	projectile_instance.rotation = target_dir.angle()
 	get_tree().current_scene.add_child.call_deferred(projectile_instance)
 	AudioManager.play_sfx("враг_яд_выстрел")
+	var mp := get_tree().get_multiplayer()
+	if mp.has_multiplayer_peer() and mp.is_server():
+		NetworkManager.host_mirror_projectile_if_coop(
+			GameConstants.GOBLIN_SLINGER_PROJECTILE.resource_path,
+			projectile_instance.global_position,
+			target_dir
+		)
 
 func take_damage(amount: int):
 	if is_dead: return
@@ -184,9 +193,8 @@ func _on_attack_timer_timeout():
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player") and body.has_method("take_damage"):
-		# Исправлено: теперь эта переменная есть в GameConstants
 		var damage = GameConstants.get_scaled_enemy_stat(GameConstants.GOBLIN_SLINGER_BODY_DAMAGE)
-		body.take_damage(damage)
+		NetworkManager.server_apply_damage_to_player_from_enemy(body, damage)
 
 
 func _await_local_death_sprite(

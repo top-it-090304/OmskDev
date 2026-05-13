@@ -19,5 +19,5 @@ func _on_body_entered(body: Node2D) -> void:
 		return
 	if body.is_in_group("player"):
 		if body.has_method("take_damage"):
-			body.take_damage(GameConstants.ARROW_DAMAGE)
+			NetworkManager.server_apply_damage_to_player_from_enemy(body, GameConstants.ARROW_DAMAGE)
 	queue_free()

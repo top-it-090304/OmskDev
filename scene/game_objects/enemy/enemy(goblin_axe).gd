@@ -36,6 +36,8 @@ func _is_player_in_attack_radius() -> bool:
 	return global_position.distance_squared_to(player.global_position) <= GameConstants.ENEMY_GOBLIN_AXE_ATTACK_RANGE * GameConstants.ENEMY_GOBLIN_AXE_ATTACK_RANGE
 
 func _physics_process(delta: float) -> void:
+	if NetworkManager.enemy_client_interpolate_if_needed(self, delta):
+		return
 	_apply_knockback_logic(delta)
 	
 	if is_dead: 
@@ -218,4 +220,4 @@ func _on_hitbox_body_entered(body: Node2D) -> void:
 		if not _is_player_in_attack_radius():
 			return
 		var damage = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_GOBLIN_AXE_DAMAGE)
-		body.take_damage(damage)
+		NetworkManager.server_apply_damage_to_player_from_enemy(body, damage)

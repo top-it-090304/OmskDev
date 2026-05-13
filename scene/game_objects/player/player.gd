@@ -101,6 +101,25 @@ func rpc_take_damage(amount: int) -> void:
 	if not is_local_player and not is_dead:
 		take_damage(amount)
 
+
+@rpc("any_peer", "call_remote", "reliable")
+func rpc_take_damage_from_server(amount: int) -> void:
+	if is_multiplayer_authority():
+		take_damage(amount)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func rpc_apply_poison_from_server(duration: float, damage_per_tick: int, tick_rate: float) -> void:
+	if is_multiplayer_authority():
+		apply_poison(duration, damage_per_tick, tick_rate)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func rpc_apply_knockback_from_server(source_x: float, source_y: float, force: float) -> void:
+	if is_multiplayer_authority():
+		apply_knockback(Vector2(source_x, source_y), force)
+
+
 @rpc("authority", "call_local")
 func rpc_die() -> void:
 	if not is_local_player:
@@ -307,6 +326,8 @@ func play_idle_animation():
 func attack(from_rpc: bool = false) -> void:
 	if not can_attack or is_dead:
 		return
+	if get_tree().get_multiplayer().has_multiplayer_peer() and NetworkManager.coop_run_finished and is_local_player:
+		return
 
 	can_anim = false
 	can_attack = false
@@ -462,6 +483,21 @@ func take_damage(amount: int):
 # DEATH
 # =========================================================
 
+func die_from_coop_partner_death() -> void:
+	if is_dead:
+		return
+	var mp := get_tree().get_multiplayer()
+	if not mp.has_multiplayer_peer():
+		return
+	if not is_local_player:
+		return
+	is_dead = true
+	can_anim = false
+	velocity = Vector2.ZERO
+	NetworkManager.mark_coop_run_finished()
+	await _death_presentation_async()
+
+
 func die():
 	if is_dead:
 		return
@@ -479,6 +515,10 @@ func die():
 				NetworkManager.rpc_report_player_death.rpc_id(NetworkManager.SERVER_ID)
 		NetworkManager.mark_coop_run_finished()
 
+	await _death_presentation_async()
+
+
+func _death_presentation_async() -> void:
 	AudioManager.play_sfx("игрок_смерть")
 
 	if animP:

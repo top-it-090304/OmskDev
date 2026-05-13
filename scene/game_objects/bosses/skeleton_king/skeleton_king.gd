@@ -73,6 +73,9 @@ func _physics_process(delta: float) -> void:
 	if is_dead:
 		return
 
+	if NetworkManager.enemy_client_interpolate_if_needed(self, delta):
+		return
+
 	player = PlayerManager.get_nearest_target_player_node(global_position) as Node2D
 	if NetworkManager.is_multiplayer_active():
 		player_in_melee_zone = PlayerManager.detector_has_living_player(detector_melee)
@@ -244,10 +247,9 @@ func spawn_melee_hitbox() -> void:
 func _on_melee_hitbox_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):
 		AudioManager.play_sfx("босс_атака_удар")
-		if body.has_method("take_damage"):
-			body.take_damage(GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_MELEE_DAMAGE))
-		if body.has_method("apply_knockback"):
-			body.apply_knockback(global_position, 500.0)
+		var dmg := GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_MELEE_DAMAGE)
+		NetworkManager.server_apply_damage_to_player_from_enemy(body, dmg)
+		NetworkManager.server_apply_knockback_to_player_from_enemy(body, global_position, 500.0)
 
 # ============ АТАКА 02: Призыв миньонов / Стрелы вокруг игрока ============
 func _cleanup_minions() -> void:
@@ -394,8 +396,8 @@ func _launch_arrow_at_player(arrow: Node2D) -> void:
 	# Подключаем сигнал урона
 	arrow.body_entered.connect(func(body):
 		if body.is_in_group("player"):
-			if body.has_method("take_damage"):
-				body.take_damage(GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_BODY_DAMAGE))
+			var admg := GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_BODY_DAMAGE)
+			NetworkManager.server_apply_damage_to_player_from_enemy(body, admg)
 			if is_instance_valid(arrow):
 				arrow.queue_free()
 	)
@@ -523,10 +525,9 @@ func spawn_charge_hitbox() -> void:
 
 func _on_charge_hitbox_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):
-		if body.has_method("take_damage"):
-			body.take_damage(GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_BONE_SPEAR_DAMAGE))
-		if body.has_method("apply_knockback"):
-			body.apply_knockback(global_position, 1200.0)
+		var dmg := GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_BONE_SPEAR_DAMAGE)
+		NetworkManager.server_apply_damage_to_player_from_enemy(body, dmg)
+		NetworkManager.server_apply_knockback_to_player_from_enemy(body, global_position, 1200.0)
 
 # ============ УТИЛИТЫ ============
 func update_run_animation(direction: Vector2):

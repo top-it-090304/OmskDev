@@ -62,6 +62,8 @@ func _ready() -> void:
 	_play_idle_animation()
 
 func _physics_process(delta: float) -> void:
+	if NetworkManager.enemy_client_interpolate_if_needed(self, delta):
+		return
 	if is_dead: return
 
 	player = PlayerManager.get_nearest_target_player_node(global_position) as Node2D
@@ -247,6 +249,13 @@ func shoot():
 	proj.rotation = dir.angle()
 	proj.scale = Vector2(2.5, 2.5)
 	get_tree().current_scene.add_child(proj)
+	var mp := get_tree().get_multiplayer()
+	if mp.has_multiplayer_peer() and mp.is_server():
+		NetworkManager.host_mirror_projectile_if_coop(
+			GameConstants.GOBLIN_SLINGER_PROJECTILE.resource_path,
+			proj.global_position,
+			dir
+		)
 
 func summon_projectiles():
 	if is_dead: return
@@ -259,6 +268,13 @@ func summon_projectiles():
 		proj.rotation = angle
 		proj.scale = Vector2(2.5, 2.5)
 		get_tree().current_scene.add_child(proj)
+		var mp2 := get_tree().get_multiplayer()
+		if mp2.has_multiplayer_peer() and mp2.is_server():
+			NetworkManager.host_mirror_projectile_if_coop(
+				GameConstants.GOBLIN_SLINGER_PROJECTILE.resource_path,
+				proj.global_position,
+				dir
+			)
 
 func spawn_slap_effect():
 	if is_dead: return
@@ -302,10 +318,9 @@ func _on_slap_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player"):
 		AudioManager.play_sfx("босс_атака_удар")
-		if body.has_method("take_damage"):
-			body.take_damage(GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_SLAP_DAMAGE))
-		if body.has_method("apply_knockback"):
-			body.apply_knockback(global_position, 800.0)
+		var dmg := GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_SLAP_DAMAGE)
+		NetworkManager.server_apply_damage_to_player_from_enemy(body, dmg)
+		NetworkManager.server_apply_knockback_to_player_from_enemy(body, global_position, 800.0)
 
 func take_damage(amount: int):
 	if is_dead: return

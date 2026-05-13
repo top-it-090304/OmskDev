@@ -1,7 +1,5 @@
 extends Node
 
-const _COOP_GAME_OVER_SCENE := preload("res://World/UI/game_over.tscn")
-
 var players: Dictionary = {}
 var pending_peers: Array = []  # Устанавливается лобби перед сменой сцены
 var _player_scene: PackedScene
@@ -106,7 +104,9 @@ func finalize_network_spawns() -> void:
 		return
 	if NetworkManager.is_multiplayer_active() and network_spawn_finalize_done:
 		return
-	# Тайл-коллизии и стены после draw_map — одного кадра мало (спавн «в стене»)
+	# Тайл-коллизии TileMapLayer попадают в дерево не сразу — без ожидания intersect_shape даёт «пусто» в стене
+	await get_tree().physics_frame
+	await get_tree().physics_frame
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 	await get_tree().physics_frame
@@ -136,16 +136,20 @@ func finalize_network_spawns() -> void:
 		var n_cand: int = candidates.size()
 		for j in range(n_cand):
 			var cand: Vector2 = candidates[(i + j) % n_cand]
-			var refined := _find_valid_spawn_near(cand, 120.0)
+			var refined := _find_valid_spawn_near(cand, 200.0, inst)
 			if refined != Vector2.INF and refined.is_finite():
 				chosen = refined
 				break
 		if chosen == Vector2.INF or not chosen.is_finite():
 			chosen = candidates[mini(i, n_cand - 1)]
-		var snap := _find_valid_spawn_near(chosen, 120.0)
+		chosen = _clamp_spawn_to_start_room(chosen, start_room)
+		var snap := _find_valid_spawn_near(chosen, 200.0, inst)
 		if snap != Vector2.INF and snap.is_finite():
 			chosen = snap
 		chosen = _clamp_spawn_to_start_room(chosen, start_room)
+		var snap2 := _find_valid_spawn_near(chosen, 160.0, inst)
+		if snap2 != Vector2.INF and snap2.is_finite():
+			chosen = snap2
 		inst.global_position = chosen
 		if inst is CharacterBody2D:
 			(inst as CharacterBody2D).velocity = Vector2.ZERO
@@ -171,11 +175,14 @@ func _fallback_place_network_players(mm: Node) -> void:
 			var rn: Node2D = room_data.get("node") as Node2D
 			if rn == null or not is_instance_valid(rn):
 				continue
-			var lc := Vector2(
-				GameConstants.MAP_MANAGER_ROOM_SIZE_X * 0.5,
-				GameConstants.MAP_MANAGER_ROOM_SIZE_Y * 0.5
-			)
-			origin = rn.to_global(lc)
+			if mm.has_method("get_start_room_spawn_global"):
+				origin = mm.get_start_room_spawn_global(rn)
+			else:
+				var lc := Vector2(
+					GameConstants.MAP_MANAGER_ROOM_SIZE_X * 0.5,
+					GameConstants.MAP_MANAGER_ROOM_SIZE_Y * 0.5
+				)
+				origin = rn.to_global(lc)
 			found = true
 			break
 	if not found:
@@ -197,7 +204,11 @@ func _fallback_place_network_players(mm: Node) -> void:
 			players.erase(pid)
 			continue
 		var off := Vector2((i - (n - 1) * 0.5) * 88.0, 0.0)
-		inst.global_position = origin + off
+		var cand := origin + off
+		var fixed := _find_valid_spawn_near(cand, 256.0, inst)
+		if fixed != Vector2.INF and fixed.is_finite():
+			cand = fixed
+		inst.global_position = cand
 		if inst is CharacterBody2D:
 			(inst as CharacterBody2D).velocity = Vector2.ZERO
 
@@ -227,7 +238,7 @@ func _position_new_player(instance: Node2D, player_id: int) -> void:
 				break
 	
 	if search_origin != Vector2.INF:
-		var spawn_pos = _find_valid_spawn_near(search_origin, 256.0)
+		var spawn_pos = _find_valid_spawn_near(search_origin, 256.0, instance)
 		if spawn_pos != Vector2.INF:
 			instance.global_position = spawn_pos
 			return
@@ -237,42 +248,65 @@ func _position_new_player(instance: Node2D, player_id: int) -> void:
 	if map_manager and map_manager.has_method("get_spawn_point"):
 		instance.global_position = map_manager.get_spawn_point()
 
+func _inner_walkable_rect_global(room_node: Node2D) -> Rect2:
+	if room_node == null or not is_instance_valid(room_node):
+		return Rect2()
+	var rs := room_node.find_child("room_shape", true, false) as Area2D
+	if rs == null:
+		var tl := room_node.global_position
+		var m := 96.0
+		var rz := Vector2(GameConstants.MAP_MANAGER_ROOM_SIZE_X, GameConstants.MAP_MANAGER_ROOM_SIZE_Y)
+		return Rect2(tl.x + m, tl.y + m, rz.x - 2.0 * m, rz.y - 2.0 * m)
+	var cs := rs.get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if cs == null or cs.shape == null or not (cs.shape is RectangleShape2D):
+		var tl2 := room_node.global_position
+		var m2 := 96.0
+		var rz2 := Vector2(GameConstants.MAP_MANAGER_ROOM_SIZE_X, GameConstants.MAP_MANAGER_ROOM_SIZE_Y)
+		return Rect2(tl2.x + m2, tl2.y + m2, rz2.x - 2.0 * m2, rz2.y - 2.0 * m2)
+	var rr := cs.shape as RectangleShape2D
+	var half := rr.size * 0.5
+	return Rect2(cs.global_position - half, rr.size)
+
+
 func _clamp_spawn_to_start_room(pos: Vector2, room_node: Node2D) -> Vector2:
 	if room_node == null or not is_instance_valid(room_node):
 		return pos
-	var tl := room_node.global_position
-	var margin := 56.0
-	var rz := Vector2(GameConstants.MAP_MANAGER_ROOM_SIZE_X, GameConstants.MAP_MANAGER_ROOM_SIZE_Y)
+	var inner := _inner_walkable_rect_global(room_node)
+	if inner.size.x < 32.0 or inner.size.y < 32.0:
+		return pos
+	var pad := 40.0
 	return Vector2(
-		clampf(pos.x, tl.x + margin, tl.x + rz.x - margin),
-		clampf(pos.y, tl.y + margin, tl.y + rz.y - margin)
+		clampf(pos.x, inner.position.x + pad, inner.position.x + inner.size.x - pad),
+		clampf(pos.y, inner.position.y + pad, inner.position.y + inner.size.y - pad)
 	)
 
 
-func _find_valid_spawn_near(center: Vector2, max_search_radius: float = 256.0) -> Vector2:
-	var space_state = get_viewport().find_world_2d().direct_space_state
-	var radius = 64.0
-	var step = 32.0
-	
-	var shape = RectangleShape2D.new()
-	shape.size = Vector2(32, 32)
-	
+func _find_valid_spawn_near(center: Vector2, max_search_radius: float = 256.0, exclude_body: Node2D = null) -> Vector2:
+	var space_state := get_viewport().find_world_2d().direct_space_state
+	if space_state == null:
+		return Vector2.INF
+	var radius := 48.0
+	var step := 24.0
+	# Капсула ближе к CharacterBody2D игрока (круг r≈9 у ног), чем квадрат 32×32
+	var shape := CircleShape2D.new()
+	shape.radius = 12.0
 	while radius <= max_search_radius:
-		for i in range(8):
-			var angle = i * PI / 4.0
-			var check_pos = center + Vector2(cos(angle), sin(angle)) * radius
-			
-			var params = PhysicsShapeQueryParameters2D.new()
+		for i in range(12):
+			var angle := TAU * float(i) / 12.0
+			var check_pos := center + Vector2(cos(angle), sin(angle)) * radius
+			var params := PhysicsShapeQueryParameters2D.new()
 			params.shape = shape
-			params.transform = Transform2D(0, check_pos)
-			# Как у CharacterBody2D игрока (hitbox collision_mask = 2) — иначе «пусто» и точка внутри стены
-			params.collision_mask = 3
-			
-			var result = space_state.intersect_shape(params)
-			if result.is_empty():
+			# Смещение как у CollisionShape2D игрока (y+8)
+			params.transform = Transform2D(0, check_pos + Vector2(0, 8))
+			params.collide_with_areas = true
+			params.collide_with_bodies = true
+			# Тайлсет стен: layer 1+8 (129) и др.; mask=3 давал ложные «пустые» точки в стене
+			params.collision_mask = 0x0000FFFF
+			if exclude_body != null and exclude_body is CollisionObject2D:
+				params.exclude = [(exclude_body as CollisionObject2D).get_rid()]
+			if space_state.intersect_shape(params).is_empty():
 				return check_pos
 		radius += step
-	
 	return Vector2.INF
 
 func _on_disconnected() -> void:
@@ -283,18 +317,6 @@ func _on_disconnected() -> void:
 
 func find_safe_spawn_near_global(center: Vector2) -> Vector2:
 	return _find_valid_spawn_near(center)
-
-
-## Кооп: союзник умер — показать тот же game over, что и у погибшего (Soul Knight)
-func show_coop_game_over_survivor() -> void:
-	var tree := get_tree()
-	if tree == null:
-		return
-	SaveSystem.invalidate_run_after_death()
-	var world := tree.current_scene
-	if world == null:
-		return
-	world.add_child(_COOP_GAME_OVER_SCENE.instantiate())
 
 
 func host_pull_co_players_into_combat_room(enemys_node: Node) -> void:

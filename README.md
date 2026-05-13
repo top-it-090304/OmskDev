@@ -34,6 +34,8 @@
 
 ## Быстрый старт для агентов
 
+**Godot из терминала:** исполняемый файл не в `PATH` — см. `.cursor/rules/godot-executable.mdc` и блок «Технические детали» ниже.
+
 ### 1. Понять архитектуру
 Начните с чтения:
 1. `globals/README.md` — глобальные системы
@@ -68,6 +70,7 @@
 ## Технические детали
 
 - **Движок**: Godot 4.x
+- **Редактор (Windows, эта машина)**: `C:\Users\Honor\Downloads\Godot.windows.editor.x86_64.exe` — для CLI и агентов, не `godot` из PATH
 - **Язык**: GDScript
 - **Основная ветка**: `features`
 - **Группы Godot**: `player`, `enemys`, `map_manager`, `backpack`

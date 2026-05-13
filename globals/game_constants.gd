@@ -5,6 +5,17 @@ signal constants_changed
 const CONFIG_PATH = "user://game_consts.cfg"
 const RELOAD_CHECK_INTERVAL_SEC = 0.5
 
+
+## В GDScript 4 нет глобального bool(); cfg / .get() / RPC дают Variant — приводим к bool.
+func variant_to_bool(v: Variant) -> bool:
+	if v is bool:
+		return v
+	if v is int or v is float:
+		return v != 0
+	if v is String:
+		return v.to_lower() in ["true", "1", "yes", "on"]
+	return false
+
 # --- СТАТИСТИКА И ПРОГРЕСС ---
 var ENEMIES_KILLED: int = 0
 var ROOMS_CLEARED: int = 0  # Теперь объявлено только здесь (ошибка дублирования исправлена)
@@ -225,7 +236,7 @@ func _apply_stats_section_from_cfg(cfg: ConfigFile, section: String) -> void:
 			TYPE_FLOAT:
 				set(key, float(raw))
 			TYPE_BOOL:
-				set(key, bool(raw))
+				set(key, variant_to_bool(raw))
 			_:
 				pass
 
@@ -262,7 +273,7 @@ func apply_coop_start_state(state: Dictionary) -> void:
 		elif cur is float:
 			set(key, float(incoming))
 		elif cur is bool:
-			set(key, bool(incoming))
+			set(key, variant_to_bool(incoming))
 		elif cur is String:
 			set(key, String(incoming))
 		else:

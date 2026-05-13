@@ -47,6 +47,9 @@ signal room_changed(new_grid_pos)
 var visited_rooms = []
 var seen_rooms = []
 
+var _enemy_net_sync_accum: float = 0.0
+const ENEMY_NET_SYNC_INTERVAL: float = 0.09
+
 
 func _ready() -> void:
 	add_to_group("map_manager")
@@ -117,6 +120,24 @@ func _boot_dungeon_async() -> void:
 
 	PlayerManager.finalize_network_spawns()
 
+
+## Глобальная точка спавна в стартовой комнате: PlayerSpawn → старый Marker2D → центр bbox (тайлы могут быть со сдвигом от центра комнаты).
+func get_start_room_spawn_global(room_node: Node2D) -> Vector2:
+	if room_node == null or not is_instance_valid(room_node):
+		return Vector2.ZERO
+	var m := room_node.find_child("PlayerSpawn", true, false) as Node2D
+	if m != null:
+		return m.global_position
+	m = room_node.find_child("Marker2D", true, false) as Node2D
+	if m != null:
+		return m.global_position
+	var lc := Vector2(
+		GameConstants.MAP_MANAGER_ROOM_SIZE_X * 0.5,
+		GameConstants.MAP_MANAGER_ROOM_SIZE_Y * 0.5
+	)
+	return room_node.to_global(lc)
+
+
 func get_coop_spawn_points() -> Array[Vector2]:
 	var out: Array[Vector2] = []
 	var start_cell: Vector2i = get_safe_room_position()
@@ -124,23 +145,14 @@ func get_coop_spawn_points() -> Array[Vector2]:
 		if room_data["grid_pos"] != start_cell:
 			continue
 		var room_node := room_data["node"] as Node2D
-		var base: Vector2
-		var marker := room_node.find_child("PlayerSpawn", true, false) as Node2D
-		if marker:
-			base = marker.global_position
-		else:
-			var lc := Vector2(
-				GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2.0,
-				GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2.0
-			)
-			base = room_node.to_global(lc)
-		# Небольшой разнос внутри комнаты (раньше ±72 выталкивал в коридор / «за стену»)
+		var base: Vector2 = get_start_room_spawn_global(room_node)
+		# Фиксированные отступы от маркера (в сторону центра пола), без ухода вверх к верхней стене
 		var offsets: Array[Vector2] = [
-			Vector2.ZERO,
-			Vector2(48, 0),
-			Vector2(-48, 0),
-			Vector2(0, 40),
-			Vector2(0, -40),
+			Vector2(-88, 28),
+			Vector2(88, 28),
+			Vector2(0, 52),
+			Vector2(-88, 52),
+			Vector2(88, 52),
 		]
 		for off in offsets:
 			out.append(base + off)
@@ -193,13 +205,7 @@ func _spawn_player():
 	for room_data in spawned_rooms:
 		if room_data["type"] == RoomType.START:
 			var room_node := room_data["node"] as Node2D
-			var spawn_marker = room_node.find_child("PlayerSpawn", true, false)
-			var target_pos: Vector2
-			if spawn_marker:
-				target_pos = (spawn_marker as Node2D).global_position
-			else:
-				var local_center = Vector2(GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2.0, GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2.0)
-				target_pos = room_node.to_global(local_center)
+			var target_pos: Vector2 = get_start_room_spawn_global(room_node)
 			# Wait one frame so the node is fully in the scene tree
 			await get_tree().process_frame
 			Player.global_position = target_pos
@@ -996,12 +1002,7 @@ func load_dungeon_state():
 				for room_data in spawned_rooms:
 					if room_data["type"] == RoomType.START:
 						var room_node = room_data["node"] as Node2D
-						var spawn_marker = room_node.find_child("PlayerSpawn", true, false)
-						if spawn_marker:
-							player.global_position = spawn_marker.global_position
-						else:
-							var local_center = Vector2(GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2.0, GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2.0)
-							player.global_position = room_node.to_global(local_center)
+						player.global_position = get_start_room_spawn_global(room_node)
 						print("Игрок спавнится в стартовой комнате")
 						break
 	
@@ -1009,3 +1010,24 @@ func load_dungeon_state():
 	update_visibility()
 
 	print("Состояние данжена восстановлено")
+
+
+func _physics_process(delta: float) -> void:
+	var mp := get_tree().get_multiplayer()
+	if not mp.has_multiplayer_peer() or not mp.is_server():
+		return
+	if mp.get_peers().is_empty():
+		return
+	_enemy_net_sync_accum += delta
+	if _enemy_net_sync_accum < ENEMY_NET_SYNC_INTERVAL:
+		return
+	_enemy_net_sync_accum = 0.0
+	for n in get_tree().get_nodes_in_group("enemys"):
+		if not is_instance_valid(n) or not n is Node2D:
+			continue
+		if GameConstants.variant_to_bool(n.get("is_dead")):
+			continue
+		var vel := Vector2.ZERO
+		if "velocity" in n:
+			vel = n.velocity
+		NetworkManager.rpc_sync_enemy_transform.rpc(str(n.get_path()), (n as Node2D).global_position, vel)

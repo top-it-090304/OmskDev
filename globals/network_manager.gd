@@ -293,11 +293,12 @@ func rpc_report_player_death() -> void:
 	server_broadcast_coop_game_over(sid)
 
 
-## Кооп: смерть игрока — хост сначала показывает game over выжившим у себя, затем только клиентам (без call_local: надёжнее с ENet).
+## Кооп: смерть любого — у союзника тот же game over (оба «проиграли»).
 func server_broadcast_coop_game_over(victim_peer_id: int) -> void:
 	var mp := get_tree().get_multiplayer()
 	if not mp.has_multiplayer_peer() or not mp.is_server():
 		return
+	# На хосте нельзя одновременно call_local и call_remote в @rpc (Godot 4.4) — сначала локально выживший.
 	_coop_apply_survivor_game_over(victim_peer_id)
 	rpc_coop_game_over_to_clients.rpc(victim_peer_id)
 
@@ -311,12 +312,124 @@ func _coop_apply_survivor_game_over(victim_peer_id: int) -> void:
 	var mp := get_tree().get_multiplayer()
 	if not mp.has_multiplayer_peer():
 		return
-	if coop_run_finished:
-		return
 	if mp.get_unique_id() == victim_peer_id:
 		return
-	mark_coop_run_finished()
-	PlayerManager.show_coop_game_over_survivor()
+	for p in get_tree().get_nodes_in_group("player"):
+		if not is_instance_valid(p):
+			continue
+		if p.get("is_dead"):
+			continue
+		if not p.is_multiplayer_authority():
+			continue
+		if p.has_method("die_from_coop_partner_death"):
+			p.die_from_coop_partner_death()
+
+
+const _META_NET_ENEMY_VALID := &"net_enemy_sync_valid"
+const _META_NET_ENEMY_POS := &"net_enemy_sync_pos"
+const _META_NET_ENEMY_VEL := &"net_enemy_sync_vel"
+
+
+func enemy_mp_is_network_client() -> bool:
+	var mp := get_tree().get_multiplayer()
+	return mp.has_multiplayer_peer() and not mp.is_server()
+
+
+func enemy_client_interpolate_if_needed(enemy: CharacterBody2D, delta: float) -> bool:
+	if not enemy_mp_is_network_client():
+		return false
+	if not is_instance_valid(enemy):
+		return true
+	if not enemy.get_meta(_META_NET_ENEMY_VALID, false):
+		enemy.velocity = Vector2.ZERO
+		enemy.move_and_slide()
+		return true
+	var tgt: Vector2 = enemy.get_meta(_META_NET_ENEMY_POS, enemy.global_position)
+	var vel: Vector2 = enemy.get_meta(_META_NET_ENEMY_VEL, Vector2.ZERO)
+	enemy.global_position = enemy.global_position.lerp(tgt, minf(1.0, 22.0 * delta))
+	enemy.velocity = vel
+	enemy.move_and_slide()
+	return true
+
+
+@rpc("authority", "call_remote", "unreliable")
+func rpc_sync_enemy_transform(path_str: String, pos: Vector2, vel: Vector2) -> void:
+	var n := get_tree().root.get_node_or_null(NodePath(path_str))
+	if n == null or not is_instance_valid(n) or not n is CharacterBody2D:
+		return
+	var ch := n as CharacterBody2D
+	ch.set_meta(_META_NET_ENEMY_VALID, true)
+	ch.set_meta(_META_NET_ENEMY_POS, pos)
+	ch.set_meta(_META_NET_ENEMY_VEL, vel)
+
+
+func server_apply_damage_to_player_from_enemy(player: Node, amount: int) -> void:
+	if not is_instance_valid(player) or not player.is_in_group("player"):
+		return
+	var mp := get_tree().get_multiplayer()
+	if not mp.has_multiplayer_peer():
+		if player.has_method("take_damage"):
+			player.call("take_damage", amount)
+		return
+	if not mp.is_server():
+		return
+	if not player.has_method("take_damage"):
+		return
+	var auth := player.get_multiplayer_authority()
+	if player.has_method("rpc_take_damage_from_server"):
+		player.rpc_take_damage_from_server.rpc_id(auth, amount)
+
+
+func server_apply_poison_to_player_from_enemy(player: Node, duration: float, damage_per_tick: int, tick_rate: float) -> void:
+	if not is_instance_valid(player) or not player.is_in_group("player"):
+		return
+	var mp := get_tree().get_multiplayer()
+	if not mp.has_multiplayer_peer():
+		if player.has_method("apply_poison"):
+			player.call("apply_poison", duration, damage_per_tick, tick_rate)
+		return
+	if not mp.is_server():
+		return
+	var auth := player.get_multiplayer_authority()
+	if player.has_method("rpc_apply_poison_from_server"):
+		player.rpc_apply_poison_from_server.rpc_id(auth, duration, damage_per_tick, tick_rate)
+
+
+func server_apply_knockback_to_player_from_enemy(player: Node, source_world: Vector2, force: float) -> void:
+	if not is_instance_valid(player) or not player.is_in_group("player"):
+		return
+	var mp := get_tree().get_multiplayer()
+	if not mp.has_multiplayer_peer():
+		if player.has_method("apply_knockback"):
+			player.call("apply_knockback", source_world, force)
+		return
+	if not mp.is_server():
+		return
+	var auth := player.get_multiplayer_authority()
+	if player.has_method("rpc_apply_knockback_from_server"):
+		player.rpc_apply_knockback_from_server.rpc_id(auth, source_world.x, source_world.y, force)
+
+
+@rpc("authority", "call_remote", "unreliable")
+func rpc_mirror_host_projectile(scene_path: String, global_pos: Vector2, direction: Vector2) -> void:
+	var ps := load(scene_path) as PackedScene
+	if ps == null:
+		return
+	var inst: Node = ps.instantiate()
+	get_tree().current_scene.add_child(inst)
+	if inst is Node2D:
+		(inst as Node2D).global_position = global_pos
+	if "direction" in inst:
+		inst.direction = direction.normalized()
+	if inst is Area2D:
+		(inst as Area2D).monitoring = false
+		(inst as Area2D).monitorable = false
+
+
+func host_mirror_projectile_if_coop(scene_path: String, global_pos: Vector2, direction: Vector2) -> void:
+	var mp := get_tree().get_multiplayer()
+	if mp.has_multiplayer_peer() and mp.is_server() and mp.get_peers().size() > 0:
+		rpc_mirror_host_projectile.rpc(scene_path, global_pos, direction)
 
 
 ## Урон по врагу от атаки игрока: без пира — чистый офлайн (локальный take_damage); с пиром — только хост + репликация.
@@ -345,7 +458,7 @@ func _replicate_enemy_state_after_damage(enemy: Node) -> void:
 	if mp.get_peers().size() == 0:
 		return
 	var h: int = int(enemy.get("hp")) if enemy.get("hp") != null else 0
-	var d: bool = bool(enemy.get("is_dead"))
+	var d: bool = GameConstants.variant_to_bool(enemy.get("is_dead"))
 	var mx: int = int(enemy.get("max_hp")) if enemy.get("max_hp") != null else maxi(h, 1)
 	rpc_sync_enemy_after_damage.rpc(str(enemy.get_path()), maxi(0, h), mx, d)
 
