@@ -147,6 +147,8 @@ func rpc_coop_transition_next_floor() -> void:
 	if now - _last_coop_floor_transition_ms < 2000:
 		return
 	_last_coop_floor_transition_ms = now
+	AudioManager.play_sfx("люк_переход")
+	SaveSystem.save_game()
 	SaveSystem.delete_dungeon_state()
 	GameConstants.CURRENT_FLOOR += 1
 	GameConstants.ROOMS_CLEARED = 0
@@ -237,7 +239,8 @@ func rpc_request_artefact_pickup_from_client(resource_path: String, room_x: int,
 	if node.has_method("server_consume_world_only_for_remote_client_pickup"):
 		node.server_consume_world_only_for_remote_client_pickup()
 	else:
-		node.queue_free()
+		if is_instance_valid(node):
+			node.queue_free()
 	rpc_client_mirror_artefact_pickup.rpc(resource_path, room_x, room_y, picker_peer_id)
 
 
@@ -248,7 +251,7 @@ func rpc_client_mirror_artefact_pickup(resource_path: String, room_x: int, room_
 	var room := Vector2i(room_x, room_y)
 	SaveSystem.mark_treasure_collected(room)
 	var n := _find_artefact_pickup_node(resource_path, room)
-	if n:
+	if n != null and is_instance_valid(n):
 		n.queue_free()
 	if multiplayer.get_unique_id() != picker_peer_id:
 		return
@@ -262,7 +265,8 @@ func rpc_client_mirror_artefact_pickup(resource_path: String, room_x: int, room_
 		pickup.add_to_backpack()
 	if pickup.has_method("show_stat_popup"):
 		pickup.show_stat_popup()
-	pickup.queue_free()
+	if is_instance_valid(pickup):
+		pickup.queue_free()
 
 
 @rpc("authority", "call_local", "reliable")
@@ -367,7 +371,8 @@ func rpc_sync_enemy_after_damage(path_str: String, hp_val: int, max_hp_val: int,
 				(n as CollisionObject2D).set_collision_layer_value(1, false)
 				(n as CollisionObject2D).set_collision_mask_value(1, false)
 		else:
-			n.queue_free()
+			if is_instance_valid(n):
+				n.queue_free()
 
 
 ## Клиенты: тот же артефакт под люком, что заспавнил хост (сцена не синхронится сама по сети).

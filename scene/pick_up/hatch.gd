@@ -60,6 +60,9 @@ func _on_body_entered(body: Node2D) -> void:
 
 
 func _go_to_next_floor_solo() -> void:
+	AudioManager.play_sfx("люк_переход")
+	# Синхронизируем рюкзак и артефакты в SaveSystem до смены сцены (иначе новый backpack пустой)
+	SaveSystem.save_game()
 	GameConstants.CURRENT_FLOOR += 1
 	GameConstants.ROOMS_CLEARED = 0
 	GameConstants.save_to_disk()

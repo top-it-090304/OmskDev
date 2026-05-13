@@ -497,12 +497,7 @@ func die():
 			death_anim = "death_right"
 	await _await_player_death_sprite(death_anim)
 
-	SaveSystem.save_game()
-
-	var map_manager = get_tree().get_first_node_in_group("map_manager")
-
-	if map_manager and map_manager.has_method("save_dungeon_state"):
-		map_manager.save_dungeon_state()
+	SaveSystem.invalidate_run_after_death()
 
 	var over = gameover.instantiate()
 	add_child(over)
@@ -558,7 +553,7 @@ func _ready() -> void:
 	)
 
 	health_int = (
-		SaveSystem.saved_player_health
+		maxi(1, SaveSystem.saved_player_health)
 		if SaveSystem.should_restore_player
 		else GameConstants.PLAYER_MAX_HEALTH
 	)

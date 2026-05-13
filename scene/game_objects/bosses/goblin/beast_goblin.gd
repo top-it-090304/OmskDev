@@ -22,6 +22,9 @@ var player_took_damage: bool = false
 @onready var animP = $AnimationPlayer
 @onready var attack_timer = $attack_timer
 @onready var hp_bar = $TextureProgressBar
+@onready var detector_bite: Area2D = $detectorBite
+@onready var detector_slap: Area2D = $detectorSlap
+@onready var detector_shoot: Area2D = $detectorShoot
 
 enum Dir { DOWN, UP, LEFT, RIGHT }
 var current_dir = Dir.DOWN
@@ -52,7 +55,7 @@ func _ready() -> void:
 	hp    = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_HP)
 	speed = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_MAX_SPEED)
 	hp_bar.update_hp(hp, hp)
-	player      = get_tree().get_first_node_in_group("player") as Node2D
+	player      = PlayerManager.get_nearest_target_player_node(global_position) as Node2D
 	parent_node = get_parent()
 	attack_timer.one_shot = true
 	player_took_damage = false
@@ -60,6 +63,12 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	if is_dead: return
+
+	player = PlayerManager.get_nearest_target_player_node(global_position) as Node2D
+	if NetworkManager.is_multiplayer_active():
+		player_in_bite_zone = PlayerManager.detector_has_living_player(detector_bite)
+		player_in_slap_zone = PlayerManager.detector_has_living_player(detector_slap)
+		player_in_shoot_zone = PlayerManager.detector_has_living_player(detector_shoot)
 
 	_cd_bite  = max(0.0, _cd_bite  - delta)
 	_cd_slap  = max(0.0, _cd_slap  - delta)

@@ -335,6 +335,13 @@ func get_random_room_of_type(type):
 
 # --- ОТРИСОВКА ---
 func draw_map():
+	# Иначе повторный draw_map / load_dungeon_state оставляет старые комнаты и «битые» ссылки → queue_free на freed
+	for c in get_children():
+		if is_instance_valid(c):
+			c.queue_free()
+	spawned_rooms.clear()
+	boss_hatch = null
+
 	var cell_size_x = GameConstants.MAP_MANAGER_ROOM_SIZE_X + GameConstants.MAP_MANAGER_CORRIDOR_LENGTH
 	var cell_size_y = GameConstants.MAP_MANAGER_ROOM_SIZE_Y + GameConstants.MAP_MANAGER_CORRIDOR_LENGTH
 	
@@ -563,6 +570,7 @@ func _spawn_boss(space_state, room_node):
 		# Люк в геометрическом центре комнаты босса (локальные координаты комнаты)
 		if boss_hatch != null and is_instance_valid(boss_hatch):
 			boss_hatch.queue_free()
+			boss_hatch = null
 		var hatch_inst := HATCH_SCENE.instantiate() as Area2D
 		room_node.add_child(hatch_inst)
 		hatch_inst.position = local_point
@@ -634,7 +642,8 @@ func apply_room_cleared_for_network(grid: Vector2i) -> void:
 		if enode.has_method("mark_cleared_by_network"):
 			enode.mark_cleared_by_network()
 		for child in enode.get_children():
-			child.queue_free()
+			if is_instance_valid(child):
+				child.queue_free()
 	update_visibility()
 	var mp := get_tree().get_multiplayer()
 	if mp.has_multiplayer_peer() and mp.is_server():
@@ -753,14 +762,17 @@ func change_current_room(new_x, new_y):
 	
 	update_visibility()
 	
-	# [AUTO-SAVE] Сохраняем позицию при входе в комнату (особенно если это босс)
-	# Это позволит игроку выйти и загрузиться прямо в этой комнате
-	for room_data in spawned_rooms:
-		if room_data["grid_pos"] == new_pos and room_data["type"] >= 2: # BOSS or TREASURE
-			SaveSystem.save_game()
-			save_dungeon_state()
-			print("Автосейв: зашли в важную комнату (ID: ", new_pos, ")")
-			break
+	var mp := get_tree().get_multiplayer()
+	if not mp.has_multiplayer_peer():
+		SaveSystem.save_game()
+		save_dungeon_state()
+	else:
+		for room_data in spawned_rooms:
+			if room_data["grid_pos"] == new_pos and room_data["type"] >= 2:
+				SaveSystem.save_game()
+				save_dungeon_state()
+				print("Автосейв: зашли в важную комнату (ID: ", new_pos, ")")
+				break
 
 # =====================================================================
 # ВОЗВРАТ ИГРОКА В БЕЗОПАСНУЮ КОМНАТУ
@@ -854,7 +866,8 @@ func respawn_player_in_current_room():
 			# Убиваем всех врагов в комнате
 			if enemys_node:
 				for enemy in enemys_node.get_children():
-					enemy.queue_free()
+					if is_instance_valid(enemy):
+						enemy.queue_free()
 			
 			# Ставим игрока в центр комнаты
 			var player = get_tree().get_first_node_in_group("player")
@@ -953,7 +966,8 @@ func load_dungeon_state():
 					var enemys_node = room_node.find_child("Enemys")
 					if enemys_node:
 						for enemy in enemys_node.get_children():
-							enemy.queue_free()
+							if is_instance_valid(enemy):
+								enemy.queue_free()
 					break
 
 	# Очищаем "колоду" предметов, чтобы не было дубликатов

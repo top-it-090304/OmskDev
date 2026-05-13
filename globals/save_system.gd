@@ -97,6 +97,11 @@ func save_game() -> bool:
 	else:
 		save_data["player_current_health"] = saved_player_health if saved_player_health > 0 else GameConstants.PLAYER_MAX_HEALTH
 		print("Используем сохраненные данные: health=", save_data["player_current_health"])
+		if saved_player_position != Vector2.ZERO:
+			save_data["player_position"] = {
+				"x": saved_player_position.x,
+				"y": saved_player_position.y,
+			}
 
 	# Сохраняем собранные артефакты (сначала обновляем из backpack)
 	var backpack = get_tree().get_first_node_in_group("backpack")
@@ -187,12 +192,26 @@ func load_game() -> bool:
 
 	# Сохраняем данные для восстановления здоровья
 	if "player_current_health" in save_data:
-		saved_player_health = save_data["player_current_health"]
+		var h: int = int(save_data["player_current_health"])
+		if h <= 0:
+			h = GameConstants.PLAYER_MAX_HEALTH
+		saved_player_health = h
 		should_restore_player = true
 
-	# При полной загрузке игрок ВСЕГДА появляется в стартовой комнате (4, 4)
-	# Позиция НЕ восстанавливается из сохранения
+	# Одиночное продолжение: сброс флага «забег окончен», иначе логика коопа может блокировать урон/движение
+	var tree := get_tree()
+	if tree and not tree.get_multiplayer().has_multiplayer_peer():
+		NetworkManager.reset_coop_run_state()
+
 	saved_player_position = Vector2.ZERO
+	if "player_position" in save_data:
+		var pp: Variant = save_data["player_position"]
+		if pp is Dictionary:
+			saved_player_position = Vector2(float(pp.get("x", 0.0)), float(pp.get("y", 0.0)))
+			if saved_player_position != Vector2.ZERO:
+				should_restore_player = true
+				if saved_player_health <= 0:
+					saved_player_health = GameConstants.PLAYER_MAX_HEALTH
 
 	# Загружаем собранные артефакты (очищаем перед загрузкой во избежание дублей)
 	collected_artefacts.clear()
@@ -255,6 +274,18 @@ func delete_save():
 	# Также удаляем состояние данжена
 	delete_dungeon_state()
 
+
+## После смерти забег нельзя продолжить из главного меню (одиночка и кооп).
+func invalidate_run_after_death() -> void:
+	delete_save()
+	should_restore_player = false
+	saved_player_health = 0
+	saved_player_position = Vector2.ZERO
+	clear_collected_artefacts()
+	clear_collected_treasure_rooms()
+	boss_hatch_opened = false
+
+
 # Восстановление здоровья игрока после загрузки
 func restore_player_state():
 	if not should_restore_player:
@@ -266,12 +297,25 @@ func restore_player_state():
 	if not player:
 		return
 
-	# Восстанавливаем здоровье
-	if saved_player_health > 0:
-		if "health_int" in player:
-			player.health_int = saved_player_health
-			player.health_changed.emit(saved_player_health, GameConstants.PLAYER_MAX_HEALTH)
-			print("Восстановлено здоровье игрока: ", saved_player_health)
+	# Восстанавливаем здоровье (в сейве не допускаем 0 — см. load_game / save_game)
+	var h: int = maxi(1, saved_player_health)
+	if h > GameConstants.PLAYER_MAX_HEALTH:
+		h = GameConstants.PLAYER_MAX_HEALTH
+	if "health_int" in player:
+		player.health_int = h
+		player.health_changed.emit(h, GameConstants.PLAYER_MAX_HEALTH)
+		print("Восстановлено здоровье игрока: ", h)
+
+	if "is_dead" in player:
+		player.set("is_dead", false)
+	if "can_anim" in player:
+		player.set("can_anim", true)
+	if "can_move" in player:
+		player.set("can_move", true)
+	if "can_attack" in player:
+		player.set("can_attack", true)
+	if "can_take_damage" in player:
+		player.set("can_take_damage", true)
 
 	# Восстанавливаем позицию (опционально)
 	if saved_player_position != Vector2.ZERO:

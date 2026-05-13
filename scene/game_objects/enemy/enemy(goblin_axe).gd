@@ -3,6 +3,7 @@ extends "res://scene/game_objects/enemy/enemy_base.gd"
 var hp = 0
 
 @onready var detector_shape = $detector/CollisionShape2D
+@onready var detector_area: Area2D = $detector
 @onready var anim = $AnimatedSprite2D
 @onready var animP = $AnimationPlayer
 @onready var attack_timer = $attack_timer
@@ -26,7 +27,7 @@ func _ready() -> void:
 	hp = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_GOBLIN_AXE_HP)
 	speed = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_GOBLIN_AXE_MAX_SPEED)
 	hp_bar.update_hp(hp, hp)
-	player = PlayerManager.get_player_for_local_rewards() as Node2D
+	player = PlayerManager.get_nearest_target_player_node(global_position) as Node2D
 	parent_node = get_parent()
 
 func _is_player_in_attack_radius() -> bool:
@@ -40,8 +41,9 @@ func _physics_process(delta: float) -> void:
 	if is_dead: 
 		return
 
+	player = PlayerManager.get_nearest_target_player_node(global_position) as Node2D
 	if NetworkManager.is_multiplayer_active():
-		player = PlayerManager.get_player_for_local_rewards() as Node2D
+		player_in_range = PlayerManager.detector_has_living_player(detector_area)
 
 	if not can_walk:
 		velocity = Vector2.ZERO

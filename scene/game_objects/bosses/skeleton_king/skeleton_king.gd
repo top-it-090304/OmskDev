@@ -26,6 +26,8 @@ var active_minions: Array = []  # Отслеживаем активных мин
 @onready var anim: AnimatedSprite2D = $AnimatedSprite2D
 @onready var attack_timer: Timer = $attack_timer
 @onready var hp_bar: TextureProgressBar = $TextureProgressBar
+@onready var detector_melee: Area2D = $detector_melee
+@onready var detector_charge: Area2D = $detector_charge
 
 enum Dir { DOWN, UP, LEFT, RIGHT }
 var current_dir: Dir = Dir.DOWN
@@ -61,7 +63,7 @@ func _ready() -> void:
 	hp = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_HP)
 	speed = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_MAX_SPEED)
 	hp_bar.update_hp(hp, hp)
-	player = get_tree().get_first_node_in_group("player") as Node2D
+	player = PlayerManager.get_nearest_target_player_node(global_position) as Node2D
 	parent_node = get_parent()
 	attack_timer.one_shot = true
 	player_took_damage = false
@@ -70,6 +72,11 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if is_dead:
 		return
+
+	player = PlayerManager.get_nearest_target_player_node(global_position) as Node2D
+	if NetworkManager.is_multiplayer_active():
+		player_in_melee_zone = PlayerManager.detector_has_living_player(detector_melee)
+		player_in_charge_zone = PlayerManager.detector_has_living_player(detector_charge)
 
 	# Обновляем кулдауны
 	_cd_melee  = max(0.0, _cd_melee  - delta)

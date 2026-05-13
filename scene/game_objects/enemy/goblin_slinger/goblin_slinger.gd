@@ -8,6 +8,7 @@ var max_hp = 0
 @onready var attack_timer = $attack_timer
 @onready var anim = $AnimatedSprite2D
 @onready var hp_bar = $TextureProgressBar
+@onready var detector_area: Area2D = $detector
 
 var player: Node2D = null
 var parent_node: Node = null
@@ -36,15 +37,16 @@ func _ready() -> void:
 	
 	hp_bar.update_hp(hp, max_hp)
 	
-	player = PlayerManager.get_player_for_local_rewards() as Node2D
+	player = PlayerManager.get_nearest_target_player_node(global_position) as Node2D
 	parent_node = get_parent()
 	attack_timer.start(1.0)
 
 func _physics_process(_delta: float) -> void:
 	if is_dead: return
 
+	player = PlayerManager.get_nearest_target_player_node(global_position) as Node2D
 	if NetworkManager.is_multiplayer_active():
-		player = PlayerManager.get_player_for_local_rewards() as Node2D
+		player_in_range = PlayerManager.detector_has_living_player(detector_area)
 
 	var is_aggressive = parent_node and parent_node.get("aggression")
 

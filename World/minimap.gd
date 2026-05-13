@@ -58,7 +58,8 @@ func _is_map_layout_ready() -> bool:
 
 func build_grid():
 	for child in grid_container.get_children():
-		child.queue_free()
+		if is_instance_valid(child):
+			child.queue_free()
 	room_cells.clear()
 	
 	grid_container.columns = GameConstants.MAP_MANAGER_GRID_SIZE

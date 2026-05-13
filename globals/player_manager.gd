@@ -24,6 +24,36 @@ func get_player_for_local_rewards() -> Node:
 	return lp if lp != null else tree.get_first_node_in_group("player")
 
 
+## ИИ врагов/боссов: ближайший живой игрок (по мировой позиции). В соло совпадает с единственным игроком.
+func get_nearest_target_player_node(from_global: Vector2) -> Node2D:
+	var tree := get_tree()
+	if tree == null:
+		return null
+	var best: Node2D = null
+	var best_d2: float = INF
+	for n in tree.get_nodes_in_group("player"):
+		if not n is Node2D or not is_instance_valid(n):
+			continue
+		if n.get("is_dead") == true:
+			continue
+		var p2 := n as Node2D
+		var d2: float = from_global.distance_squared_to(p2.global_position)
+		if d2 < best_d2:
+			best_d2 = d2
+			best = p2
+	return best
+
+
+## В коопе: в зоне детектора есть хотя бы один живой игрок (сигналы enter/exit с двумя игроками дают ложный сброс).
+func detector_has_living_player(detector: Area2D) -> bool:
+	if detector == null or not is_instance_valid(detector):
+		return false
+	for b in detector.get_overlapping_bodies():
+		if b is Node2D and b.is_in_group("player") and b.get("is_dead") != true:
+			return true
+	return false
+
+
 func _on_node_added(node: Node) -> void:
 	if node.name == "Layer" and node.get_parent() == get_tree().root:
 		_on_game_scene_ready()
@@ -47,7 +77,10 @@ func spawn_peer(peer_id: int) -> void:
 
 func _spawn_player(player_id: int) -> void:
 	if players.has(player_id):
-		return
+		var existing: Variant = players[player_id]
+		if is_instance_valid(existing):
+			return
+		players.erase(player_id)
 	
 	var world = get_tree().current_scene
 	if not world:
@@ -96,6 +129,9 @@ func finalize_network_spawns() -> void:
 		if not players.has(pid):
 			continue
 		var inst: Node2D = players[pid]
+		if not is_instance_valid(inst):
+			players.erase(pid)
+			continue
 		var chosen: Vector2 = Vector2.INF
 		var n_cand: int = candidates.size()
 		for j in range(n_cand):
@@ -157,6 +193,9 @@ func _fallback_place_network_players(mm: Node) -> void:
 		if not players.has(pid):
 			continue
 		var inst: Node2D = players[pid]
+		if not is_instance_valid(inst):
+			players.erase(pid)
+			continue
 		var off := Vector2((i - (n - 1) * 0.5) * 88.0, 0.0)
 		inst.global_position = origin + off
 		if inst is CharacterBody2D:
@@ -166,7 +205,9 @@ func _fallback_place_network_players(mm: Node) -> void:
 func _despawn_player(player_id: int) -> void:
 	if not players.has(player_id):
 		return
-	players[player_id].queue_free()
+	var inst: Variant = players[player_id]
+	if is_instance_valid(inst):
+		(inst as Node).queue_free()
 	players.erase(player_id)
 
 func _position_new_player(instance: Node2D, player_id: int) -> void:
@@ -249,10 +290,7 @@ func show_coop_game_over_survivor() -> void:
 	var tree := get_tree()
 	if tree == null:
 		return
-	SaveSystem.save_game()
-	var map_manager := tree.get_first_node_in_group("map_manager")
-	if map_manager and map_manager.has_method("save_dungeon_state"):
-		map_manager.save_dungeon_state()
+	SaveSystem.invalidate_run_after_death()
 	var world := tree.current_scene
 	if world == null:
 		return
