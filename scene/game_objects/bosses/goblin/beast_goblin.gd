@@ -11,8 +11,8 @@ const ARTEFACT_SCENES = [
 	preload("res://scene/pick_up/artefacts/coffee_mug.tscn")      # Кофе - энергетик
 ]
 
-const TELEPORT_INTERVAL = 8.0
-const ATTACK_COOLDOWN   = 4.0
+const TELEPORT_INTERVAL = 4.0
+const ATTACK_COOLDOWN   = 8.0
 
 var hp = 0
 var speed = GameConstants.ENEMY_BEASTGOBLIN_MAX_SPEED
