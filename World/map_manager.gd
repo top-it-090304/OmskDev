@@ -53,6 +53,8 @@ var _dungeon_obstacle_detail_used: int = -1
 var _obstacle_detail_spawn_override: int = -1
 
 var _enemy_net_sync_accum: float = 0.0
+## На сервере: peer_id -> последняя клетка комнаты (для sync врагов, когда игроки в разных комнатах).
+var _coop_peer_last_room_grid: Dictionary = {}
 ## Реже RPC + меньше нагрузка на сеть; клиент всё ещё получает ~7 апдейтов/с в «живой» зоне.
 const ENEMY_NET_SYNC_INTERVAL: float = 0.10
 const _ENEMY_NET_SYNC_NEIGHBORS: Array[Vector2i] = [
@@ -123,6 +125,7 @@ func _boot_dungeon_async() -> void:
 		_spawn_treasure_items()
 
 		change_current_room(current_room_grid_pos.x, current_room_grid_pos.y)
+		_reset_coop_peer_room_grid_track()
 
 		save_dungeon_state()
 
@@ -342,11 +345,26 @@ func generate_layout():
 func is_valid_pos(pos):
 	return pos.x >= 0 and pos.x < GameConstants.MAP_MANAGER_GRID_SIZE and pos.y >= 0 and pos.y < GameConstants.MAP_MANAGER_GRID_SIZE
 
+
+func _layout_room_type_at(gx: int, gy: int) -> int:
+	if layout.is_empty():
+		return RoomType.EMPTY
+	if gx < 0 or gx >= layout.size():
+		return RoomType.EMPTY
+	var col: Variant = layout[gx]
+	if not col is Array:
+		return RoomType.EMPTY
+	var row: Array = col as Array
+	if gy < 0 or gy >= row.size():
+		return RoomType.EMPTY
+	return int(row[gy])
+
+
 func get_random_room_of_type(type):
 	var valid_rooms = []
 	for x in range(GameConstants.MAP_MANAGER_GRID_SIZE):
 		for y in range(GameConstants.MAP_MANAGER_GRID_SIZE):
-			if layout[x][y] == type: valid_rooms.append(Vector2i(x, y))
+			if _layout_room_type_at(x, y) == type: valid_rooms.append(Vector2i(x, y))
 	if valid_rooms.is_empty(): return Vector2i(-1, -1)
 	return valid_rooms.pick_random()
 
@@ -755,6 +773,7 @@ func server_handle_coop_room_enter(grid: Vector2i, entering_peer_id: int) -> voi
 	var mp := get_tree().get_multiplayer()
 	if NetworkManager.is_game_offline() or not mp.is_server():
 		return
+	_coop_peer_last_room_grid[entering_peer_id] = grid
 	NetworkManager.rpc_sync_coop_room.rpc(grid.x, grid.y, entering_peer_id)
 
 
@@ -874,7 +893,7 @@ func change_current_room(new_x, new_y):
 	var directions = [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]
 	for dir in directions:
 		var neighbor_pos = new_pos + dir
-		if is_valid_pos(neighbor_pos) and layout[neighbor_pos.x][neighbor_pos.y] != RoomType.EMPTY:
+		if is_valid_pos(neighbor_pos) and _layout_room_type_at(neighbor_pos.x, neighbor_pos.y) != RoomType.EMPTY:
 			if not seen_rooms.has(neighbor_pos):
 				seen_rooms.append(neighbor_pos)
 
@@ -902,7 +921,7 @@ func get_safe_room_position() -> Vector2i:
 	# Ищем старт-комнату на текущем layout (этаже)
 	for x in range(GameConstants.MAP_MANAGER_GRID_SIZE):
 		for y in range(GameConstants.MAP_MANAGER_GRID_SIZE):
-			if layout[x][y] == RoomType.START:
+			if _layout_room_type_at(x, y) == RoomType.START:
 				return Vector2i(x, y)
 	# Если по какой-то причине нет старта — возвращаем текущую (fallback)
 	return current_room_grid_pos
@@ -1001,6 +1020,11 @@ func respawn_player_in_current_room():
 func save_dungeon_state():
 	var dungeon_data = {
 		"generation_seed": generation_seed,
+		# Геометрия этажа — у гостя после sync должен совпасть размер сетки с хостом (иначе layout[x][y] и миникарта падают на индексе вроде 5).
+		"map_grid_size": GameConstants.MAP_MANAGER_GRID_SIZE,
+		"map_room_size_x": GameConstants.MAP_MANAGER_ROOM_SIZE_X,
+		"map_room_size_y": GameConstants.MAP_MANAGER_ROOM_SIZE_Y,
+		"map_corridor_length": GameConstants.MAP_MANAGER_CORRIDOR_LENGTH,
 		"obstacle_detail": (_dungeon_obstacle_detail_used if _dungeon_obstacle_detail_used >= 0 else GameConstants.clamp_obstacle_detail_level(GameConstants.OBSTACLE_DETAIL_LEVEL)),
 		"current_room_pos": {
 			"x": current_room_grid_pos.x,
@@ -1034,11 +1058,28 @@ func save_dungeon_state():
 	SaveSystem.save_dungeon_data(dungeon_data)
 	print("Состояние данжена сохранено (seed: ", generation_seed, ")")
 
+
+## Старые сейвы без полей map_* — оставляем текущие GameConstants (кооп-снимок хоста и т.д.).
+func _apply_saved_map_geometry(dd: Dictionary) -> void:
+	if dd.has("map_grid_size"):
+		var g := clampi(int(dd["map_grid_size"]), 4, 32)
+		if g > 0:
+			GameConstants.MAP_MANAGER_GRID_SIZE = g
+	if dd.has("map_room_size_x"):
+		GameConstants.MAP_MANAGER_ROOM_SIZE_X = int(dd["map_room_size_x"])
+	if dd.has("map_room_size_y"):
+		GameConstants.MAP_MANAGER_ROOM_SIZE_Y = int(dd["map_room_size_y"])
+	if dd.has("map_corridor_length"):
+		GameConstants.MAP_MANAGER_CORRIDOR_LENGTH = int(dd["map_corridor_length"])
+
+
 func load_dungeon_state():
 	var dungeon_data = SaveSystem.load_dungeon_data()
 	if not dungeon_data:
 		print("Ошибка загрузки состояния данжена")
 		return
+
+	_apply_saved_map_geometry(dungeon_data)
 
 	# Восстанавливаем seed и генерируем тот же данжен
 	generation_seed = dungeon_data.get("generation_seed", 0)
@@ -1052,6 +1093,7 @@ func load_dungeon_state():
 	# Генерируем данжен с тем же seed
 	generate_layout()
 	draw_map()
+	GameConstants.constants_changed.emit()
 	
 	# Восстанавливаем собранные комнаты с сокровищами ПЕРЕД спавном
 	if "collected_treasure_rooms" in dungeon_data:
@@ -1129,8 +1171,20 @@ func load_dungeon_state():
 	
 	change_current_room(current_room_grid_pos.x, current_room_grid_pos.y)
 	update_visibility()
+	_reset_coop_peer_room_grid_track()
 
 	print("Состояние данжена восстановлено")
+
+
+func _reset_coop_peer_room_grid_track() -> void:
+	var mp := get_tree().get_multiplayer()
+	if mp == null or not mp.is_server():
+		return
+	_coop_peer_last_room_grid.clear()
+	var host_id := int(mp.get_unique_id())
+	_coop_peer_last_room_grid[host_id] = current_room_grid_pos
+	for pid in mp.get_peers():
+		_coop_peer_last_room_grid[int(pid)] = current_room_grid_pos
 
 
 func _room_in_enemy_net_sync_region(room_grid: Vector2i) -> bool:
@@ -1139,6 +1193,27 @@ func _room_in_enemy_net_sync_region(room_grid: Vector2i) -> bool:
 	for d in _ENEMY_NET_SYNC_NEIGHBORS:
 		if room_grid == current_room_grid_pos + d:
 			return true
+	return false
+
+
+## Сервер: синхронизировать врагов во всех комнатах, где сейчас (или рядом) стоит любой из пиров.
+func _room_in_enemy_net_sync_for_server(room_grid: Vector2i) -> bool:
+	var mp := get_tree().get_multiplayer()
+	if mp == null or not mp.is_server():
+		return false
+	var peer_ids: Array[int] = []
+	peer_ids.append(int(mp.get_unique_id()))
+	for p in mp.get_peers():
+		peer_ids.append(int(p))
+	for rid in peer_ids:
+		var rg: Vector2i = current_room_grid_pos
+		if _coop_peer_last_room_grid.has(rid):
+			rg = _coop_peer_last_room_grid[rid] as Vector2i
+		if room_grid == rg:
+			return true
+		for d in _ENEMY_NET_SYNC_NEIGHBORS:
+			if room_grid == rg + d:
+				return true
 	return false
 
 
@@ -1161,7 +1236,7 @@ func _physics_process_host_sync_enemies() -> void:
 	# Только CharacterBody2D под Enemys — без get_nodes_in_group по всему дереву.
 	for room_data in spawned_rooms:
 		var room_grid: Vector2i = room_data["grid_pos"]
-		if not _room_in_enemy_net_sync_region(room_grid):
+		if not _room_in_enemy_net_sync_for_server(room_grid):
 			continue
 		var room_node = room_data.get("node")
 		if not is_instance_valid(room_node):

@@ -451,7 +451,7 @@ func _apply_net_enemy_visual_from_meta(ch: Node) -> void:
 			ap_node.play(ap)
 
 
-@rpc("authority", "call_remote", "unreliable")
+@rpc("authority", "call_remote", "reliable")
 func rpc_sync_enemy_transform(path_str: String, pos: Vector2, vel: Vector2, spr_anim: String, ap_anim: String) -> void:
 	var n := _resolve_node_by_path_for_damage(path_str)
 	if n == null or not is_instance_valid(n) or not n is CharacterBody2D:

@@ -129,10 +129,24 @@ func update_minimap_visuals():
 	_ensure_room_cells_match_constants()
 	if not is_instance_valid(map_manager) or not _is_map_layout_ready():
 		return
-	for y in range(GameConstants.MAP_MANAGER_GRID_SIZE):
-		for x in range(GameConstants.MAP_MANAGER_GRID_SIZE):
-			var cell = room_cells[y][x]
-			var room_type = map_manager.layout[x][y]
+	var g: int = GameConstants.MAP_MANAGER_GRID_SIZE
+	var lay: Variant = map_manager.layout
+	if not lay is Array or (lay as Array).size() < g:
+		return
+	for y in range(g):
+		if y >= room_cells.size():
+			return
+		var row_cells: Variant = room_cells[y]
+		if not row_cells is Array or (row_cells as Array).size() < g:
+			return
+		for x in range(g):
+			if x >= (lay as Array).size():
+				return
+			var col: Variant = (lay as Array)[x]
+			if not col is Array or (col as Array).size() <= y:
+				return
+			var cell = (row_cells as Array)[x]
+			var room_type = int((col as Array)[y])
 			var pos = Vector2i(x, y)
 			
 			if room_type == map_manager.RoomType.EMPTY:
