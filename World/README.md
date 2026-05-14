@@ -68,7 +68,7 @@ load_dungeon_state() -> void
 3. Босс в случайной позиции справа (6, Y)
 4. Прокладывается путь к боссу (70% прямо, 30% поворот)
 5. Добавляется 3-6 случайных нормальных комнат
-6. К нормальным комнатам приклеивается **4–6** Treasure Room (до 15 попыток, перемешанные направления)
+6. К нормальным комнатам приклеивается 9-10 Treasure Room
 
 ---
 
@@ -118,8 +118,8 @@ enum RoomType { EMPTY, START, NORMAL, BOSS, TREASURE, NEW_TYPE }
 ### Как изменить логику генерации
 Отредактируйте `map_manager.gd:generate_layout()`:
 ```gdscript
-# Пример: изменить число сокровищниц (см. map_manager.gd: treasure_count = randi_range(4, 6))
-var treasure_count = randi_range(4, 6)
+# Пример: добавить больше сокровищниц
+var treasure_count = randi_range(12, 15)  # Было 9-10
 ```
 
 ### Как получить доступ к MapManager из любой сцены

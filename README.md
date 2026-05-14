@@ -166,9 +166,6 @@
 
 ## 12. Документация по подсистемам (углубление после презентации)
 
-- [`docs/presentation/01-architecture.md`](docs/presentation/01-architecture.md) — архитектура и сеть для слайдов  
-- [`docs/presentation/02-features-and-highlights.md`](docs/presentation/02-features-and-highlights.md) — игровые особенности и формулировки для защиты  
-
 Ниже — модульные README в репозитории; их удобно раздать команде как «читать дальше».
 
 - [`globals/README.md`](globals/README.md) — баланс, сохранения, константы  
