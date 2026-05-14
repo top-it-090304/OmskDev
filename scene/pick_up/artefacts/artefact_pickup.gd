@@ -31,6 +31,15 @@ const ARTEFACT_POPUP = preload("res://scene/ui/artefact_popup.tscn")
 var is_picked_up: bool = false
 var stat_changes: Array = []
 
+
+## В коопе клиент создаёт временный экземпляр без add_child — у него get_tree() == null.
+func _main_scene_tree() -> SceneTree:
+	if is_inside_tree():
+		return get_tree()
+	var ml := Engine.get_main_loop()
+	return ml as SceneTree if ml is SceneTree else null
+
+
 func _ready():
 	# Автоматически получаем иконку из Sprite2D
 	if not artefact_icon and has_node("Sprite2D"):
@@ -63,7 +72,10 @@ func _on_area_2d_area_entered(area: Area2D) -> void:
 func pickup(player: Node) -> void:
 	if is_picked_up:
 		return
-	var mp := get_tree().get_multiplayer()
+	var tree := _main_scene_tree()
+	if tree == null:
+		return
+	var mp := tree.get_multiplayer()
 	if mp.has_multiplayer_peer():
 		var rid := _get_treasure_room_grid()
 		if mp.is_server():
@@ -109,7 +121,9 @@ func server_run_pickup_effects(quiet: bool) -> void:
 	if not quiet and artefact_particles:
 		var particles = artefact_particles.instantiate()
 		particles.global_position = global_position
-		get_tree().current_scene.add_child(particles)
+		var st := _main_scene_tree()
+		if st != null and st.current_scene != null:
+			st.current_scene.add_child(particles)
 	if not quiet:
 		show_stat_popup()
 	add_to_backpack()
@@ -195,9 +209,12 @@ func custom_effect() -> void:
 	pass
 
 func add_to_backpack() -> void:
-	var backpack = get_tree().get_first_node_in_group("backpack")
-	if not backpack:
-		var root = get_tree().current_scene
+	var st := _main_scene_tree()
+	if st == null:
+		return
+	var backpack = st.get_first_node_in_group("backpack")
+	if not backpack and st.current_scene != null:
+		var root = st.current_scene
 		backpack = root.find_child("Backpack", true, false)
 
 	if backpack and backpack.has_method("add_artefact"):
@@ -226,19 +243,22 @@ func show_stat_popup() -> void:
 	print("Создаем popup для артефакта: ", artefact_name)
 	var popup = ARTEFACT_POPUP.instantiate()
 
+	var st := _main_scene_tree()
+	if st == null:
+		popup.queue_free()
+		return
+
 	# Ищем UI слой (CanvasLayer)
-	var ui_layer = get_tree().get_first_node_in_group("ui_layer")
-	if not ui_layer:
-		# Пробуем найти через root
-		var root = get_tree().current_scene
-		ui_layer = root.find_child("UI", true, false)
+	var ui_layer = st.get_first_node_in_group("ui_layer")
+	if not ui_layer and st.current_scene != null:
+		ui_layer = st.current_scene.find_child("UI", true, false)
 
 	if ui_layer:
 		print("Добавляем popup в UI слой")
 		ui_layer.add_child(popup)
 	else:
 		print("UI слой не найден, добавляем в root")
-		get_tree().root.add_child(popup)
+		st.root.add_child(popup)
 
 	# Устанавливаем название артефакта
 	popup.set_artefact_info(artefact_name, artefact_description)
