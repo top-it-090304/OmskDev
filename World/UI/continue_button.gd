@@ -16,6 +16,7 @@ func _on_pressed() -> void:
 
 	# Загружаем сохранение
 	if SaveSystem.load_game():
+		NetworkManager.disconnect_game()
 		# Перезапускаем музыку перед сменой сцены
 		AudioManager.restart_music()
 		# Запускаем игру

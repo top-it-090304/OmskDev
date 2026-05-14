@@ -48,4 +48,5 @@ func _on_texture_button_3_pressed() -> void:
 
 	get_tree().paused = false
 	AudioManager.stop_music()
+	NetworkManager.disconnect_game()
 	get_tree().change_scene_to_file(target_scene)

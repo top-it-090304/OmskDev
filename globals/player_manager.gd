@@ -16,7 +16,7 @@ func _ready() -> void:
 ## В коопе в группе «player» несколько нод; награда за убийство должна идти персонажу этой машины, не «первому попавшемуся».
 func get_player_for_local_rewards() -> Node:
 	var tree := get_tree()
-	if not tree.get_multiplayer().has_multiplayer_peer():
+	if NetworkManager.is_game_offline():
 		return tree.get_first_node_in_group("player")
 	var lp := tree.get_first_node_in_group("local_player")
 	return lp if lp != null else tree.get_first_node_in_group("player")

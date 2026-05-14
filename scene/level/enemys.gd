@@ -55,13 +55,13 @@ func _update_aggression() -> void:
 	# Кооп: при закрытии дверей подтягиваем союзника к тем, кто уже в комнате (только на хосте)
 	if aggression and not prev_aggression:
 		var mp := get_tree().get_multiplayer()
-		if not mp.has_multiplayer_peer() or mp.is_server():
+		if NetworkManager.is_game_offline() or mp.is_server():
 			PlayerManager.host_pull_co_players_into_combat_room(self)
 
 	if alive_enemies == 0 and not _room_was_cleared and _had_alive_enemy:
 		var mp := get_tree().get_multiplayer()
 		var room = get_parent()
-		if mp.has_multiplayer_peer() and room != null and "grid_x" in room and "grid_y" in room:
+		if NetworkManager.is_game_online() and room != null and "grid_x" in room and "grid_y" in room:
 			if not _network_clear_in_flight:
 				_network_clear_in_flight = true
 				if mp.is_server():

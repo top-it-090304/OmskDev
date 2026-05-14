@@ -11,5 +11,7 @@ func _on_pressed() -> void:
 	# Удаляем старое сохранение
 	SaveSystem.delete_save()
 
+	NetworkManager.disconnect_game()
+
 	# Запускаем игру
 	get_tree().change_scene_to_packed(target_scene1)

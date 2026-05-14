@@ -143,8 +143,7 @@ func _physics_process(delta: float) -> void:
 	if is_dead:
 		return
 
-	var mp := get_tree().get_multiplayer()
-	if mp.has_multiplayer_peer() and NetworkManager.coop_run_finished and is_local_player:
+	if NetworkManager.is_game_online() and NetworkManager.coop_run_finished and is_local_player:
 		velocity = Vector2.ZERO
 		move_and_slide()
 		return
@@ -152,7 +151,7 @@ func _physics_process(delta: float) -> void:
 	if is_local_player:
 		move_and_slide()
 
-		if mp.has_multiplayer_peer():
+		if NetworkManager.is_game_online():
 			_pos_sync_accum += delta
 			if _pos_sync_accum >= POS_SYNC_MIN_INTERVAL_SEC:
 				_pos_sync_accum = 0.0
@@ -200,7 +199,7 @@ func _process(delta: float) -> void:
 	if is_dead:
 		return
 
-	if get_tree().get_multiplayer().has_multiplayer_peer() and NetworkManager.coop_run_finished:
+	if NetworkManager.is_game_online() and NetworkManager.coop_run_finished:
 		return
 
 	if not is_local_player:
@@ -326,7 +325,7 @@ func play_idle_animation():
 func attack(from_rpc: bool = false) -> void:
 	if not can_attack or is_dead:
 		return
-	if get_tree().get_multiplayer().has_multiplayer_peer() and NetworkManager.coop_run_finished and is_local_player:
+	if NetworkManager.is_game_online() and NetworkManager.coop_run_finished and is_local_player:
 		return
 
 	can_anim = false
@@ -392,8 +391,7 @@ func rpc_server_teleport_to(pos: Vector2) -> void:
 func flush_network_transform() -> void:
 	if not is_local_player:
 		return
-	var mp := get_tree().get_multiplayer()
-	if not mp.has_multiplayer_peer():
+	if NetworkManager.is_game_offline():
 		return
 	_last_sent_pos_net = global_position
 	_last_sent_dir_net = current_dir
@@ -418,7 +416,7 @@ func take_damage(amount: int):
 	if is_dead:
 		return
 
-	if get_tree().get_multiplayer().has_multiplayer_peer() and NetworkManager.coop_run_finished:
+	if NetworkManager.is_game_online() and NetworkManager.coop_run_finished:
 		return
 
 	# Уклонение
@@ -455,20 +453,8 @@ func take_damage(amount: int):
 	)
 
 	var tween = create_tween()
-
-	tween.tween_property(
-		anim,
-		"modulate",
-		Color(1, 0, 0, 1),
-		0.0
-	)
-
-	tween.tween_property(
-		anim,
-		"modulate",
-		restore_color,
-		0.15
-	)
+	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.0)
+	tween.tween_property(anim, "modulate", restore_color, 0.12)
 
 	AudioManager.play_sfx("игрок_урон")
 
@@ -486,8 +472,7 @@ func take_damage(amount: int):
 func die_from_coop_partner_death() -> void:
 	if is_dead:
 		return
-	var mp := get_tree().get_multiplayer()
-	if not mp.has_multiplayer_peer():
+	if NetworkManager.is_game_offline():
 		return
 	if not is_local_player:
 		return
@@ -507,7 +492,7 @@ func die():
 	velocity = Vector2.ZERO
 
 	var mp := get_tree().get_multiplayer()
-	if mp.has_multiplayer_peer() and is_local_player:
+	if NetworkManager.is_game_online() and is_local_player:
 		if not NetworkManager.coop_run_finished:
 			if mp.is_server():
 				NetworkManager.server_broadcast_coop_game_over(get_multiplayer_authority())
@@ -580,7 +565,7 @@ func _on_can_attack_timeout() -> void:
 func _ready() -> void:
 	add_to_group("player")
 
-	if get_tree().get_multiplayer().get_multiplayer_peer() == null:
+	if NetworkManager.is_game_offline():
 		is_local_player = true
 	else:
 		is_local_player = is_multiplayer_authority()
@@ -729,7 +714,7 @@ func heal(amount: int) -> void:
 # =========================================================
 
 func add_experience(amount: int) -> void:
-	if get_tree().get_multiplayer().has_multiplayer_peer() and not is_local_player:
+	if NetworkManager.is_game_online() and not is_local_player:
 		return
 
 	var multiplier = 1.0
@@ -763,7 +748,7 @@ func _calculate_exp_for_level(level: int) -> int:
 # =========================================================
 
 func level_up_player() -> void:
-	if get_tree().get_multiplayer().has_multiplayer_peer() and not is_local_player:
+	if NetworkManager.is_game_online() and not is_local_player:
 		return
 
 	current_level += 1
@@ -812,9 +797,9 @@ func level_up_player() -> void:
 		exp_to_next_level
 	)
 
-	var mp := get_tree().get_multiplayer()
-	if mp.has_multiplayer_peer():
+	if NetworkManager.is_game_online():
 		var snap := GameConstants.capture_coop_start_state()
+		var mp := get_tree().get_multiplayer()
 		if mp.is_server():
 			NetworkManager.rpc_replicate_player_stats.rpc(snap)
 		else:

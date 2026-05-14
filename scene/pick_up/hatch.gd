@@ -12,10 +12,10 @@ func _ready() -> void:
 func open_hatch() -> void:
 	if is_open:
 		return
-	var mp := get_tree().get_multiplayer()
-	if not mp.has_multiplayer_peer():
+	if NetworkManager.is_game_offline():
 		_apply_hatch_open_visual()
-	elif mp.is_server():
+		return
+	if get_tree().get_multiplayer().is_server():
 		rpc_hatch_opened.rpc()
 
 
@@ -49,10 +49,10 @@ func _on_body_entered(body: Node2D) -> void:
 	var local_flag: Variant = body.get("is_local_player")
 	if local_flag == false:
 		return
-	var mp := get_tree().get_multiplayer()
-	if not mp.has_multiplayer_peer():
+	if NetworkManager.is_game_offline():
 		_go_to_next_floor_solo()
 		return
+	var mp := get_tree().get_multiplayer()
 	if mp.is_server():
 		NetworkManager.rpc_coop_transition_next_floor.rpc()
 	else:
@@ -61,6 +61,8 @@ func _on_body_entered(body: Node2D) -> void:
 
 func _go_to_next_floor_solo() -> void:
 	AudioManager.play_sfx("люк_переход")
+	# Новый этаж — люк босса снова закрыт (иначе флаг из прошлого этажа открывает люк сразу).
+	SaveSystem.set_boss_hatch_opened(false)
 	# Синхронизируем рюкзак и артефакты в SaveSystem до смены сцены (иначе новый backpack пустой)
 	SaveSystem.save_game()
 	GameConstants.CURRENT_FLOOR += 1

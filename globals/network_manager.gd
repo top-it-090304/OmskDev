@@ -100,6 +100,17 @@ func is_client() -> bool:
 	var mp := get_tree().get_multiplayer()
 	return mp.has_multiplayer_peer() and not mp.is_server()
 
+
+## Поднят ENet (или иной) peer — сессия **онлайн**: RPC, хост/клиент, кооп.
+func is_game_online() -> bool:
+	return get_tree().get_multiplayer().has_multiplayer_peer()
+
+
+## Нет peer — **офлайн / одиночка**: только локальные вызовы, без сетевой репликации.
+func is_game_offline() -> bool:
+	return not is_game_online()
+
+
 ## После генерации/загрузки данжена на хосте — рассылаем клиентам тот же JSON, что в dungeon_state.dat
 func host_publish_dungeon_state() -> void:
 	if not is_hosting():
@@ -148,6 +159,7 @@ func rpc_coop_transition_next_floor() -> void:
 		return
 	_last_coop_floor_transition_ms = now
 	AudioManager.play_sfx("люк_переход")
+	SaveSystem.set_boss_hatch_opened(false)
 	SaveSystem.save_game()
 	SaveSystem.delete_dungeon_state()
 	GameConstants.CURRENT_FLOOR += 1
@@ -295,8 +307,7 @@ func rpc_report_player_death() -> void:
 
 ## Кооп: смерть любого — у союзника тот же game over (оба «проиграли»).
 func server_broadcast_coop_game_over(victim_peer_id: int) -> void:
-	var mp := get_tree().get_multiplayer()
-	if not mp.has_multiplayer_peer() or not mp.is_server():
+	if is_game_offline() or not is_server():
 		return
 	# На хосте нельзя одновременно call_local и call_remote в @rpc (Godot 4.4) — сначала локально выживший.
 	_coop_apply_survivor_game_over(victim_peer_id)
@@ -309,9 +320,9 @@ func rpc_coop_game_over_to_clients(victim_peer_id: int) -> void:
 
 
 func _coop_apply_survivor_game_over(victim_peer_id: int) -> void:
-	var mp := get_tree().get_multiplayer()
-	if not mp.has_multiplayer_peer():
+	if is_game_offline():
 		return
+	var mp := get_tree().get_multiplayer()
 	if mp.get_unique_id() == victim_peer_id:
 		return
 	for p in get_tree().get_nodes_in_group("player"):
@@ -331,8 +342,9 @@ const _META_NET_ENEMY_VEL := &"net_enemy_sync_vel"
 
 
 func enemy_mp_is_network_client() -> bool:
-	var mp := get_tree().get_multiplayer()
-	return mp.has_multiplayer_peer() and not mp.is_server()
+	if is_game_offline():
+		return false
+	return not get_tree().get_multiplayer().is_server()
 
 
 func enemy_client_interpolate_if_needed(enemy: CharacterBody2D, delta: float) -> bool:
@@ -366,47 +378,67 @@ func rpc_sync_enemy_transform(path_str: String, pos: Vector2, vel: Vector2) -> v
 func server_apply_damage_to_player_from_enemy(player: Node, amount: int) -> void:
 	if not is_instance_valid(player) or not player.is_in_group("player"):
 		return
-	var mp := get_tree().get_multiplayer()
-	if not mp.has_multiplayer_peer():
-		if player.has_method("take_damage"):
-			player.call("take_damage", amount)
-		return
-	if not mp.is_server():
-		return
 	if not player.has_method("take_damage"):
 		return
+	if is_game_offline():
+		player.call("take_damage", amount)
+		return
+	_online_server_apply_damage_to_player(player, amount)
+
+
+## Онлайн: только хост решает урон; у пира с authority == unique_id — локально (call_remote себя не трогает).
+func _online_server_apply_damage_to_player(player: Node, amount: int) -> void:
+	var mp := get_tree().get_multiplayer()
+	if not mp.is_server():
+		return
 	var auth := player.get_multiplayer_authority()
-	if player.has_method("rpc_take_damage_from_server"):
+	if auth == mp.get_unique_id():
+		player.call("take_damage", amount)
+	elif player.has_method("rpc_take_damage_from_server"):
 		player.rpc_take_damage_from_server.rpc_id(auth, amount)
 
 
 func server_apply_poison_to_player_from_enemy(player: Node, duration: float, damage_per_tick: int, tick_rate: float) -> void:
 	if not is_instance_valid(player) or not player.is_in_group("player"):
 		return
-	var mp := get_tree().get_multiplayer()
-	if not mp.has_multiplayer_peer():
-		if player.has_method("apply_poison"):
-			player.call("apply_poison", duration, damage_per_tick, tick_rate)
+	if not player.has_method("apply_poison"):
 		return
+	if is_game_offline():
+		player.call("apply_poison", duration, damage_per_tick, tick_rate)
+		return
+	_online_server_apply_poison_to_player(player, duration, damage_per_tick, tick_rate)
+
+
+func _online_server_apply_poison_to_player(player: Node, duration: float, damage_per_tick: int, tick_rate: float) -> void:
+	var mp := get_tree().get_multiplayer()
 	if not mp.is_server():
 		return
 	var auth := player.get_multiplayer_authority()
-	if player.has_method("rpc_apply_poison_from_server"):
+	if auth == mp.get_unique_id():
+		player.call("apply_poison", duration, damage_per_tick, tick_rate)
+	elif player.has_method("rpc_apply_poison_from_server"):
 		player.rpc_apply_poison_from_server.rpc_id(auth, duration, damage_per_tick, tick_rate)
 
 
 func server_apply_knockback_to_player_from_enemy(player: Node, source_world: Vector2, force: float) -> void:
 	if not is_instance_valid(player) or not player.is_in_group("player"):
 		return
-	var mp := get_tree().get_multiplayer()
-	if not mp.has_multiplayer_peer():
-		if player.has_method("apply_knockback"):
-			player.call("apply_knockback", source_world, force)
+	if not player.has_method("apply_knockback"):
 		return
+	if is_game_offline():
+		player.call("apply_knockback", source_world, force)
+		return
+	_online_server_apply_knockback_to_player(player, source_world, force)
+
+
+func _online_server_apply_knockback_to_player(player: Node, source_world: Vector2, force: float) -> void:
+	var mp := get_tree().get_multiplayer()
 	if not mp.is_server():
 		return
 	var auth := player.get_multiplayer_authority()
-	if player.has_method("rpc_apply_knockback_from_server"):
+	if auth == mp.get_unique_id():
+		player.call("apply_knockback", source_world, force)
+	elif player.has_method("rpc_apply_knockback_from_server"):
 		player.rpc_apply_knockback_from_server.rpc_id(auth, source_world.x, source_world.y, force)
 
 
@@ -427,20 +459,30 @@ func rpc_mirror_host_projectile(scene_path: String, global_pos: Vector2, directi
 
 
 func host_mirror_projectile_if_coop(scene_path: String, global_pos: Vector2, direction: Vector2) -> void:
+	if is_game_offline():
+		return
 	var mp := get_tree().get_multiplayer()
-	if mp.has_multiplayer_peer() and mp.is_server() and mp.get_peers().size() > 0:
+	if mp.is_server() and mp.get_peers().size() > 0:
 		rpc_mirror_host_projectile.rpc(scene_path, global_pos, direction)
 
 
-## Урон по врагу от атаки игрока: без пира — чистый офлайн (локальный take_damage); с пиром — только хост + репликация.
+## Урон по врагу от атаки игрока: офлайн — только локально; онлайн — хост + реплика или RPC с клиента.
 func apply_melee_damage_to_enemy_from_player(enemy: Node, amount: int) -> void:
 	if not is_instance_valid(enemy):
 		return
-	var mp := get_tree().get_multiplayer()
-	if not mp.has_multiplayer_peer():
-		if enemy.has_method("take_damage"):
-			enemy.call("take_damage", amount)
+	if is_game_offline():
+		_offline_apply_melee_damage_to_enemy(enemy, amount)
 		return
+	_online_apply_melee_damage_to_enemy(enemy, amount)
+
+
+func _offline_apply_melee_damage_to_enemy(enemy: Node, amount: int) -> void:
+	if enemy.has_method("take_damage"):
+		enemy.call("take_damage", amount)
+
+
+func _online_apply_melee_damage_to_enemy(enemy: Node, amount: int) -> void:
+	var mp := get_tree().get_multiplayer()
 	if mp.is_server():
 		if enemy.has_method("take_damage"):
 			enemy.call("take_damage", amount)
@@ -452,8 +494,10 @@ func apply_melee_damage_to_enemy_from_player(enemy: Node, amount: int) -> void:
 func _replicate_enemy_state_after_damage(enemy: Node) -> void:
 	if not is_instance_valid(enemy):
 		return
+	if is_game_offline():
+		return
 	var mp := get_tree().get_multiplayer()
-	if not mp.has_multiplayer_peer() or not mp.is_server():
+	if not mp.is_server():
 		return
 	if mp.get_peers().size() == 0:
 		return
@@ -508,8 +552,10 @@ func server_spawn_boss_loot_for_coop(scene_res_path: String, parent: Node2D, glo
 	inst.z_index = 2
 	parent.add_child(inst)
 	inst.global_position = global_pos
+	if is_game_offline():
+		return
 	var mp := get_tree().get_multiplayer()
-	if mp.has_multiplayer_peer() and mp.is_server() and mp.get_peers().size() > 0:
+	if mp.is_server() and mp.get_peers().size() > 0:
 		rpc_spawn_boss_loot_at.rpc(scene_res_path, str(parent.get_path()), global_pos)
 
 

@@ -53,7 +53,7 @@ const ENEMY_NET_SYNC_INTERVAL: float = 0.09
 
 func _ready() -> void:
 	add_to_group("map_manager")
-	if get_tree().get_multiplayer().has_multiplayer_peer():
+	if NetworkManager.is_game_online():
 		set_multiplayer_authority(NetworkManager.SERVER_ID)
 	get_tree().auto_accept_quit = false  # Перехватываем попытки выхода
 
@@ -588,9 +588,9 @@ func _spawn_boss(space_state, room_node):
 
 func open_boss_hatch() -> void:
 	apply_boss_hatch_opened_visual()
-	var mp := get_tree().get_multiplayer()
-	if not mp.has_multiplayer_peer():
+	if NetworkManager.is_game_offline():
 		return
+	var mp := get_tree().get_multiplayer()
 	if mp.is_server():
 		NetworkManager.rpc_boss_hatch_open_to_peers.rpc()
 	else:
@@ -653,11 +653,11 @@ func apply_room_cleared_for_network(grid: Vector2i) -> void:
 				continue
 			# На хосте босс в коопе: is_dead=true уже в начале death(), но люк/лут — после await.
 			# Раньше queue_free здесь убивал узел до конца death() → без люка и артефакта.
-			if child.is_in_group("boss") and mp.has_multiplayer_peer() and mp.is_server():
+			if child.is_in_group("boss") and NetworkManager.is_game_online() and mp.is_server():
 				continue
 			child.queue_free()
 	update_visibility()
-	if mp.has_multiplayer_peer() and mp.is_server():
+	if NetworkManager.is_game_online() and mp.is_server():
 		GameConstants.on_room_cleared()
 		save_dungeon_state()
 		NetworkManager.host_publish_dungeon_state()
@@ -668,7 +668,7 @@ func apply_room_cleared_for_network(grid: Vector2i) -> void:
 ## Кооп: хост рассылает вход в комнату всем (включая вошедшего клиента)
 func server_handle_coop_room_enter(grid: Vector2i, entering_peer_id: int) -> void:
 	var mp := get_tree().get_multiplayer()
-	if not mp.has_multiplayer_peer() or not mp.is_server():
+	if NetworkManager.is_game_offline() or not mp.is_server():
 		return
 	NetworkManager.rpc_sync_coop_room.rpc(grid.x, grid.y, entering_peer_id)
 
@@ -728,9 +728,9 @@ func get_coop_follower_spawn_global(
 
 
 func _move_local_players_to_follow_peer(entered_peer_id: int, room_grid: Vector2i) -> void:
-	var mp := get_tree().get_multiplayer()
-	if not mp.has_multiplayer_peer():
+	if NetworkManager.is_game_offline():
 		return
+	var mp := get_tree().get_multiplayer()
 	if mp.get_unique_id() == entered_peer_id:
 		return
 	var leader: Node2D = null
@@ -774,7 +774,7 @@ func change_current_room(new_x, new_y):
 	update_visibility()
 	
 	var mp := get_tree().get_multiplayer()
-	if not mp.has_multiplayer_peer():
+	if NetworkManager.is_game_offline():
 		SaveSystem.save_game()
 		save_dungeon_state()
 	else:
@@ -995,7 +995,7 @@ func load_dungeon_state():
 		current_room_grid_pos = get_safe_room_position()
 	
 	# В коопе позиции задаёт PlayerManager.finalize_network_spawns — иначе двигаем только одного из get_first_node_in_group("player")
-	if not get_tree().get_multiplayer().has_multiplayer_peer():
+	if NetworkManager.is_game_offline():
 		var player = get_tree().get_first_node_in_group("player")
 		if player:
 			if SaveSystem.saved_player_position != Vector2.ZERO:
@@ -1018,8 +1018,10 @@ func load_dungeon_state():
 
 
 func _physics_process(delta: float) -> void:
+	if NetworkManager.is_game_offline():
+		return
 	var mp := get_tree().get_multiplayer()
-	if not mp.has_multiplayer_peer() or not mp.is_server():
+	if not mp.is_server():
 		return
 	if mp.get_peers().is_empty():
 		return
