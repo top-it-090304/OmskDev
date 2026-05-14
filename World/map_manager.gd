@@ -48,7 +48,13 @@ var visited_rooms = []
 var seen_rooms = []
 
 var _enemy_net_sync_accum: float = 0.0
-const ENEMY_NET_SYNC_INTERVAL: float = 0.09
+## Реже RPC + меньше нагрузка на сеть; клиент всё ещё получает ~7 апдейтов/с в «живой» зоне.
+const ENEMY_NET_SYNC_INTERVAL: float = 0.14
+const _ENEMY_NET_SYNC_NEIGHBORS: Array[Vector2i] = [
+	Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)
+]
+const _NET_SYNC_POS_EPS2: float = 16.0
+const _NET_SYNC_VEL_EPS2: float = 36.0
 
 
 func _ready() -> void:
@@ -1034,6 +1040,45 @@ func load_dungeon_state():
 	print("Состояние данжена восстановлено")
 
 
+func _room_in_enemy_net_sync_region(room_grid: Vector2i) -> bool:
+	if room_grid == current_room_grid_pos:
+		return true
+	for d in _ENEMY_NET_SYNC_NEIGHBORS:
+		if room_grid == current_room_grid_pos + d:
+			return true
+	return false
+
+
+func _physics_process_host_sync_enemies() -> void:
+	# Только CharacterBody2D под Enemys — без get_nodes_in_group по всему дереву.
+	for room_data in spawned_rooms:
+		var room_grid: Vector2i = room_data["grid_pos"]
+		if not _room_in_enemy_net_sync_region(room_grid):
+			continue
+		var room_node = room_data.get("node")
+		if not is_instance_valid(room_node):
+			continue
+		var enemys_node = room_node.find_child("Enemys", true, false)
+		if enemys_node == null:
+			continue
+		for n in enemys_node.get_children():
+			if not is_instance_valid(n) or not n is CharacterBody2D:
+				continue
+			if GameConstants.variant_to_bool(n.get("is_dead")):
+				continue
+			var ch := n as CharacterBody2D
+			var pos := ch.global_position
+			var vel := ch.velocity
+			if ch.has_meta(&"_net_sync_last_pos"):
+				var last_p: Vector2 = ch.get_meta(&"_net_sync_last_pos")
+				var last_v: Vector2 = ch.get_meta(&"_net_sync_last_vel")
+				if pos.distance_squared_to(last_p) < _NET_SYNC_POS_EPS2 and vel.distance_squared_to(last_v) < _NET_SYNC_VEL_EPS2:
+					continue
+			ch.set_meta(&"_net_sync_last_pos", pos)
+			ch.set_meta(&"_net_sync_last_vel", vel)
+			NetworkManager.rpc_sync_enemy_transform.rpc(str(ch.get_path()), pos, vel)
+
+
 func _physics_process(delta: float) -> void:
 	if NetworkManager.is_game_offline():
 		return
@@ -1046,12 +1091,4 @@ func _physics_process(delta: float) -> void:
 	if _enemy_net_sync_accum < ENEMY_NET_SYNC_INTERVAL:
 		return
 	_enemy_net_sync_accum = 0.0
-	# Только тело врага: в группе «enemys» ошибочно бывают hitbox/таймеры/спрайты — ломали путь и забивали unreliable RPC.
-	for n in get_tree().get_nodes_in_group("enemys"):
-		if not is_instance_valid(n) or not n is CharacterBody2D:
-			continue
-		if GameConstants.variant_to_bool(n.get("is_dead")):
-			continue
-		var ch := n as CharacterBody2D
-		var vel := ch.velocity
-		NetworkManager.rpc_sync_enemy_transform.rpc(str(ch.get_path()), ch.global_position, vel)
+	_physics_process_host_sync_enemies()

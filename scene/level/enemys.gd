@@ -6,8 +6,15 @@ var _room_was_cleared = false  # Флаг для отслеживания зач
 var _had_alive_enemy: bool = false  # Были живые враги (после queue_free детей уже 0)
 var _network_clear_in_flight: bool = false  # Уже отправили зачистку в сеть (хост/клиент)
 
+var _agg_tick_accum: float = 0.0
+const AGG_TICK_INTERVAL: float = 0.12
 
-func _process(_delta: float) -> void:
+
+func _process(delta: float) -> void:
+	_agg_tick_accum += delta
+	if _agg_tick_accum < AGG_TICK_INTERVAL:
+		return
+	_agg_tick_accum = 0.0
 	_update_aggression()
 
 func _is_player_area(area: Area2D) -> bool:
