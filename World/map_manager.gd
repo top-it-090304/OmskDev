@@ -54,12 +54,12 @@ var _obstacle_detail_spawn_override: int = -1
 
 var _enemy_net_sync_accum: float = 0.0
 ## Реже RPC + меньше нагрузка на сеть; клиент всё ещё получает ~7 апдейтов/с в «живой» зоне.
-const ENEMY_NET_SYNC_INTERVAL: float = 0.14
+const ENEMY_NET_SYNC_INTERVAL: float = 0.10
 const _ENEMY_NET_SYNC_NEIGHBORS: Array[Vector2i] = [
 	Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)
 ]
-const _NET_SYNC_POS_EPS2: float = 16.0
-const _NET_SYNC_VEL_EPS2: float = 36.0
+const _NET_SYNC_POS_EPS2: float = 9.0
+const _NET_SYNC_VEL_EPS2: float = 25.0
 
 
 func _ready() -> void:

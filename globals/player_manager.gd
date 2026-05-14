@@ -68,6 +68,10 @@ func _deferred_boot_players_on_layer(layer: Node) -> void:
 func _on_game_scene_ready(game_root: Node) -> void:
 	if not is_instance_valid(game_root):
 		return
+	for pid in players.keys().duplicate():
+		var ex: Variant = players[pid]
+		if not is_instance_valid(ex):
+			players.erase(pid)
 	if NetworkManager.connection_state == NetworkManager.ConnectionState.DISCONNECTED:
 		NetworkManager.reset_coop_run_state()
 	if NetworkManager.connection_state != NetworkManager.ConnectionState.DISCONNECTED:

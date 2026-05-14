@@ -165,6 +165,14 @@ func rpc_coop_transition_next_floor() -> void:
 	GameConstants.CURRENT_FLOOR += 1
 	GameConstants.ROOMS_CLEARED = 0
 	GameConstants.save_to_disk()
+	# Сразу после RPC/сигналов смена сцены даёт «Trying to assign invalid previously freed instance»
+	# (Tween/экспорты/ссылки на старое дерево) — откладываем на следующий кадр.
+	call_deferred("_deferred_coop_change_floor_scene")
+
+
+func _deferred_coop_change_floor_scene() -> void:
+	if not is_inside_tree():
+		return
 	get_tree().change_scene_to_file("res://World/layer.tscn")
 
 
@@ -259,12 +267,16 @@ func _find_artefact_pickup_node(resource_path: String, room: Vector2i) -> Node:
 	var mm := get_tree().get_first_node_in_group("map_manager")
 	if mm == null:
 		return null
+	var want_file := resource_path.get_file()
 	for room_data in mm.spawned_rooms:
 		if room_data["grid_pos"] != room:
 			continue
 		var room_node: Node = room_data["node"]
 		for c in room_node.get_children():
-			if c.scene_file_path == resource_path and c.has_method("server_run_pickup_effects"):
+			if not c.has_method("server_run_pickup_effects"):
+				continue
+			var sp := str(c.scene_file_path)
+			if sp == resource_path or (want_file != "" and sp.get_file() == want_file):
 				return c
 	return null
 
@@ -298,23 +310,43 @@ func rpc_client_mirror_artefact_pickup(resource_path: String, room_x: int, room_
 	var my_pid: int = int(multiplayer.get_unique_id())
 	if my_pid != int(picker_peer_id):
 		return
-	var res := load(resource_path)
-	if res == null:
-		return
-	var pickup = res.instantiate()
-	if pickup.has_method("apply_effects"):
-		pickup.apply_effects()
-	if pickup.has_method("show_stat_popup"):
-		pickup.show_stat_popup()
-	var info := _artefact_network_dict_from_pickup(pickup)
-	if is_instance_valid(pickup):
-		pickup.queue_free()
+	# apply_effects/show_stat_popup и @onready у артефакта рассчитаны на узел в дереве
+	call_deferred("_deferred_client_apply_artefact_pickup", resource_path)
+
+
+func _deferred_client_apply_artefact_pickup(resource_path: String) -> void:
+	_run_client_artefact_pickup_apply(resource_path)
+
+
+func _run_client_artefact_pickup_apply(resource_path: String) -> void:
 	var tree := get_tree()
 	if tree == null:
 		return
+	var res := load(resource_path) as PackedScene
+	if res == null:
+		return
+	var root := tree.current_scene
+	if root == null:
+		return
+	var pickup: Node = res.instantiate()
+	pickup.process_mode = Node.PROCESS_MODE_DISABLED
+	if pickup is Node2D:
+		(pickup as Node2D).global_position = Vector2(-1e5, -1e5)
+	pickup.visible = false
+	root.add_child(pickup)
+	await tree.process_frame
+	if not is_instance_valid(pickup):
+		return
+	if pickup.has_method("apply_effects"):
+		pickup.call("apply_effects")
+	if pickup.has_method("show_stat_popup"):
+		pickup.call("show_stat_popup")
+	var info := _artefact_network_dict_from_pickup(pickup)
+	if is_instance_valid(pickup):
+		pickup.queue_free()
 	var backpack: Node = tree.get_first_node_in_group("backpack")
-	if backpack == null and tree.current_scene != null:
-		backpack = tree.current_scene.find_child("Backpack", true, false)
+	if backpack == null:
+		backpack = root.find_child("Backpack", true, false)
 	if backpack != null and backpack.has_method("add_artefact_from_network"):
 		backpack.add_artefact_from_network(info)
 
@@ -404,7 +436,7 @@ func enemy_client_interpolate_if_needed(enemy: CharacterBody2D, delta: float) ->
 
 @rpc("authority", "call_remote", "unreliable")
 func rpc_sync_enemy_transform(path_str: String, pos: Vector2, vel: Vector2) -> void:
-	var n := get_tree().root.get_node_or_null(NodePath(path_str))
+	var n := _resolve_node_by_path_for_damage(path_str)
 	if n == null or not is_instance_valid(n) or not n is CharacterBody2D:
 		return
 	var ch := n as CharacterBody2D
