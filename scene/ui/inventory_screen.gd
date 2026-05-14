@@ -132,6 +132,14 @@ func show_inventory() -> void:
 	_visible = true
 	show()
 	get_tree().paused = true
+	# После смены сцены/этажа deferred-синк мог ещё не успеть — подтягиваем из рюкзака.
+	var bp: Node = get_tree().get_first_node_in_group("backpack")
+	if bp == null:
+		bp = get_tree().root.find_child("Backpack", true, false)
+	if bp != null and _grid != null and _artefacts.is_empty():
+		var arr: Variant = bp.get("collected_artefacts")
+		if arr is Array and (arr as Array).size() > 0:
+			clear_and_sync(arr as Array)
 	_refresh_artefacts()
 
 func hide_inventory() -> void:

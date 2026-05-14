@@ -63,9 +63,10 @@ func _go_to_next_floor_solo() -> void:
 	AudioManager.play_sfx("люк_переход")
 	# Новый этаж — люк босса снова закрыт (иначе флаг из прошлого этажа открывает люк сразу).
 	SaveSystem.set_boss_hatch_opened(false)
-	# Синхронизируем рюкзак и артефакты в SaveSystem до смены сцены (иначе новый backpack пустой)
-	SaveSystem.save_game()
 	GameConstants.CURRENT_FLOOR += 1
 	GameConstants.ROOMS_CLEARED = 0
+	# Рюкзак/статы в сейв (в т.ч. current_floor), затем сброс данжа — иначе снова load_dungeon_state того же мира.
+	SaveSystem.save_game()
+	SaveSystem.delete_dungeon_state()
 	GameConstants.save_to_disk()
 	get_tree().change_scene_to_file("res://World/layer.tscn")

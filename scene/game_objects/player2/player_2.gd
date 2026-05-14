@@ -350,12 +350,12 @@ func attack(from_rpc: bool = false) -> void:
 		attack_timer.wait_time / GameConstants.PLAYER_ATTACK_SPEED
 	)
 
-	# Отправка RPC
-	if not from_rpc and is_local_player:
-		if get_tree().get_multiplayer().is_server():
+	if NetworkManager.is_game_online() and not from_rpc and is_local_player:
+		var mp := get_tree().get_multiplayer()
+		if mp.is_server():
 			rpc_attack.rpc(true)
 		else:
-			rpc_attack.rpc_id(1, true)
+			rpc_attack.rpc_id(NetworkManager.SERVER_ID, true)
 
 # =========================================================
 # DAMAGE

@@ -564,7 +564,24 @@ func _spawn_boss(space_state, room_node):
 	var intersection = space_state.intersect_point(query)
 
 	if intersection.is_empty():
-		var selected_boss_scene = boss_variations.pick_random()
+		var pool: Array[PackedScene] = []
+		for s: PackedScene in boss_variations:
+			if s != null:
+				pool.append(s)
+		if pool.is_empty():
+			return
+		# Два босса: не повторять того же, что на прошлом этаже (случайный порядок между ними).
+		if pool.size() > 1 and SaveSystem.last_spawned_boss_scene_path != "":
+			var last_path := SaveSystem.last_spawned_boss_scene_path
+			var filtered: Array[PackedScene] = []
+			for s: PackedScene in pool:
+				if s.resource_path != last_path:
+					filtered.append(s)
+			if not filtered.is_empty():
+				pool = filtered
+		var selected_boss_scene: PackedScene = pool.pick_random()
+		SaveSystem.last_spawned_boss_scene_path = selected_boss_scene.resource_path
+
 		var boss = selected_boss_scene.instantiate()
 		
 		var area_enemys = room_node.find_child("Enemys")

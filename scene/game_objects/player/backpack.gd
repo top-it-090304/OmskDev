@@ -31,6 +31,7 @@ func _ready():
 			var artefact_info = {
 				"name": artefact_data.get("name", "Unknown"),
 				"icon": icon_texture,
+				"icon_path": str(artefact_data.get("icon_path", "")),
 				"description": artefact_data.get("description", "")
 			}
 			collected_artefacts.append(artefact_info)

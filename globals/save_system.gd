@@ -17,6 +17,9 @@ var collected_treasure_rooms: Array = []
 # Флаг что люк босса открыт
 var boss_hatch_opened: bool = false
 
+## resource_path последнего заспавненного босса — на новом этаже выбираем другого из списка (чередование).
+var last_spawned_boss_scene_path: String = ""
+
 # Базовые значения для сброса
 const BASE_VALUES = {
 	"PLAYER_MAX_SPEED": 200,
@@ -104,7 +107,9 @@ func save_game() -> bool:
 			}
 
 	# Сохраняем собранные артефакты (сначала обновляем из backpack)
-	var backpack = get_tree().get_first_node_in_group("backpack")
+	var backpack: Node = get_tree().get_first_node_in_group("backpack")
+	if backpack == null:
+		backpack = get_tree().root.find_child("Backpack", true, false)
 	if backpack and backpack.has_method("get_collected_artefact_names"):
 		collected_artefacts = backpack.get_collected_artefact_names()
 		print("Артефакты синхронизированы из backpack: ", collected_artefacts.size())
@@ -119,6 +124,8 @@ func save_game() -> bool:
 	# Сохраняем состояние люка босса
 	save_data["boss_hatch_opened"] = boss_hatch_opened
 	print("Люк босса открыт: ", boss_hatch_opened)
+
+	save_data["last_spawned_boss_scene_path"] = last_spawned_boss_scene_path
 
 	var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file:
@@ -229,6 +236,8 @@ func load_game() -> bool:
 	boss_hatch_opened = save_data.get("boss_hatch_opened", false)
 	print("Люк босса открыт: ", boss_hatch_opened)
 
+	last_spawned_boss_scene_path = str(save_data.get("last_spawned_boss_scene_path", ""))
+
 	GameConstants.save_to_disk()
 
 	print("Игра успешно загружена")
@@ -259,6 +268,7 @@ func reset_to_base_values():
 	
 	# Сбрасываем состояние люка босса
 	boss_hatch_opened = false
+	last_spawned_boss_scene_path = ""
 
 	print("Все значения сброшены к базовым")
 	print("================================")
@@ -271,6 +281,7 @@ func delete_save():
 		DirAccess.remove_absolute(SAVE_PATH)
 		print("Файл сохранения удален")
 
+	last_spawned_boss_scene_path = ""
 	# Также удаляем состояние данжена
 	delete_dungeon_state()
 
@@ -284,6 +295,7 @@ func invalidate_run_after_death() -> void:
 	clear_collected_artefacts()
 	clear_collected_treasure_rooms()
 	boss_hatch_opened = false
+	last_spawned_boss_scene_path = ""
 
 
 # Восстановление здоровья игрока после загрузки
