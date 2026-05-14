@@ -47,6 +47,11 @@ signal room_changed(new_grid_pos)
 var visited_rooms = []
 var seen_rooms = []
 
+## Уровень детализации препятствий для текущего сеанса данжа (после спавна камней).
+var _dungeon_obstacle_detail_used: int = -1
+## При загрузке save / sync с хоста — переопределить на время спавна препятствий (-1 = нет).
+var _obstacle_detail_spawn_override: int = -1
+
 var _enemy_net_sync_accum: float = 0.0
 ## Реже RPC + меньше нагрузка на сеть; клиент всё ещё получает ~7 апдейтов/с в «живой» зоне.
 const ENEMY_NET_SYNC_INTERVAL: float = 0.14
@@ -434,7 +439,7 @@ func check_neighbor(nx, ny):
 # СПАВН ПРЕПЯТСТВИЙ
 # =====================================================================
 
-func _spawn_obstacles_in_room(room_node: Node2D, room_type: RoomType):
+func _spawn_obstacles_in_room(room_node: Node2D, room_type: RoomType, detail_level: int) -> void:
 	if room_type == RoomType.BOSS or room_type == RoomType.START or room_type == RoomType.TREASURE or room_type == RoomType.EMPTY:
 		return
 		
@@ -446,12 +451,32 @@ func _spawn_obstacles_in_room(room_node: Node2D, room_type: RoomType):
 	if container == null:
 		return
 
-	var obstacle_count = 0
-	var type_of_room = randi_range(1, 3)
+	var gx := 0
+	var gy := 0
+	if room_node is RoomBase:
+		var rb := room_node as RoomBase
+		gx = rb.grid_x
+		gy = rb.grid_y
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(str(generation_seed) + "|obst|" + str(gx) + "," + str(gy))
+
+	var type_of_room: int = rng.randi_range(1, 3)
+	var obstacle_count: int = 0
 	match type_of_room:
-		1: obstacle_count = randi_range(0, 5)
-		2: obstacle_count = randi_range(3, 8)
-		3: obstacle_count = randi_range(10, 15)
+		1:
+			obstacle_count = rng.randi_range(0, 5)
+		2:
+			obstacle_count = rng.randi_range(3, 8)
+		3:
+			obstacle_count = rng.randi_range(10, 15)
+
+	match clampi(detail_level, 0, 2):
+		0:
+			obstacle_count = 0
+		1:
+			obstacle_count = obstacle_count / 2
+		_:
+			pass
 		
 	var space_state = get_world_2d().direct_space_state
 	var spawned_rects: Array[Rect2] = []
@@ -464,12 +489,12 @@ func _spawn_obstacles_in_room(room_node: Node2D, room_type: RoomType):
 				data = obstacle_data[0]
 			2:
 				if n_obstacles >= 3:
-					data = obstacle_data[1] if randi_range(0, 1) == 0 else obstacle_data[2]
+					data = obstacle_data[1] if rng.randi_range(0, 1) == 0 else obstacle_data[2]
 				else:
 					data = obstacle_data[mini(1, n_obstacles - 1)]
 			3:
 				if n_obstacles >= 6:
-					var r := randi_range(0, 2)
+					var r: int = rng.randi_range(0, 2)
 					data = obstacle_data[3 + r]
 				else:
 					data = obstacle_data[mini(3, n_obstacles - 1)]
@@ -491,8 +516,8 @@ func _spawn_obstacles_in_room(room_node: Node2D, room_type: RoomType):
 		var max_attempts = 30
 
 		for _attempt in range(max_attempts):
-			var local_x = randf_range(half_size.x + 64, GameConstants.MAP_MANAGER_ROOM_SIZE_X - half_size.x - 64)
-			var local_y = randf_range(half_size.y + 64, GameConstants.MAP_MANAGER_ROOM_SIZE_Y - half_size.y - 64)
+			var local_x = rng.randf_range(half_size.x + 64, GameConstants.MAP_MANAGER_ROOM_SIZE_X - half_size.x - 64)
+			var local_y = rng.randf_range(half_size.y + 64, GameConstants.MAP_MANAGER_ROOM_SIZE_Y - half_size.y - 64)
 			var local_pos = Vector2(local_x, local_y)
 			var global_pos = room_node.to_global(local_pos)
 			
@@ -518,10 +543,14 @@ func _spawn_obstacles_in_room(room_node: Node2D, room_type: RoomType):
 			spawned_rects.append(new_rect)
 			break
 
-func _spawn_obstacles_after_physics():
+func _spawn_obstacles_after_physics() -> void:
 	await get_tree().physics_frame 
+	var detail_level: int = GameConstants.OBSTACLE_DETAIL_LEVEL
+	if _obstacle_detail_spawn_override >= 0:
+		detail_level = clampi(_obstacle_detail_spawn_override, 0, 2)
+	_dungeon_obstacle_detail_used = detail_level
 	for room_data in spawned_rooms:
-		_spawn_obstacles_in_room(room_data["node"], room_data["type"])
+		_spawn_obstacles_in_room(room_data["node"], room_data["type"], detail_level)
 
 # =====================================================================
 # СПАВН ВРАГОВ
@@ -914,6 +943,7 @@ func respawn_player_in_current_room():
 func save_dungeon_state():
 	var dungeon_data = {
 		"generation_seed": generation_seed,
+		"obstacle_detail": (_dungeon_obstacle_detail_used if _dungeon_obstacle_detail_used >= 0 else GameConstants.clamp_obstacle_detail_level(GameConstants.OBSTACLE_DETAIL_LEVEL)),
 		"current_room_pos": {
 			"x": current_room_grid_pos.x,
 			"y": current_room_grid_pos.y
@@ -957,6 +987,10 @@ func load_dungeon_state():
 	seed(generation_seed)
 	print("Загружен seed: ", generation_seed)
 
+	_obstacle_detail_spawn_override = GameConstants.clamp_obstacle_detail_level(
+		dungeon_data.get("obstacle_detail", GameConstants.OBSTACLE_DETAIL_LEVEL)
+	)
+
 	# Генерируем данжен с тем же seed
 	generate_layout()
 	draw_map()
@@ -969,6 +1003,7 @@ func load_dungeon_state():
 	await get_tree().create_timer(0).timeout
 	_spawn_player()
 	await _spawn_obstacles_after_physics()
+	_obstacle_detail_spawn_override = -1
 	await _spawn_enemies_after_physics()
 	_spawn_treasure_items()
 

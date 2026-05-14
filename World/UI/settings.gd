@@ -4,6 +4,7 @@ extends Control
 @onready var music_slider: HSlider = $VBoxContainer/MusicRow/Slider
 @onready var lang_option: OptionButton = $VBoxContainer/LangRow/OptionButton
 @onready var particles_check: CheckButton = $VBoxContainer/ParticlesRow/CheckButton
+@onready var obstacle_detail_option: OptionButton = $VBoxContainer/ObstaclesRow/OptionButton
 
 const LANGS = ["ru", "en", "az"]
 const CFG_PATH = "user://settings.cfg"
@@ -22,6 +23,8 @@ func _load_settings() -> void:
 	lang_option.selected = LANGS.find(lang) if LANGS.has(lang) else 0
 	# Загружаем настройку частиц
 	particles_check.button_pressed = GameConstants.variant_to_bool(cfg.get_value("graphics", "show_particles", true))
+	var od: int = GameConstants.clamp_obstacle_detail_level(cfg.get_value("graphics", "obstacle_detail", 2))
+	obstacle_detail_option.select(od)
 	# Применяем загруженные настройки громкости
 	_apply_bus("SFX", sound_slider.value)
 	_apply_bus("Music", music_slider.value)
@@ -44,6 +47,12 @@ func _save_setting(section: String, key: String, value) -> void:
 
 func _on_lang_selected(_idx: int) -> void:
 	pass  # applied on save
+
+func _on_obstacle_detail_selected(idx: int) -> void:
+	var v: int = GameConstants.clamp_obstacle_detail_level(idx)
+	_save_setting("graphics", "obstacle_detail", v)
+	if GameConstants:
+		GameConstants.OBSTACLE_DETAIL_LEVEL = v
 
 func _on_particles_toggled(button_pressed: bool) -> void:
 	_save_setting("graphics", "show_particles", button_pressed)

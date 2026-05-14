@@ -29,6 +29,13 @@ var show_particles: bool:
 	set(value):
 		SHOW_PARTICLES = value
 
+## Препятствия (камни): 0 = нет, 1 = половина от «полного» счётчика, 2 = как задумано в генераторе.
+var OBSTACLE_DETAIL_LEVEL: int = 2
+
+
+func clamp_obstacle_detail_level(v: Variant) -> int:
+	return clampi(int(v), 0, 2)
+
 # --- ПАРАМЕТРЫ КАРТЫ ---
 var MAP_MANAGER_ROOM_SIZE_X = 864
 var MAP_MANAGER_ROOM_SIZE_Y = 608 + 32
@@ -157,8 +164,22 @@ var _last_cfg_mtime := -1
 
 func _ready() -> void:
 	load_from_disk()
+	_load_user_settings_graphics()
 	if FileAccess.file_exists(CONFIG_PATH):
 		_last_cfg_mtime = FileAccess.get_modified_time(CONFIG_PATH)
+
+
+const USER_SETTINGS_PATH := "user://settings.cfg"
+
+
+func _load_user_settings_graphics() -> void:
+	var scfg := ConfigFile.new()
+	if scfg.load(USER_SETTINGS_PATH) != OK:
+		return
+	if not scfg.has_section("graphics"):
+		return
+	SHOW_PARTICLES = variant_to_bool(scfg.get_value("graphics", "show_particles", SHOW_PARTICLES))
+	OBSTACLE_DETAIL_LEVEL = clamp_obstacle_detail_level(scfg.get_value("graphics", "obstacle_detail", OBSTACLE_DETAIL_LEVEL))
 
 func _process(delta: float) -> void:
 	_reload_timer_sec += delta
@@ -252,7 +273,7 @@ func capture_coop_start_state() -> Dictionary:
 		var n := String(p.name)
 		if n.begins_with("_"):
 			continue
-		if n in [&"SHOW_PARTICLES", &"show_particles"]:
+		if n in [&"SHOW_PARTICLES", &"show_particles", &"OBSTACLE_DETAIL_LEVEL"]:
 			continue
 		var v: Variant = get(n)
 		var t := typeof(v)
