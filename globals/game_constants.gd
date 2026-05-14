@@ -234,10 +234,20 @@ func load_from_disk() -> void:
 	constants_changed.emit()
 
 
+## В коопе размер сетки/комнаты должен совпадать с хостом; иначе горячая перезагрузка user://game_consts.cfg у гостя ломает миникарту и генерацию.
+func _cfg_map_geometry_key(key: String) -> bool:
+	match key:
+		"MAP_MANAGER_GRID_SIZE", "MAP_MANAGER_ROOM_SIZE_X", "MAP_MANAGER_ROOM_SIZE_Y", "MAP_MANAGER_CORRIDOR_LENGTH":
+			return true
+		_:
+			return false
+
+
 ## Все числовые/булевы поля баланса из [stats] — единая точка чтения с диска (user://game_consts.cfg).
 func _apply_stats_section_from_cfg(cfg: ConfigFile, section: String) -> void:
 	if not cfg.has_section(section):
 		return
+	var skip_map_geometry := NetworkManager.is_multiplayer_active()
 	var allowed := {}
 	for p in get_property_list():
 		if not (p.usage & PROPERTY_USAGE_SCRIPT_VARIABLE):
@@ -246,20 +256,23 @@ func _apply_stats_section_from_cfg(cfg: ConfigFile, section: String) -> void:
 			continue
 		allowed[p.name] = p
 	for key in cfg.get_section_keys(section):
-		if key == "CURRENT_FLOOR" or key == "ENEMY_LEVEL" or key == "ROOMS_CLEARED" or key == "ENEMIES_KILLED":
+		var ks := String(key)
+		if skip_map_geometry and _cfg_map_geometry_key(ks):
 			continue
-		if not allowed.has(key):
+		if ks == "CURRENT_FLOOR" or ks == "ENEMY_LEVEL" or ks == "ROOMS_CLEARED" or ks == "ENEMIES_KILLED":
+			continue
+		if not allowed.has(ks):
 			continue
 		var raw: Variant = cfg.get_value(section, key)
-		var curv: Variant = get(key)
+		var curv: Variant = get(ks)
 		var t := typeof(curv)
 		match t:
 			TYPE_INT:
-				set(key, int(raw))
+				set(ks, int(raw))
 			TYPE_FLOAT:
-				set(key, float(raw))
+				set(ks, float(raw))
 			TYPE_BOOL:
-				set(key, variant_to_bool(raw))
+				set(ks, variant_to_bool(raw))
 			_:
 				pass
 

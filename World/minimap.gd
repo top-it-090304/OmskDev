@@ -12,6 +12,11 @@ var show_full_map = false
 var cell_step = 0.0
 var grid_total_size = Vector2.ZERO
 
+func _exit_tree() -> void:
+	if GameConstants.constants_changed.is_connected(_on_game_constants_changed):
+		GameConstants.constants_changed.disconnect(_on_game_constants_changed)
+
+
 func _ready():
 	await get_tree().process_frame
 
@@ -20,17 +25,11 @@ func _ready():
 		return
 
 	build_grid()
-	
-	var cell_size = Vector2(12, 12) 
-	var separation = grid_container.get_theme_constant("separation")
-	if separation == 0: separation = 2
-	
-	cell_step = cell_size.x + separation
-	grid_total_size.x = cell_step * GameConstants.MAP_MANAGER_GRID_SIZE
-	grid_total_size.y = cell_step * GameConstants.MAP_MANAGER_GRID_SIZE
 
 	if not map_manager.room_changed.is_connected(_on_room_changed):
 		map_manager.room_changed.connect(_on_room_changed)
+	if not GameConstants.constants_changed.is_connected(_on_game_constants_changed):
+		GameConstants.constants_changed.connect(_on_game_constants_changed)
 	# У клиента layout заполняется только после sync данжа — до этого layout == [] и layout[0] падает
 	var watchdog := 600
 	while not _is_map_layout_ready():
@@ -57,6 +56,32 @@ func _is_map_layout_ready() -> bool:
 			return false
 	return true
 
+
+func _refresh_cell_metrics() -> void:
+	var cell_size := Vector2(12, 12)
+	var separation: int = grid_container.get_theme_constant("separation")
+	if separation == 0:
+		separation = 2
+	cell_step = cell_size.x + separation
+	var g: int = GameConstants.MAP_MANAGER_GRID_SIZE
+	grid_total_size.x = cell_step * g
+	grid_total_size.y = cell_step * g
+
+
+## Синхрон с GameConstants (кооп: снимок хоста / hot-reload cfg) — иначе room_cells[y] падает на индексе вроде 5.
+func _ensure_room_cells_match_constants() -> void:
+	var g: int = GameConstants.MAP_MANAGER_GRID_SIZE
+	if room_cells.size() != g:
+		build_grid()
+		_refresh_cell_metrics()
+		return
+	for row in room_cells:
+		if not row is Array or (row as Array).size() != g:
+			build_grid()
+			_refresh_cell_metrics()
+			return
+
+
 func build_grid():
 	for child in grid_container.get_children():
 		if is_instance_valid(child):
@@ -73,6 +98,7 @@ func build_grid():
 			rect.custom_minimum_size = Vector2(12, 12) 
 			grid_container.add_child(rect)
 			room_cells[y].append(rect)
+	_refresh_cell_metrics()
 
 func center_map_on_room(grid_pos: Vector2i):
 	if cell_step == 0: return
@@ -90,7 +116,17 @@ func _on_room_changed(grid_pos: Vector2i):
 	update_minimap_visuals()
 	center_map_on_room(grid_pos)
 
+
+func _on_game_constants_changed() -> void:
+	if not is_instance_valid(map_manager):
+		return
+	_ensure_room_cells_match_constants()
+	if _is_map_layout_ready():
+		update_minimap_visuals()
+		center_map_on_room(map_manager.current_room_grid_pos)
+
 func update_minimap_visuals():
+	_ensure_room_cells_match_constants()
 	if not is_instance_valid(map_manager) or not _is_map_layout_ready():
 		return
 	for y in range(GameConstants.MAP_MANAGER_GRID_SIZE):
