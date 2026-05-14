@@ -91,7 +91,8 @@ func _physics_process(delta: float) -> void:
 
 	if not can_walk: return
 
-	var to_player = player.global_position - global_position
+	var ppos := PlayerManager.get_player_world_pos_for_hosting_ai(player)
+	var to_player = ppos - global_position
 	var dist      = to_player.length()
 	var direction = to_player.normalized()
 
@@ -204,7 +205,7 @@ func _do_teleport():
 				randf_range(inner.position.x, inner.end.x),
 				randf_range(inner.position.y, inner.end.y)
 			)
-			if candidate.distance_to(player.global_position) > 100.0:
+			if candidate.distance_to(PlayerManager.get_player_world_pos_for_hosting_ai(player)) > 100.0:
 				new_pos = candidate
 				break
 
@@ -225,7 +226,7 @@ func spawn_bite_swing():
 	smite_instance.visible = false
 	smite_instance.monitoring = false
 	smite_instance.scale = Vector2(2.5, 2.5)
-	var target_dir = (player.global_position - global_position).normalized()
+	var target_dir = (PlayerManager.get_player_world_pos_for_hosting_ai(player) - global_position).normalized()
 	if "direction" in smite_instance:
 		smite_instance.direction = target_dir
 	smite_instance.rotation = target_dir.angle()
@@ -243,7 +244,7 @@ func activate_bite():
 func shoot():
 	if is_dead or not is_instance_valid(player): return
 	var proj = GameConstants.GOBLIN_SLINGER_PROJECTILE.instantiate()
-	var dir = (player.global_position - global_position).normalized()
+	var dir = (PlayerManager.get_player_world_pos_for_hosting_ai(player) - global_position).normalized()
 	proj.direction = dir
 	proj.global_position = global_position
 	proj.rotation = dir.angle()
@@ -317,6 +318,8 @@ func spawn_slap_effect():
 func _on_slap_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player"):
+		if not PlayerManager.is_player_nearest_hosting_target(global_position, body):
+			return
 		AudioManager.play_sfx("босс_атака_удар")
 		var dmg := GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_SLAP_DAMAGE)
 		NetworkManager.server_apply_damage_to_player_from_enemy(body, dmg)

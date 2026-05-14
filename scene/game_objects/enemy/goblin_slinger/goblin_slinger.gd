@@ -62,7 +62,8 @@ func _physics_process(_delta: float) -> void:
 		move_and_slide()
 		return
 
-	var to_player = player.global_position - global_position
+	var ppos := PlayerManager.get_player_world_pos_for_hosting_ai(player)
+	var to_player = ppos - global_position
 	var direction = to_player.normalized()
 	update_direction(direction)
 
@@ -131,7 +132,7 @@ func shoot_poison() -> void:
 		return
 	var projectile_instance = GameConstants.GOBLIN_SLINGER_PROJECTILE.instantiate()
 	projectile_instance.global_position = global_position
-	var target_dir := (player.global_position - global_position).normalized()
+	var target_dir := (PlayerManager.get_player_world_pos_for_hosting_ai(player) - global_position).normalized()
 	if target_dir == Vector2.ZERO:
 		target_dir = Vector2.RIGHT
 	projectile_instance.direction = target_dir
@@ -168,7 +169,7 @@ func death():
 	can_attack = false
 
 	if is_instance_valid(player):
-		update_direction(player.global_position - global_position)
+		update_direction(PlayerManager.get_player_world_pos_for_hosting_ai(player) - global_position)
 	elif velocity.length_squared() > 4.0:
 		update_direction(velocity)
 	else:
@@ -232,6 +233,8 @@ func _on_attack_timer_timeout():
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player") and body.has_method("take_damage"):
+		if not PlayerManager.is_player_nearest_hosting_target(global_position, body):
+			return
 		var damage = GameConstants.get_scaled_enemy_stat(GameConstants.GOBLIN_SLINGER_BODY_DAMAGE)
 		NetworkManager.server_apply_damage_to_player_from_enemy(body, damage)
 

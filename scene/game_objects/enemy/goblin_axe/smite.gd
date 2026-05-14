@@ -47,6 +47,10 @@ func _on_area_entered(_area: Area2D) -> void:
 
 func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):
+		var parent_enemy := get_parent() as Node2D
+		var eg := parent_enemy.global_position if parent_enemy else global_position
+		if not PlayerManager.is_player_nearest_hosting_target(eg, body):
+			return
 		var dmg := GameConstants.get_scaled_enemy_stat(GameConstants.SMITE_DAMAGE)
 		NetworkManager.server_apply_damage_to_player_from_enemy(body, dmg)
 		_disable_smite_hitbox()

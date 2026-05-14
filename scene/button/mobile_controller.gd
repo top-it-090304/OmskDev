@@ -1,7 +1,7 @@
 extends CanvasLayer
 
 const CFG_PATH = "user://settings.cfg"
-const JOYSTICK_LAYOUT_VERSION := 3
+const JOYSTICK_LAYOUT_VERSION := 4
 
 
 func _ready() -> void:
@@ -34,6 +34,12 @@ func _load_joystick_settings() -> void:
 			cfg.set_value("joystick", "move_pos_y", def_move.y)
 		if old_ay < 160.0 or old_ay > vps.y * 0.65:
 			cfg.set_value("joystick", "attack_pos_y", def_attack.y)
+		var ms := float(cfg.get_value("joystick", "move_scale", 0.42))
+		var atk_s := float(cfg.get_value("joystick", "attack_scale", 0.42))
+		if ms < 0.38:
+			cfg.set_value("joystick", "move_scale", 0.42)
+		if atk_s < 0.38:
+			cfg.set_value("joystick", "attack_scale", 0.42)
 		cfg.set_value("joystick", "layout_version", JOYSTICK_LAYOUT_VERSION)
 		cfg.save(CFG_PATH)
 
@@ -43,21 +49,21 @@ func _load_joystick_settings() -> void:
 	if move_joystick:
 		var pos_x: float = def_move.x
 		var pos_y: float = def_move.y
-		var scale_val: float = 0.3
+		var scale_val: float = 0.42
 		if ok:
 			pos_x = float(cfg.get_value("joystick", "move_pos_x", def_move.x))
 			pos_y = float(cfg.get_value("joystick", "move_pos_y", def_move.y))
-			scale_val = float(cfg.get_value("joystick", "move_scale", 0.3))
+			scale_val = float(cfg.get_value("joystick", "move_scale", 0.42))
 		move_joystick.position = Vector2(pos_x, pos_y)
 		move_joystick.scale = Vector2(scale_val, scale_val)
 
 	if attack_joystick:
 		var pos_x: float = def_attack.x
 		var pos_y: float = def_attack.y
-		var scale_val: float = 0.3
+		var scale_val: float = 0.42
 		if ok:
 			pos_x = float(cfg.get_value("joystick", "attack_pos_x", def_attack.x))
 			pos_y = float(cfg.get_value("joystick", "attack_pos_y", def_attack.y))
-			scale_val = float(cfg.get_value("joystick", "attack_scale", 0.3))
+			scale_val = float(cfg.get_value("joystick", "attack_scale", 0.42))
 		attack_joystick.position = Vector2(pos_x, pos_y)
 		attack_joystick.scale = Vector2(scale_val, scale_val)

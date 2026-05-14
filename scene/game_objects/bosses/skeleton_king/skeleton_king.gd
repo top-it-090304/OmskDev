@@ -104,7 +104,8 @@ func _physics_process(delta: float) -> void:
 	if not can_walk:
 		return
 
-	var to_player = player.global_position - global_position
+	var ppos := PlayerManager.get_player_world_pos_for_hosting_ai(player)
+	var to_player = ppos - global_position
 	var dist      = to_player.length()
 	var direction = to_player.normalized()
 
@@ -246,6 +247,8 @@ func spawn_melee_hitbox() -> void:
 
 func _on_melee_hitbox_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):
+		if not PlayerManager.is_player_nearest_hosting_target(global_position, body):
+			return
 		AudioManager.play_sfx("босс_атака_удар")
 		var dmg := GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_MELEE_DAMAGE)
 		NetworkManager.server_apply_damage_to_player_from_enemy(body, dmg)
@@ -315,6 +318,7 @@ func _spawn_arrows_around_player() -> void:
 	if not is_instance_valid(player):
 		return
 	
+	var ppos := PlayerManager.get_player_world_pos_for_hosting_ai(player)
 	var arrow_count = 5
 	var radius = 60.0
 	var arrows: Array = []
@@ -322,10 +326,10 @@ func _spawn_arrows_around_player() -> void:
 	# Создаём 5 стрел вокруг игрока с задержкой
 	for i in arrow_count:
 		var angle = (TAU / float(arrow_count)) * i
-		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * radius
+		var spawn_pos = ppos + Vector2(cos(angle), sin(angle)) * radius
 		
 		# Создаём стрелу
-		var arrow = _create_warning_arrow(spawn_pos, player.global_position)
+		var arrow = _create_warning_arrow(spawn_pos, ppos)
 		arrows.append(arrow)
 		
 		# Задержка между созданием стрел
@@ -396,6 +400,8 @@ func _launch_arrow_at_player(arrow: Node2D) -> void:
 	# Подключаем сигнал урона
 	arrow.body_entered.connect(func(body):
 		if body.is_in_group("player"):
+			if not PlayerManager.is_player_nearest_hosting_target(global_position, body):
+				return
 			var admg := GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_BODY_DAMAGE)
 			NetworkManager.server_apply_damage_to_player_from_enemy(body, admg)
 			if is_instance_valid(arrow):
@@ -415,7 +421,7 @@ func start_charge_attack() -> void:
 
 	var start_pos = global_position
 	# Цель — позиция игрока на момент начала атаки (не обновляется)
-	charge_target_pos = player.global_position
+	charge_target_pos = PlayerManager.get_player_world_pos_for_hosting_ai(player)
 
 	# Задержка перед рывком для возможности увернуться
 	var warning_tween = create_tween()
@@ -525,6 +531,8 @@ func spawn_charge_hitbox() -> void:
 
 func _on_charge_hitbox_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):
+		if not PlayerManager.is_player_nearest_hosting_target(global_position, body):
+			return
 		var dmg := GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_BONE_SPEAR_DAMAGE)
 		NetworkManager.server_apply_damage_to_player_from_enemy(body, dmg)
 		NetworkManager.server_apply_knockback_to_player_from_enemy(body, global_position, 1200.0)

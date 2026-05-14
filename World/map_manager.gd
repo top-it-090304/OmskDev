@@ -1142,6 +1142,21 @@ func _room_in_enemy_net_sync_region(room_grid: Vector2i) -> bool:
 	return false
 
 
+func _enemy_net_visual_snapshot(ch: Node) -> Array[String]:
+	var spr := ""
+	var ap := ""
+	var spr_node := ch.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	if spr_node != null and spr_node.sprite_frames != null:
+		spr = str(spr_node.animation)
+	var ap_node := ch.get_node_or_null("AnimationPlayer") as AnimationPlayer
+	if ap_node != null and ap_node.is_playing():
+		ap = str(ap_node.current_animation)
+	var out: Array[String] = []
+	out.append(spr)
+	out.append(ap)
+	return out
+
+
 func _physics_process_host_sync_enemies() -> void:
 	# Только CharacterBody2D под Enemys — без get_nodes_in_group по всему дереву.
 	for room_data in spawned_rooms:
@@ -1162,14 +1177,25 @@ func _physics_process_host_sync_enemies() -> void:
 			var ch := n as CharacterBody2D
 			var pos := ch.global_position
 			var vel := ch.velocity
+			var vis := _enemy_net_visual_snapshot(ch)
+			var spr := ""
+			var ap := ""
+			if vis.size() > 0:
+				spr = vis[0]
+			if vis.size() > 1:
+				ap = vis[1]
 			if ch.has_meta(&"_net_sync_last_pos"):
 				var last_p: Vector2 = ch.get_meta(&"_net_sync_last_pos")
 				var last_v: Vector2 = ch.get_meta(&"_net_sync_last_vel")
-				if pos.distance_squared_to(last_p) < _NET_SYNC_POS_EPS2 and vel.distance_squared_to(last_v) < _NET_SYNC_VEL_EPS2:
+				var last_spr: String = str(ch.get_meta(&"_net_sync_last_spr", ""))
+				var last_ap: String = str(ch.get_meta(&"_net_sync_last_ap", ""))
+				if pos.distance_squared_to(last_p) < _NET_SYNC_POS_EPS2 and vel.distance_squared_to(last_v) < _NET_SYNC_VEL_EPS2 and spr == last_spr and ap == last_ap:
 					continue
 			ch.set_meta(&"_net_sync_last_pos", pos)
 			ch.set_meta(&"_net_sync_last_vel", vel)
-			NetworkManager.rpc_sync_enemy_transform.rpc(str(ch.get_path()), pos, vel)
+			ch.set_meta(&"_net_sync_last_spr", spr)
+			ch.set_meta(&"_net_sync_last_ap", ap)
+			NetworkManager.rpc_sync_enemy_transform.rpc(str(ch.get_path()), pos, vel, spr, ap)
 
 
 func _physics_process(delta: float) -> void:

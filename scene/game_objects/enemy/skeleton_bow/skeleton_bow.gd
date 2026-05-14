@@ -58,7 +58,8 @@ func _physics_process(_delta: float) -> void:
 		move_and_slide()
 		return
 
-	var to_player: Vector2 = player.global_position - global_position
+	var ppos := PlayerManager.get_player_world_pos_for_hosting_ai(player)
+	var to_player: Vector2 = ppos - global_position
 	var direction = to_player.normalized()
 	update_direction(direction)
 
@@ -128,7 +129,7 @@ func shoot():
 	if not player or not is_instance_valid(player) or is_dead: return
 	var arrow_instance = GameConstants.SKELETON_BOW_ARROW.instantiate()
 	arrow_instance.global_position = global_position
-	var target_dir = (player.global_position - global_position).normalized()
+	var target_dir = (PlayerManager.get_player_world_pos_for_hosting_ai(player) - global_position).normalized()
 	arrow_instance.direction = target_dir
 	arrow_instance.rotation = target_dir.angle()
 	get_tree().current_scene.add_child.call_deferred(arrow_instance)
@@ -197,6 +198,8 @@ func _on_attack_timer_timeout():
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player") and body.has_method("take_damage"):
+		if not PlayerManager.is_player_nearest_hosting_target(global_position, body):
+			return
 		var damage = GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_BODY_DAMAGE)
 		NetworkManager.server_apply_damage_to_player_from_enemy(body, damage)
 

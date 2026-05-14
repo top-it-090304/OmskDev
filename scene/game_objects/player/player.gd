@@ -86,6 +86,8 @@ func rpc_set_position(pos: Vector2, dir: int) -> void:
 	target_position = pos
 	target_direction = dir
 	interpolation_timer = 0.0
+	if not is_multiplayer_authority():
+		set_meta(&"net_target_valid", true)
 	if is_local_player:
 		return
 	var dist2 := global_position.distance_squared_to(pos)

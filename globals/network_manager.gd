@@ -409,6 +409,8 @@ func _coop_apply_survivor_game_over(victim_peer_id: int) -> void:
 const _META_NET_ENEMY_VALID := &"net_enemy_sync_valid"
 const _META_NET_ENEMY_POS := &"net_enemy_sync_pos"
 const _META_NET_ENEMY_VEL := &"net_enemy_sync_vel"
+const _META_NET_ENEMY_SPR := &"net_enemy_sync_spr"
+const _META_NET_ENEMY_AP := &"net_enemy_sync_ap"
 
 
 func enemy_mp_is_network_client() -> bool:
@@ -424,18 +426,33 @@ func enemy_client_interpolate_if_needed(enemy: CharacterBody2D, delta: float) ->
 		return true
 	if not enemy.get_meta(_META_NET_ENEMY_VALID, false):
 		enemy.velocity = Vector2.ZERO
-		enemy.move_and_slide()
 		return true
 	var tgt: Vector2 = enemy.get_meta(_META_NET_ENEMY_POS, enemy.global_position)
 	var vel: Vector2 = enemy.get_meta(_META_NET_ENEMY_VEL, Vector2.ZERO)
-	enemy.global_position = enemy.global_position.lerp(tgt, minf(1.0, 22.0 * delta))
+	# Только позиция с хоста: move_and_slide на клиенте упирался в стены и «ломал» синхрон.
+	enemy.global_position = enemy.global_position.lerp(tgt, minf(1.0, 32.0 * delta))
 	enemy.velocity = vel
-	enemy.move_and_slide()
+	_apply_net_enemy_visual_from_meta(enemy)
 	return true
 
 
+func _apply_net_enemy_visual_from_meta(ch: Node) -> void:
+	if not is_instance_valid(ch):
+		return
+	var spr: String = str(ch.get_meta(_META_NET_ENEMY_SPR, ""))
+	var ap: String = str(ch.get_meta(_META_NET_ENEMY_AP, ""))
+	var spr_node := ch.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	if spr_node != null and spr_node.sprite_frames != null and spr != "":
+		if spr_node.sprite_frames.has_animation(spr) and spr_node.animation != spr:
+			spr_node.play(spr)
+	var ap_node := ch.get_node_or_null("AnimationPlayer") as AnimationPlayer
+	if ap_node != null and ap != "":
+		if ap_node.current_animation != ap or not ap_node.is_playing():
+			ap_node.play(ap)
+
+
 @rpc("authority", "call_remote", "unreliable")
-func rpc_sync_enemy_transform(path_str: String, pos: Vector2, vel: Vector2) -> void:
+func rpc_sync_enemy_transform(path_str: String, pos: Vector2, vel: Vector2, spr_anim: String, ap_anim: String) -> void:
 	var n := _resolve_node_by_path_for_damage(path_str)
 	if n == null or not is_instance_valid(n) or not n is CharacterBody2D:
 		return
@@ -443,6 +460,8 @@ func rpc_sync_enemy_transform(path_str: String, pos: Vector2, vel: Vector2) -> v
 	ch.set_meta(_META_NET_ENEMY_VALID, true)
 	ch.set_meta(_META_NET_ENEMY_POS, pos)
 	ch.set_meta(_META_NET_ENEMY_VEL, vel)
+	ch.set_meta(_META_NET_ENEMY_SPR, spr_anim)
+	ch.set_meta(_META_NET_ENEMY_AP, ap_anim)
 
 
 func server_apply_damage_to_player_from_enemy(player: Node, amount: int) -> void:

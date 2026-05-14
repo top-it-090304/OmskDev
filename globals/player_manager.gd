@@ -35,11 +35,40 @@ func get_nearest_target_player_node(from_global: Vector2) -> Node2D:
 		if n.get("is_dead") == true:
 			continue
 		var p2 := n as Node2D
-		var d2: float = from_global.distance_squared_to(p2.global_position)
+		var ref_pos := get_player_world_pos_for_hosting_ai(p2)
+		var d2: float = from_global.distance_squared_to(ref_pos)
 		if d2 < best_d2:
 			best_d2 = d2
 			best = p2
 	return best
+
+
+## На **хосте** для чужого пира используем target_position из RPC — иначе интерполяция отстаёт, и ИИ «видит» гостя дальше, чем хоста.
+func get_player_world_pos_for_hosting_ai(p: Node2D) -> Vector2:
+	if p == null or not is_instance_valid(p):
+		return Vector2.ZERO
+	if not NetworkManager.is_game_online():
+		return p.global_position
+	var mp := get_tree().get_multiplayer()
+	if mp == null or not mp.is_server():
+		return p.global_position
+	if p.is_multiplayer_authority():
+		return p.global_position
+	if p.get_meta(&"net_target_valid", false):
+		var tp: Variant = p.get("target_position")
+		if tp is Vector2:
+			return tp as Vector2
+	return p.global_position
+
+
+## Урон в ближнюю: только если этот игрок — ближайшая цель для ИИ (на хосте учитывается сетевой снапшот позиции).
+func is_player_nearest_hosting_target(enemy_global: Vector2, body: Node2D) -> bool:
+	if body == null or not is_instance_valid(body):
+		return false
+	if not body.is_in_group("player"):
+		return false
+	var n := get_nearest_target_player_node(enemy_global)
+	return n != null and n == body
 
 
 ## В коопе: в зоне детектора есть хотя бы один живой игрок (сигналы enter/exit с двумя игроками дают ложный сброс).

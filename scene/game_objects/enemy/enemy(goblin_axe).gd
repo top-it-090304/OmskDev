@@ -33,7 +33,7 @@ func _ready() -> void:
 func _is_player_in_attack_radius() -> bool:
 	if not is_instance_valid(player):
 		return false
-	return global_position.distance_squared_to(player.global_position) <= GameConstants.ENEMY_GOBLIN_AXE_ATTACK_RANGE * GameConstants.ENEMY_GOBLIN_AXE_ATTACK_RANGE
+	return global_position.distance_squared_to(PlayerManager.get_player_world_pos_for_hosting_ai(player)) <= GameConstants.ENEMY_GOBLIN_AXE_ATTACK_RANGE * GameConstants.ENEMY_GOBLIN_AXE_ATTACK_RANGE
 
 func _physics_process(delta: float) -> void:
 	if NetworkManager.enemy_client_interpolate_if_needed(self, delta):
@@ -55,7 +55,8 @@ func _physics_process(delta: float) -> void:
 	var is_aggressive = parent_node and parent_node.get("aggression")
 
 	if is_instance_valid(player) and is_aggressive:
-		var to_player = player.global_position - global_position
+		var ppos := PlayerManager.get_player_world_pos_for_hosting_ai(player)
+		var to_player = ppos - global_position
 		var direction = to_player.normalized()
 		velocity = direction * speed + knockback_velocity
 		move_and_slide()
@@ -174,7 +175,7 @@ func swing():
 	add_child(smite_instance)
 	smite_instance.visible = false
 	smite_instance.monitoring = false
-	var target_dir = (player.global_position - global_position).normalized()
+	var target_dir = (PlayerManager.get_player_world_pos_for_hosting_ai(player) - global_position).normalized()
 	if "direction" in smite_instance:
 		smite_instance.direction = target_dir
 	smite_instance.position = target_dir * GameConstants.ENEMY_GOBLIN_AXE_SMITE_OFFSET
@@ -217,6 +218,8 @@ func _on_hitbox_area_entered(_area: Area2D) -> void:
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player") and body.has_method("take_damage"):
+		if not PlayerManager.is_player_nearest_hosting_target(global_position, body):
+			return
 		if not _is_player_in_attack_radius():
 			return
 		var damage = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_GOBLIN_AXE_DAMAGE)
