@@ -4,8 +4,6 @@ enum ConnectionState { DISCONNECTED, CONNECTING, CONNECTED, HOSTING }
 var connection_state := ConnectionState.DISCONNECTED
 
 const SERVER_ID = 1
-## Порт ENet по умолчанию (должен совпадать у хоста и гостя).
-const DEFAULT_PORT := 4242
 var my_id: int = 0
 
 ## Кооп: забег завершён (кто-то умер) — без нового подключения не сбрасывается
@@ -42,7 +40,7 @@ func _ready() -> void:
 	connection_timer.timeout.connect(_on_connection_timeout)
 	add_child(connection_timer)
 
-func host_game(port: int = DEFAULT_PORT) -> void:
+func host_game(port: int = 4242) -> void:
 	var peer := ENetMultiplayerPeer.new()
 	if peer.create_server(port, MAX_CLIENT_PEERS) != OK:
 		return
@@ -53,7 +51,7 @@ func host_game(port: int = DEFAULT_PORT) -> void:
 	_apply_network_rpc_authority()
 	emit_signal("connected_to_server")
 
-func join_game(address: String, port: int = DEFAULT_PORT) -> void:
+func join_game(address: String, port: int = 4242) -> void:
 	var peer := ENetMultiplayerPeer.new()
 	if peer.create_client(address, port) != OK:
 		emit_signal("connection_failed")
@@ -200,73 +198,6 @@ func decode_code(code: String) -> String:
 	for i in range(4):
 		parts.append(str(clean.substr(i * 2, 2).hex_to_int()))
 	return ".".join(parts)
-
-
-## Разбор строки подключения: 8-символьный HEX (LAN-код из лобби), IPv4 или hostname. Опционально `:порт` в конце (не IPv6).
-## Возвращает { "ok": true, "address": String, "port": int } или { "ok": false, "err": String }.
-func parse_join_target(raw: String) -> Dictionary:
-	var s := raw.strip_edges()
-	if s.is_empty():
-		return {"ok": false, "err": "Пустой ввод"}
-	var port := DEFAULT_PORT
-	if s.contains(":"):
-		var idx := s.rfind(":")
-		var tail := s.substr(idx + 1).strip_edges()
-		if tail.is_valid_int():
-			var p := int(tail)
-			if p >= 1 and p <= 65535:
-				port = p
-				s = s.substr(0, idx).strip_edges()
-				if s.is_empty():
-					return {"ok": false, "err": "Укажите адрес перед :порт"}
-	if s.is_empty():
-		return {"ok": false, "err": "Пустой ввод"}
-	var upper := s.to_upper()
-	if upper.length() == 8 and upper.is_valid_hex_number():
-		var ip := decode_code(upper)
-		if ip.is_empty():
-			return {"ok": false, "err": "Неверный код"}
-		return {"ok": true, "address": ip, "port": port}
-	if _join_is_valid_ipv4(s):
-		return {"ok": true, "address": s, "port": port}
-	if _join_looks_like_hostname(s):
-		return {"ok": true, "address": s, "port": port}
-	return {"ok": false, "err": "Неверный код, IP или адрес"}
-
-
-func _join_is_valid_ipv4(s: String) -> bool:
-	var parts := s.split(".")
-	if parts.size() != 4:
-		return false
-	for p in parts:
-		if not p.is_valid_int():
-			return false
-		var n := int(p)
-		if n < 0 or n > 255:
-			return false
-	return true
-
-
-func _join_looks_like_hostname(s: String) -> bool:
-	if s.length() > 253 or s.is_empty():
-		return false
-	if s.begins_with(".") or s.ends_with(".") or s.contains(".."):
-		return false
-	if s == "localhost":
-		return true
-	var has_letter := false
-	for i in s.length():
-		var c := s.unicode_at(i)
-		var digit := c >= 48 and c <= 57
-		var upper := c >= 65 and c <= 90
-		var lower := c >= 97 and c <= 122
-		if upper or lower:
-			has_letter = true
-		if digit or upper or lower or c == 45 or c == 46:
-			continue
-		return false
-	return has_letter
-
 
 func _on_client_connected() -> void:
 	my_id = get_tree().get_multiplayer().get_unique_id()
