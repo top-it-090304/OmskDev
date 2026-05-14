@@ -579,8 +579,10 @@ func _spawn_enemies_after_physics():
 			_spawn_boss(space_state, room_node)
 			return
 			
+		var slot_idx := 0
 		for _i in range(enemy_count):
-			_spawn_single_enemy(space_state, room_node)
+			_spawn_single_enemy(space_state, room_node, slot_idx)
+			slot_idx += 1
 func _spawn_boss(space_state, room_node):
 	if boss_variations.is_empty():
 		push_warning("MapManager: boss_variations пуст — босс не заспавнен")
@@ -655,7 +657,38 @@ func apply_boss_hatch_opened_visual() -> void:
 	SaveSystem.set_boss_hatch_opened(true)
 
 
-func _spawn_single_enemy(space_state, room_node):
+func _spawn_single_enemy_online_deterministic(room_node: Node2D, slot_idx: int) -> void:
+	if enemy_variations.is_empty():
+		return
+	var gx := 0
+	var gy := 0
+	if room_node is RoomBase:
+		var rb := room_node as RoomBase
+		gx = rb.grid_x
+		gy = rb.grid_y
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(str(generation_seed) + "|e_sp|" + str(gx) + "," + str(gy) + "|" + str(slot_idx))
+	var area_enemys := room_node.find_child("Enemys", true, false)
+	if area_enemys == null:
+		return
+	var idx: int = rng.randi() % enemy_variations.size()
+	var selected_enemy_scene: PackedScene = enemy_variations[idx]
+	var enemy := selected_enemy_scene.instantiate()
+	var margin := 80.0
+	var rx: float = float(GameConstants.MAP_MANAGER_ROOM_SIZE_X) - 2.0 * margin
+	var ry: float = float(GameConstants.MAP_MANAGER_ROOM_SIZE_Y) - 2.0 * margin
+	var u := rng.randf()
+	var v := rng.randf()
+	var local_point := Vector2(margin + u * rx, margin + v * ry)
+	var global_point := room_node.to_global(local_point)
+	area_enemys.add_child(enemy)
+	enemy.global_position = global_point
+
+
+func _spawn_single_enemy(space_state, room_node, slot_idx: int = 0) -> void:
+	if NetworkManager.is_game_online():
+		_spawn_single_enemy_online_deterministic(room_node as Node2D, slot_idx)
+		return
 	var max_attempts = 30 
 	
 	for _attempt in range(max_attempts):
@@ -785,19 +818,44 @@ func _move_local_players_to_follow_peer(entered_peer_id: int, room_grid: Vector2
 	var mp := get_tree().get_multiplayer()
 	if mp.get_unique_id() == entered_peer_id:
 		return
-	var leader: Node2D = null
-	for n in get_tree().get_nodes_in_group("player"):
-		if n is Node2D and n.get_multiplayer_authority() == entered_peer_id:
-			leader = n as Node2D
-			break
+	var leader: Node2D = _find_player_node_by_authority(entered_peer_id)
 	if leader == null:
+		_follow_coop_when_leader_ready(entered_peer_id, room_grid, 20)
 		return
+	_apply_follow_positions_for_local_players(entered_peer_id, room_grid, leader)
+
+
+func _find_player_node_by_authority(peer_id: int) -> Node2D:
+	for n in get_tree().get_nodes_in_group("player"):
+		if n is Node2D and int(n.get_multiplayer_authority()) == int(peer_id):
+			return n as Node2D
+	return null
+
+
+func _follow_coop_when_leader_ready(entered_peer_id: int, room_grid: Vector2i, attempts: int) -> void:
+	if attempts <= 0:
+		return
+	await get_tree().process_frame
+	if NetworkManager.is_game_offline():
+		return
+	var mp := get_tree().get_multiplayer()
+	if mp.get_unique_id() == entered_peer_id:
+		return
+	var leader: Node2D = _find_player_node_by_authority(entered_peer_id)
+	if leader == null:
+		_follow_coop_when_leader_ready(entered_peer_id, room_grid, attempts - 1)
+		return
+	_apply_follow_positions_for_local_players(entered_peer_id, room_grid, leader)
+
+
+func _apply_follow_positions_for_local_players(entered_peer_id: int, room_grid: Vector2i, leader: Node2D) -> void:
+	var mp := get_tree().get_multiplayer()
 	var follower_pid := mp.get_unique_id()
 	var target := get_coop_follower_spawn_global(room_grid, leader.global_position, follower_pid, entered_peer_id)
 	for n in get_tree().get_nodes_in_group("player"):
 		if not n.get("is_local_player"):
 			continue
-		if n.get_multiplayer_authority() == entered_peer_id:
+		if int(n.get_multiplayer_authority()) == int(entered_peer_id):
 			continue
 		if n is CharacterBody2D:
 			var ch := n as CharacterBody2D
@@ -958,7 +1016,7 @@ func save_dungeon_state():
 	for room_pos in visited_rooms:
 		dungeon_data["visited_rooms"].append({"x": room_pos.x, "y": room_pos.y})
 
-	# Сохраняем увиденные комнаты
+	# Сохраняем увиденные комнаты	у
 	for room_pos in seen_rooms:
 		dungeon_data["seen_rooms"].append({"x": room_pos.x, "y": room_pos.y})
 

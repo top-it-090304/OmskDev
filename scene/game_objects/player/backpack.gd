@@ -85,6 +85,37 @@ func add_artefact(artefact_data) -> void:
 
 	print("Артефакт добавлен в рюкзак: ", artefact_info["name"])
 
+
+## Кооп: подбор по RPC без узла в дереве — словарь из NetworkManager.
+func add_artefact_from_network(info: Dictionary) -> void:
+	var artefact_name := str(info.get("name", "Unknown"))
+	if has_artefact(artefact_name):
+		print("Артефакт уже есть в рюкзаке (network), пропускаем: ", artefact_name)
+		return
+	var icon_texture = null
+	var icon_path := str(info.get("icon_path", ""))
+	if icon_path != "":
+		icon_texture = load(icon_path)
+	var artefact_info := {
+		"name": artefact_name,
+		"icon": icon_texture,
+		"icon_path": icon_path,
+		"description": str(info.get("description", "")),
+	}
+	for a in collected_artefacts:
+		if a.get("name", "") == artefact_info["name"]:
+			return
+	collected_artefacts.append(artefact_info)
+	create_icon(artefact_info)
+	var tree := get_tree()
+	if tree == null:
+		return
+	var inventory = tree.get_first_node_in_group("inventory_screen")
+	if inventory and inventory.has_method("add_artefact"):
+		inventory.add_artefact(artefact_info)
+	print("Артефакт добавлен в рюкзак (network): ", artefact_info["name"])
+
+
 func create_icon(artefact_info: Dictionary) -> void:
 	# Создаем контейнер для иконки
 	var icon_panel = PanelContainer.new()

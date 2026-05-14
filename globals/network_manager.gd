@@ -225,6 +225,36 @@ func _on_peer_disconnected(id: int) -> void:
 
 # --- Артефакты в коопе (один экземпляр на этаж) ---
 
+func _artefact_network_dict_from_pickup(pickup: Node) -> Dictionary:
+	if not is_instance_valid(pickup):
+		return {}
+	var nm: String = str(pickup.get("artefact_name")) if pickup.get("artefact_name") != null else "?"
+	var desc: String = str(pickup.get("artefact_description")) if pickup.get("artefact_description") != null else ""
+	var icp := ""
+	var ic: Variant = pickup.get("artefact_icon")
+	if ic != null and ic is Texture2D:
+		icp = (ic as Texture2D).resource_path
+	return {"name": nm, "description": desc, "icon_path": icp}
+
+
+func _resolve_node_by_path_for_damage(path_str: String) -> Node:
+	var n := get_tree().root.get_node_or_null(NodePath(path_str))
+	if n != null and is_instance_valid(n):
+		return n
+	var mm := get_tree().get_first_node_in_group("map_manager")
+	if mm == null:
+		return null
+	var key := "MapManager/"
+	var idx := path_str.find(key)
+	if idx == -1:
+		return null
+	var rel := path_str.substr(idx + key.length())
+	n = mm.get_node_or_null(NodePath(rel))
+	if n != null and is_instance_valid(n):
+		return n
+	return null
+
+
 func _find_artefact_pickup_node(resource_path: String, room: Vector2i) -> Node:
 	var mm := get_tree().get_first_node_in_group("map_manager")
 	if mm == null:
@@ -243,7 +273,7 @@ func _find_artefact_pickup_node(resource_path: String, room: Vector2i) -> Node:
 func rpc_request_artefact_pickup_from_client(resource_path: String, room_x: int, room_y: int, picker_peer_id: int) -> void:
 	if not is_server():
 		return
-	if multiplayer.get_remote_sender_id() != picker_peer_id:
+	if int(multiplayer.get_remote_sender_id()) != int(picker_peer_id):
 		return
 	var node := _find_artefact_pickup_node(resource_path, Vector2i(room_x, room_y))
 	if node == null:
@@ -265,7 +295,8 @@ func rpc_client_mirror_artefact_pickup(resource_path: String, room_x: int, room_
 	var n := _find_artefact_pickup_node(resource_path, room)
 	if n != null and is_instance_valid(n):
 		n.queue_free()
-	if multiplayer.get_unique_id() != picker_peer_id:
+	var my_pid: int = int(multiplayer.get_unique_id())
+	if my_pid != int(picker_peer_id):
 		return
 	var res := load(resource_path)
 	if res == null:
@@ -273,12 +304,19 @@ func rpc_client_mirror_artefact_pickup(resource_path: String, room_x: int, room_
 	var pickup = res.instantiate()
 	if pickup.has_method("apply_effects"):
 		pickup.apply_effects()
-	if pickup.has_method("add_to_backpack"):
-		pickup.add_to_backpack()
 	if pickup.has_method("show_stat_popup"):
 		pickup.show_stat_popup()
+	var info := _artefact_network_dict_from_pickup(pickup)
 	if is_instance_valid(pickup):
 		pickup.queue_free()
+	var tree := get_tree()
+	if tree == null:
+		return
+	var backpack: Node = tree.get_first_node_in_group("backpack")
+	if backpack == null and tree.current_scene != null:
+		backpack = tree.current_scene.find_child("Backpack", true, false)
+	if backpack != null and backpack.has_method("add_artefact_from_network"):
+		backpack.add_artefact_from_network(info)
 
 
 @rpc("authority", "call_local", "reliable")
@@ -509,7 +547,7 @@ func _replicate_enemy_state_after_damage(enemy: Node) -> void:
 
 @rpc("authority", "call_remote", "reliable")
 func rpc_sync_enemy_after_damage(path_str: String, hp_val: int, max_hp_val: int, dead: bool) -> void:
-	var n := get_tree().root.get_node_or_null(NodePath(path_str))
+	var n := _resolve_node_by_path_for_damage(path_str)
 	if n == null or not is_instance_valid(n):
 		return
 	if n.get("hp") != null:
@@ -563,7 +601,7 @@ func server_spawn_boss_loot_for_coop(scene_res_path: String, parent: Node2D, glo
 func rpc_request_enemy_damage(enemy_path_str: String, amount: int) -> void:
 	if not is_server():
 		return
-	var n := get_tree().root.get_node_or_null(NodePath(enemy_path_str))
+	var n := _resolve_node_by_path_for_damage(enemy_path_str)
 	if n == null or not is_instance_valid(n):
 		return
 	if not n.is_in_group("enemys"):
