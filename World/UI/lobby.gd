@@ -30,6 +30,7 @@ func _ready() -> void:
 
 	_refresh_peers_from_multiplayer()
 	call_deferred("_refresh_peers_from_multiplayer")
+	call_deferred("_register_my_character_choice")
 
 
 func _get_local_ip() -> String:
@@ -56,7 +57,9 @@ func _on_peer_connected(_id: int) -> void:
 	_refresh_peers_from_multiplayer()
 
 
-func _on_peer_disconnected(_id: int) -> void:
+func _on_peer_disconnected(id: int) -> void:
+	if NetworkManager.is_hosting():
+		PlayerManager.clear_peer_character(id)
 	_refresh_peers_from_multiplayer()
 
 
@@ -130,20 +133,39 @@ func _update_start_button_state() -> void:
 	start_button.disabled = _peers.size() < 2
 
 
+func _register_my_character_choice() -> void:
+	var idx := SaveSystem.get_selected_player()
+	if NetworkManager.is_hosting():
+		PlayerManager.set_peer_character(NetworkManager.my_id, idx)
+	else:
+		_rpc_register_character.rpc_id(NetworkManager.SERVER_ID, idx)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _rpc_register_character(char_index: int) -> void:
+	if not NetworkManager.is_hosting():
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	PlayerManager.set_peer_character(sender, char_index)
+
+
 func _on_start_button_pressed() -> void:
 	if not NetworkManager.is_hosting():
 		return
 	var peers_to_spawn: Array = _peers.duplicate()
 	var coop_sync: Dictionary = GameConstants.capture_coop_start_state()
-	_rpc_start_game.rpc(peers_to_spawn, coop_sync)
+	var peer_characters: Dictionary = PlayerManager.build_peer_characters_for_peers(_peers)
+	_rpc_start_game.rpc(peers_to_spawn, coop_sync, peer_characters)
 
 
 @rpc("authority", "call_local", "reliable")
-func _rpc_start_game(peers_to_spawn: Array, coop_sync: Dictionary = {}) -> void:
+func _rpc_start_game(peers_to_spawn: Array, coop_sync: Dictionary = {}, peer_characters: Dictionary = {}) -> void:
 	if NetworkManager.is_hosting():
 		SaveSystem.delete_dungeon_state()
 	if not coop_sync.is_empty():
 		GameConstants.apply_coop_start_state(coop_sync)
+	if not peer_characters.is_empty():
+		PlayerManager.apply_peer_characters(peer_characters)
 	var norm: Array = []
 	for v in peers_to_spawn:
 		if typeof(v) == TYPE_INT:

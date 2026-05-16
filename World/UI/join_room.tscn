@@ -221,11 +221,13 @@ horizontal_alignment = 1
 custom_minimum_size = Vector2(125, 24)
 layout_mode = 2
 size_flags_horizontal = 4
+focus_mode = 2
 theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 13
 placeholder_text = "Введите код"
 alignment = 1
 max_length = 8
+virtual_keyboard_enabled = true
 
 [node name="PasteButton" type="TextureButton" parent="Panel/VBoxContainer"]
 custom_minimum_size = Vector2(125, 24)

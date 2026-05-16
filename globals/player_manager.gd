@@ -2,13 +2,64 @@ extends Node
 
 var players: Dictionary = {}
 var pending_peers: Array = []  # Устанавливается лобби перед сменой сцены
+## peer_id -> 0 Knight, 1 Sorceress (кооп: хост собирает в лобби, рассылает при старте)
+var peer_characters: Dictionary = {}
 var _player_scene: PackedScene
 ## Клиент: после load_dungeon_state без падений — true; сбрасывается в MapManager._boot_dungeon_async
 var network_spawn_finalize_done: bool = false
 
+func get_player_scene_for_index(index: int) -> PackedScene:
+	if index == 1:
+		return preload("res://scene/game_objects/player2/player_2.tscn")
+	return preload("res://scene/game_objects/player/player.tscn")
+
+
+func get_selected_player_scene() -> PackedScene:
+	return get_player_scene_for_index(SaveSystem.get_selected_player())
+
+
+func get_player_scene_for_peer(peer_id: int) -> PackedScene:
+	return get_player_scene_for_index(get_peer_character(peer_id))
+
+
+func get_peer_character(peer_id: int) -> int:
+	if peer_characters.has(peer_id):
+		return int(peer_characters[peer_id])
+	if peer_id == NetworkManager.my_id:
+		return SaveSystem.get_selected_player()
+	return 0
+
+
+func set_peer_character(peer_id: int, char_index: int) -> void:
+	peer_characters[peer_id] = clampi(char_index, 0, 1)
+
+
+func clear_peer_character(peer_id: int) -> void:
+	peer_characters.erase(peer_id)
+
+
+func clear_peer_characters() -> void:
+	peer_characters.clear()
+
+
+func build_peer_characters_for_peers(peer_ids: Array) -> Dictionary:
+	var out: Dictionary = {}
+	for v in peer_ids:
+		var pid: int = int(v)
+		out[pid] = get_peer_character(pid)
+	return out
+
+
+func apply_peer_characters(data: Dictionary) -> void:
+	peer_characters.clear()
+	for k in data.keys():
+		var pid: int = int(k) if typeof(k) == TYPE_STRING else int(k)
+		peer_characters[pid] = clampi(int(data[k]), 0, 1)
+
+
 func _ready() -> void:
-	_player_scene = preload("res://scene/game_objects/player/player.tscn")
-	NetworkManager.player_disconnected.connect(_despawn_player)
+	_player_scene = get_selected_player_scene()
+	NetworkManager.player_disconnected.connect(_on_network_player_disconnected)
 	NetworkManager.disconnected_from_server.connect(_on_disconnected)
 	get_tree().node_added.connect(_on_node_added)
 
@@ -136,7 +187,7 @@ func _spawn_player(player_id: int, game_root: Node = null) -> void:
 		push_error("PlayerManager: нет валидной сцены для спавна игрока")
 		return
 
-	var instance = _player_scene.instantiate()
+	var instance = get_player_scene_for_peer(player_id).instantiate()
 	instance.name = "Player_%d" % player_id
 	instance.set_multiplayer_authority(player_id)
 	world.add_child(instance)
@@ -408,10 +459,16 @@ func _find_valid_spawn_near(center: Vector2, max_search_radius: float = 256.0, e
 		radius += step
 	return Vector2.INF
 
+func _on_network_player_disconnected(player_id: int) -> void:
+	clear_peer_character(player_id)
+	_despawn_player(player_id)
+
+
 func _on_disconnected() -> void:
 	for id in players.keys().duplicate():
 		_despawn_player(id)
 	players.clear()
+	clear_peer_characters()
 
 
 func find_safe_spawn_near_global(center: Vector2) -> Vector2:

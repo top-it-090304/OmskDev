@@ -3,6 +3,7 @@ extends CharacterBody2D
 @export var atack_spawn: Node
 @export var gameover: PackedScene
 @export var hit_particles: PackedScene
+@export var fireball_scene: PackedScene = preload("res://scene/abilities/fireball.tscn")
 
 @onready var attack_joystick = $MobileController/VirtualJoystick2
 @onready var anim = $AnimatedSprite2D
@@ -47,6 +48,8 @@ var can_attack = true
 var is_dead = false
 
 var last_known_max_health = 0
+var _shot_direction := Vector2.DOWN
+var _last_shot_msec: int = 0
 
 # =========================================================
 # СЕТЬ
@@ -211,6 +214,29 @@ func _process(delta: float) -> void:
 			remove_poison()
 
 	# =====================================================
+	# АТАКА (клавиатура / мышь)
+	# =====================================================
+
+	if Input.is_action_just_pressed("attack_down"):
+		current_dir = Dir.DOWN
+		if can_attack:
+			attack()
+	elif Input.is_action_just_pressed("attack_up"):
+		current_dir = Dir.UP
+		if can_attack:
+			attack()
+	elif Input.is_action_just_pressed("attack_left"):
+		current_dir = Dir.LEFT
+		if can_attack:
+			attack()
+	elif Input.is_action_just_pressed("attack_right"):
+		current_dir = Dir.RIGHT
+		if can_attack:
+			attack()
+	elif Input.is_action_just_pressed("attack") and can_attack:
+		attack()
+
+	# =====================================================
 	# АТАКА ДЖОЙСТИКОМ
 	# =====================================================
 
@@ -224,7 +250,7 @@ func _process(delta: float) -> void:
 				attack()
 
 	# =====================================================
-	# ДВИЖЕНИЕ
+	# ДВИЖЕНИЕ (во время каста тоже можно ходить)
 	# =====================================================
 
 	var direction = movement_vector()
@@ -235,7 +261,7 @@ func _process(delta: float) -> void:
 		if not (attack_joystick and attack_joystick.is_active):
 			update_direction(direction)
 
-		if can_anim:
+		if can_anim and not _is_attack_anim_playing():
 			play_walk_animation()
 
 	else:
@@ -244,7 +270,7 @@ func _process(delta: float) -> void:
 			GameConstants.PLAYER_MAX_SPEED
 		)
 
-		if can_anim:
+		if can_anim and not _is_attack_anim_playing():
 			play_idle_animation()
 
 # =========================================================
@@ -309,46 +335,24 @@ func attack(from_rpc: bool = false) -> void:
 	if NetworkManager.is_game_online() and NetworkManager.coop_run_finished and is_local_player:
 		return
 
-	can_anim = false
+	_shot_direction = _get_attack_direction()
+	update_direction(_shot_direction)
+
 	can_attack = false
+	attack_timer.start(attack_timer.wait_time / GameConstants.PLAYER_ATTACK_SPEED)
 
 	animP.speed_scale = GameConstants.PLAYER_ATTACK_SPEED
-
 	match current_dir:
 		Dir.UP:
 			animP.play("attack_up")
-
 		Dir.DOWN:
 			animP.play("attack_down")
-
 		Dir.LEFT:
 			animP.play("attack_left")
-
 		Dir.RIGHT:
 			animP.play("attack_right")
 
-	AudioManager.play_sfx("игрок_атака")
-
-	await animP.animation_finished
-
-	animP.stop()
-	animP.speed_scale = 1.0
-
-	can_anim = true
-	if from_rpc:
-		if velocity.length_squared() > 100.0:
-			play_walk_animation()
-		else:
-			play_idle_animation()
-	else:
-		if movement_vector() != Vector2.ZERO:
-			play_walk_animation()
-		else:
-			play_idle_animation()
-
-	attack_timer.start(
-		attack_timer.wait_time / GameConstants.PLAYER_ATTACK_SPEED
-	)
+	shoot()
 
 	if NetworkManager.is_game_online() and not from_rpc and is_local_player:
 		var mp := get_tree().get_multiplayer()
@@ -356,6 +360,112 @@ func attack(from_rpc: bool = false) -> void:
 			rpc_attack.rpc(true)
 		else:
 			rpc_attack.rpc_id(NetworkManager.SERVER_ID, true)
+
+
+func _is_attack_anim_playing() -> bool:
+	if not animP.is_playing():
+		return false
+	var anim_name: StringName = animP.current_animation
+	return str(anim_name).begins_with("attack_")
+
+
+## Как у Knight: урон + крит для файрбола.
+func roll_attack_damage() -> Dictionary:
+	var dmg := GameConstants.PLAYER_ATTACK_DAMAGE
+	var is_crit := randf() < GameConstants.PLAYER_CRIT_CHANCE
+	if is_crit:
+		dmg = int(dmg * GameConstants.PLAYER_CRIT_MULTIPLIER)
+	return {"damage": dmg, "is_crit": is_crit}
+
+
+## Вызывается из attack() и из AnimationPlayer (не чаще одного раза за выстрел).
+func shoot() -> void:
+	if is_dead:
+		return
+	var now := Time.get_ticks_msec()
+	if now - _last_shot_msec < 100:
+		return
+	_last_shot_msec = now
+	_spawn_fireball(_shot_direction)
+
+
+func _get_attack_direction() -> Vector2:
+	if attack_joystick and attack_joystick.is_active:
+		var v: Vector2 = attack_joystick.vector
+		if v.length_squared() > 0.01:
+			return v.normalized()
+	var to_mouse := get_global_mouse_position() - global_position
+	if to_mouse.length_squared() > 64.0:
+		return to_mouse.normalized()
+	match current_dir:
+		Dir.UP:
+			return Vector2.UP
+		Dir.DOWN:
+			return Vector2.DOWN
+		Dir.LEFT:
+			return Vector2.LEFT
+		Dir.RIGHT:
+			return Vector2.RIGHT
+	return Vector2.DOWN
+
+
+func _get_projectile_parent() -> Node:
+	var layer := get_tree().root.get_node_or_null("Layer")
+	if layer != null:
+		return layer
+	var mm := get_tree().root.find_child("MapManager", true, false)
+	if mm != null and mm.get_parent() != null:
+		return mm.get_parent()
+	return get_tree().current_scene
+
+
+func _spawn_fireball(dir_vec: Vector2) -> void:
+	if dir_vec.length_squared() < 0.01 or fireball_scene == null:
+		return
+	if not is_inside_tree():
+		return
+	var norm_dir := dir_vec.normalized()
+	var spawn_pos := global_position + norm_dir * 22.0
+	var fireball := fireball_scene.instantiate()
+	fireball.shooter = self
+	fireball.direction = norm_dir
+	fireball.rotation = norm_dir.angle()
+	var world := _get_projectile_parent()
+	if world == null:
+		world = get_parent()
+	if world == null:
+		return
+	world.add_child(fireball)
+	fireball.global_position = spawn_pos
+	AudioManager.play_sfx("огненный_выстрел")
+	var mp := get_tree().get_multiplayer()
+	if mp.has_multiplayer_peer() and mp.is_server():
+		NetworkManager.host_mirror_projectile_if_coop(
+			fireball_scene.resource_path,
+			spawn_pos,
+			norm_dir
+		)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func rpc_server_teleport_to(pos: Vector2) -> void:
+	if multiplayer.get_remote_sender_id() != NetworkManager.SERVER_ID:
+		return
+	global_position = pos
+	velocity = Vector2.ZERO
+	if is_local_player:
+		_last_sent_pos_net = Vector2(NAN, NAN)
+		flush_network_transform()
+
+
+func flush_network_transform() -> void:
+	if not is_local_player:
+		return
+	if NetworkManager.is_game_offline():
+		return
+	_last_sent_pos_net = global_position
+	_last_sent_dir_net = current_dir
+	rpc_set_position.rpc(global_position, current_dir)
 
 # =========================================================
 # DAMAGE
@@ -560,9 +670,47 @@ func _ready() -> void:
 	if SaveSystem.should_restore_player:
 		SaveSystem.restore_player_state()
 
+	if has_node("hitbox_attack/CollisionShape2D"):
+		$hitbox_attack/CollisionShape2D.set_deferred("disabled", true)
+
 	if not is_local_player:
 		if attack_joystick:
 			attack_joystick.set_process(false)
+		_hide_ui_for_remote_peer()
+	else:
+		add_to_group("local_player")
+		if has_node("Camera2D"):
+			var cam := $Camera2D as Camera2D
+			cam.enabled = true
+			cam.make_current()
+		anim.play("idle_down")
+
+
+func _hide_ui_for_remote_peer() -> void:
+	if has_node("Camera2D"):
+		var cam := $Camera2D as Camera2D
+		cam.enabled = false
+		cam.visible = false
+
+	for node_name in [
+		"TextureProgressBar",
+		"TextureButton",
+		"InventoryButton",
+		"LevelUpPopup",
+	]:
+		if has_node(node_name):
+			var n := get_node(node_name)
+			n.visible = false
+			n.process_mode = Node.PROCESS_MODE_DISABLED
+
+	var mc := get_node_or_null("MobileController") as CanvasLayer
+	if mc:
+		mc.visible = false
+		for c in mc.get_children():
+			if c is Control:
+				(c as Control).visible = false
+				(c as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+				(c as Control).process_mode = Node.PROCESS_MODE_DISABLED
 
 # =========================================================
 # CONSTANTS UPDATE

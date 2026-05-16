@@ -17,6 +17,9 @@ var collected_treasure_rooms: Array = []
 # Флаг что люк босса открыт
 var boss_hatch_opened: bool = false
 
+# Выбранный игрок (0 = Knight, 1 = Sorceress)
+var selected_player: int = 0
+
 ## resource_path последнего заспавненного босса — на новом этаже выбираем другого из списка (чередование).
 var last_spawned_boss_scene_path: String = ""
 
@@ -416,3 +419,9 @@ func set_boss_hatch_opened(opened: bool):
 
 func is_boss_hatch_opened() -> bool:
 	return boss_hatch_opened
+
+func set_selected_player(index: int) -> void:
+	selected_player = index
+
+func get_selected_player() -> int:
+	return selected_player

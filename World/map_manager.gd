@@ -202,18 +202,8 @@ func _spawn_player():
 	if NetworkManager.connection_state != NetworkManager.ConnectionState.DISCONNECTED:
 		return
 
-	var Player = null
-
-	# 1. Если сцена игрока задана в инспекторе, создаем его
-	if player_scene:
-		Player = player_scene.instantiate()
-		layer.add_child(Player) # Добавляем как child прямо в MapManager
-	else:
-		# 2. Если сцена не задана, пробуем найти игрока уже на сцене (например, если он в автолоаде)
-		Player = get_tree().get_first_node_in_group("player")
-		if not Player:
-			push_warning("MapManager: Сцена игрока не назначена и игрок в группе 'player' не найден!")
-			return
+	var Player = PlayerManager.get_selected_player_scene().instantiate()
+	layer.add_child(Player)
 
 	# Ищем стартовую комнату в списке заспавненных
 	for room_data in spawned_rooms:

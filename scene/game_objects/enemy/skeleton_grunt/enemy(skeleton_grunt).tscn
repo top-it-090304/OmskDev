@@ -1,5 +1,6 @@
-[gd_scene load_steps=159 format=3 uid="uid://dyfq8emof0pax"]
+[gd_scene load_steps=160 format=3 uid="uid://dyfq8emof0pax"]
 
+[ext_resource type="Script" path="res://scene/game_objects/enemy/skeleton_grunt/enemy(skeleton_grunt).gd" id="1_sklt"]
 [ext_resource type="Texture2D" uid="uid://3iftfbt86hrh" path="res://sprites/enemys/axeGoblin/Down/Png/GoblinDownAttack01.png" id="2_rabh0"]
 [ext_resource type="Texture2D" uid="uid://e4cw7x2sf4d4" path="res://sprites/enemys/axeGoblin/Left/Png/GoblinLeftAttack01.png" id="3_o01ol"]
 [ext_resource type="Texture2D" uid="uid://d0tb24j8w2ql8" path="res://sprites/enemys/axeGoblin/Right/Png/GoblinRightAttack01.png" id="4_f8jc8"]
@@ -1303,10 +1304,11 @@ _data = {
 &"run_up": SubResource("Animation_538nr")
 }
 
-[node name="enemy(goblin_axe)" type="CharacterBody2D" groups=["enemies"]]
+[node name="enemy(skeleton_grunt)" type="CharacterBody2D"]
 collision_layer = 5
 floor_max_angle = 0.0
 safe_margin = 0.001
+script = ExtResource("1_sklt")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 z_index = 1
