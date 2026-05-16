@@ -395,7 +395,7 @@ func _launch_arrow_at_player(arrow: Node2D) -> void:
 	
 	# Получаем направление (уже направлено к игроку)
 	var direction: Vector2 = arrow.get_meta("direction", Vector2.DOWN)
-	var speed = 300.0
+	var arrow_speed = 300.0
 	
 	# Подключаем сигнал урона
 	arrow.body_entered.connect(func(body):
@@ -411,7 +411,7 @@ func _launch_arrow_at_player(arrow: Node2D) -> void:
 	# Движение стрелы
 	var travel_time = 3.0
 	var travel_tween = create_tween()
-	travel_tween.tween_property(arrow, "global_position", arrow.global_position + direction * speed * travel_time, travel_time)
+	travel_tween.tween_property(arrow, "global_position", arrow.global_position + direction * arrow_speed * travel_time, travel_time)
 	travel_tween.tween_callback(arrow.queue_free)
 
 # ============ АТАКА 03: Ультимативная способность (Bone Spear Rush) ============
@@ -600,10 +600,7 @@ func _on_detector_charge_body_exited(body: Node2D) -> void:
 		player_in_charge_zone = false
 
 func _on_hitbox_area_entered(_area: Area2D) -> void:
-	if is_dead:
-		return
-	var dmg := GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_TAKE_DAMAGE)
-	NetworkManager.apply_melee_damage_to_enemy_from_player(self, dmg)
+	pass
 
 func _on_attack_timer_timeout(): pass  # не используется, кулдауны через delta
 

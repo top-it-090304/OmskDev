@@ -96,6 +96,16 @@ func rpc_set_position(pos: Vector2, dir: int) -> void:
 	target_position = pos
 	target_direction = dir
 	interpolation_timer = 0.0
+	if not is_multiplayer_authority():
+		set_meta(&"net_target_valid", true)
+	if is_local_player:
+		return
+	var dist2 := global_position.distance_squared_to(pos)
+	if dist2 > 1225.0:
+		global_position = pos
+	current_dir = dir
+	if can_anim and not is_dead and dist2 > 1225.0:
+		play_idle_animation()
 
 @rpc("authority", "call_local")
 func rpc_take_damage(amount: int) -> void:
@@ -132,9 +142,9 @@ func rpc_heal(amount: int) -> void:
 		heal(amount)
 
 @rpc("authority", "call_local")
-func rpc_attack(from_rpc: bool) -> void:
+func rpc_attack(_from_rpc: bool, shot_direction: Vector2 = Vector2.ZERO) -> void:
 	if not is_local_player and not is_dead:
-		attack(true)
+		attack(true, shot_direction)
 
 # =========================================================
 # PHYSICS
@@ -341,13 +351,13 @@ func play_idle_animation():
 # ATTACK
 # =========================================================
 
-func attack(from_rpc: bool = false) -> void:
+func attack(from_rpc: bool = false, shot_direction: Vector2 = Vector2.ZERO) -> void:
 	if not can_attack or is_dead or not can_anim:
 		return
 	if NetworkManager.is_game_online() and NetworkManager.coop_run_finished and is_local_player:
 		return
 
-	_shot_direction = _get_attack_direction()
+	_shot_direction = shot_direction.normalized() if shot_direction.length_squared() > 0.01 else _get_attack_direction()
 	update_direction(_shot_direction)
 
 	can_attack = false
@@ -370,9 +380,9 @@ func attack(from_rpc: bool = false) -> void:
 	if NetworkManager.is_game_online() and not from_rpc and is_local_player:
 		var mp := get_tree().get_multiplayer()
 		if mp.is_server():
-			rpc_attack.rpc(true)
+			rpc_attack.rpc(true, _shot_direction)
 		else:
-			rpc_attack.rpc_id(NetworkManager.SERVER_ID, true)
+			rpc_attack.rpc_id(NetworkManager.SERVER_ID, true, _shot_direction)
 
 
 func _get_effective_attack_speed() -> float:
@@ -430,7 +440,7 @@ func _get_projectile_parent() -> Node:
 	var layer := get_tree().root.get_node_or_null("Layer")
 	if layer != null:
 		return layer
-	var mm := get_tree().root.find_child("MapManager", true, false)
+	var mm := get_tree().get_first_node_in_group("map_manager")
 	if mm != null and mm.get_parent() != null:
 		return mm.get_parent()
 	return get_tree().current_scene
@@ -684,6 +694,7 @@ func _get_max_health() -> int:
 
 func _ready() -> void:
 	add_to_group("player")
+	damage_timer.wait_time = GameConstants.PLAYER_DAMAGE_INVINCIBILITY_SEC
 	attack_timer.one_shot = true
 	attack_timer.wait_time = attack_cooldown
 

@@ -5,8 +5,14 @@ var pending_peers: Array = []  # Устанавливается лобби пе�
 ## peer_id -> 0 Knight, 1 Sorceress (кооп: хост собирает в лобби, рассылает при старте)
 var peer_characters: Dictionary = {}
 var _player_scene: PackedScene
+const PLAYER_NAME_LABEL := "MultiplayerNameLabel"
+const PLAYER_NAME_FONT := preload("res://Font/PixelRpgFont-Regular.ttf")
 ## Клиент: после load_dungeon_state без падений — true; сбрасывается в MapManager._boot_dungeon_async
 var network_spawn_finalize_done: bool = false
+
+const PLAYER_TARGET_CACHE_INTERVAL_SEC := 0.1
+var _alive_players_cache: Array[Node2D] = []
+var _player_cache_accum: float = 0.0
 
 func get_player_scene_for_index(index: int) -> PackedScene:
 	if index == 1:
@@ -73,19 +79,37 @@ func get_player_for_local_rewards() -> Node:
 	return lp if lp != null else tree.get_first_node_in_group("player")
 
 
-## ИИ врагов/боссов: ближайший живой игрок (по мировой позиции). В соло совпадает с единственным игроком.
-func get_nearest_target_player_node(from_global: Vector2) -> Node2D:
+func _process(delta: float) -> void:
+	_player_cache_accum += delta
+	if _player_cache_accum >= PLAYER_TARGET_CACHE_INTERVAL_SEC:
+		_player_cache_accum = 0.0
+		_refresh_alive_players_cache()
+
+
+func _refresh_alive_players_cache() -> void:
+	_alive_players_cache.clear()
 	var tree := get_tree()
 	if tree == null:
-		return null
-	var best: Node2D = null
-	var best_d2: float = INF
+		return
 	for n in tree.get_nodes_in_group("player"):
 		if not n is Node2D or not is_instance_valid(n):
 			continue
 		if n.get("is_dead") == true:
 			continue
-		var p2 := n as Node2D
+		_alive_players_cache.append(n as Node2D)
+
+
+## ИИ врагов/боссов: ближайший живой игрок (по мировой позиции). В соло совпадает с единственным игроком.
+func get_nearest_target_player_node(from_global: Vector2) -> Node2D:
+	if _alive_players_cache.is_empty():
+		_refresh_alive_players_cache()
+	var best: Node2D = null
+	var best_d2: float = INF
+	for p2 in _alive_players_cache:
+		if not is_instance_valid(p2):
+			continue
+		if p2.get("is_dead") == true:
+			continue
 		var ref_pos := get_player_world_pos_for_hosting_ai(p2)
 		var d2: float = from_global.distance_squared_to(ref_pos)
 		if d2 < best_d2:
@@ -162,7 +186,6 @@ func _on_game_scene_ready(game_root: Node) -> void:
 			_spawn_player(id, game_root)
 
 	pending_peers.clear()
-	NetworkManager.game_started.emit()
 
 
 func spawn_peer(peer_id: int) -> void:
@@ -196,8 +219,60 @@ func _spawn_player(player_id: int, game_root: Node = null) -> void:
 		instance.is_local_player = true
 	
 	players[player_id] = instance
+	_refresh_multiplayer_name_labels()
 	if NetworkManager.connection_state == NetworkManager.ConnectionState.DISCONNECTED:
 		_position_new_player(instance, player_id)
+
+
+func _refresh_multiplayer_name_labels() -> void:
+	if not NetworkManager.is_multiplayer_active():
+		for pid in players.keys():
+			var player_node: Variant = players[pid]
+			if is_instance_valid(player_node):
+				_remove_player_name_label(player_node as Node)
+		return
+
+	var sorted_ids := players.keys()
+	sorted_ids.sort()
+	for i in sorted_ids.size():
+		var pid: int = int(sorted_ids[i])
+		if not players.has(pid):
+			continue
+		var player_node: Variant = players[pid]
+		if not is_instance_valid(player_node):
+			continue
+		_set_player_name_label(player_node as Node2D, "Player %d" % [i + 1])
+
+
+func _set_player_name_label(player_node: Node2D, text: String) -> void:
+	if player_node == null:
+		return
+	var label := player_node.get_node_or_null(PLAYER_NAME_LABEL) as Label
+	if label == null:
+		label = Label.new()
+		label.name = PLAYER_NAME_LABEL
+		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		label.z_index = 80
+		label.custom_minimum_size = Vector2(96, 18)
+		label.size = Vector2(96, 18)
+		label.position = Vector2(-48, -44)
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.add_theme_font_override("font", PLAYER_NAME_FONT)
+		label.add_theme_font_size_override("font_size", 10)
+		label.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+		label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 1))
+		label.add_theme_constant_override("shadow_offset_x", 1)
+		label.add_theme_constant_override("shadow_offset_y", 1)
+		player_node.add_child(label)
+	label.text = text
+	label.visible = true
+
+
+func _remove_player_name_label(player_node: Node) -> void:
+	var label := player_node.get_node_or_null(PLAYER_NAME_LABEL)
+	if label != null:
+		label.queue_free()
 
 
 ## Вызывается из MapManager после полной загрузки/генерации карты (один раз на этаж)
@@ -209,7 +284,7 @@ func finalize_network_spawns() -> void:
 	# Тайл-коллизии TileMapLayer попадают в дерево не сразу — без ожидания intersect_shape даёт «пусто» в стене
 	for _i in range(10):
 		await get_tree().physics_frame
-	var mm := get_tree().root.find_child("MapManager", true, false)
+	var mm := get_tree().get_first_node_in_group("map_manager")
 	if mm == null or not mm.has_method("get_coop_spawn_points"):
 		return
 	var start_room: Node2D = null
@@ -249,6 +324,54 @@ func finalize_network_spawns() -> void:
 			inst.flush_network_transform()
 	if NetworkManager.is_multiplayer_active():
 		network_spawn_finalize_done = true
+
+
+func build_floor_spawn_data() -> Dictionary:
+	var data: Dictionary = {}
+	var sorted_ids: Array = players.keys()
+	sorted_ids.sort()
+	for pid in sorted_ids:
+		if not players.has(pid):
+			continue
+		var inst: Node2D = players[pid]
+		if not is_instance_valid(inst):
+			continue
+		var p := inst.global_position
+		data[str(pid)] = [p.x, p.y]
+	return data
+
+
+func apply_coop_floor_spawn_positions(spawn_data: Dictionary) -> void:
+	if spawn_data.is_empty():
+		return
+	var mp := get_tree().get_multiplayer()
+	var my_id := mp.get_unique_id()
+	for pid_key in spawn_data.keys():
+		var pid: int = int(pid_key)
+		if not players.has(pid):
+			continue
+		var inst: Node2D = players[pid]
+		if not is_instance_valid(inst):
+			continue
+		var entry: Variant = spawn_data[pid_key]
+		if not entry is Array or (entry as Array).size() < 2:
+			continue
+		var pos := Vector2(float(entry[0]), float(entry[1]))
+		inst.global_position = pos
+		if inst is CharacterBody2D:
+			(inst as CharacterBody2D).velocity = Vector2.ZERO
+		if inst.get_multiplayer_authority() == my_id and inst.has_method("flush_network_transform"):
+			inst.flush_network_transform()
+
+
+## После finalize на хосте — одни и те же координаты старта на всех машинах.
+func host_authoritative_floor_spawn_sync() -> void:
+	if not NetworkManager.is_hosting():
+		return
+	var data := build_floor_spawn_data()
+	if data.is_empty():
+		return
+	NetworkManager.rpc_coop_floor_spawn_positions.rpc(data)
 
 
 ## Если карта ещё не загружена (гость без данжа / гонка), всё равно разносим игроков — как раньше без «тихого» return
@@ -302,8 +425,7 @@ func _fallback_place_network_players(mm: Node) -> void:
 		var start_rn: Node2D = null
 		if mm.has_method("get_coop_start_room_node"):
 			start_rn = mm.get_coop_start_room_node()
-		var placed := _resolve_coop_spawn_position(cand, start_rn, inst)
-		inst.global_position = placed
+		inst.global_position = _resolve_coop_spawn_position(cand, start_rn, inst)
 		if inst is CharacterBody2D:
 			(inst as CharacterBody2D).velocity = Vector2.ZERO
 		if inst.has_method("flush_network_transform"):
@@ -317,6 +439,7 @@ func _despawn_player(player_id: int) -> void:
 	if is_instance_valid(inst):
 		(inst as Node).queue_free()
 	players.erase(player_id)
+	_refresh_multiplayer_name_labels()
 
 func _position_new_player(instance: Node2D, player_id: int) -> void:
 	if NetworkManager.connection_state == NetworkManager.ConnectionState.DISCONNECTED:
@@ -341,7 +464,7 @@ func _position_new_player(instance: Node2D, player_id: int) -> void:
 			return
 
 	# Резервный путь через MapManager
-	var map_manager = get_tree().root.find_child("MapManager", true, false)
+	var map_manager = get_tree().get_first_node_in_group("map_manager")
 	if map_manager and map_manager.has_method("get_spawn_point"):
 		instance.global_position = map_manager.get_spawn_point()
 

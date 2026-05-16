@@ -9,7 +9,7 @@ func _on_pressed() -> void:
 	
 
 
-func _on_player_child_exiting_tree(node: Node) -> void:
+func _on_player_child_exiting_tree(_node: Node) -> void:
 	
 	disabled=false
 	visible=true 

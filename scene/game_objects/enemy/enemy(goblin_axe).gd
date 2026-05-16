@@ -211,9 +211,8 @@ func _on_attack_timer_timeout():
 		attack()
 
 func _on_hitbox_area_entered(_area: Area2D) -> void:
-	if is_dead:
-		return
-	NetworkManager.apply_melee_damage_to_enemy_from_player(self, GameConstants.ENEMY_GOBLIN_AXE_TAKE_DAMAGE)
+	# Урон только через hitbox_attack игрока (избегаем двойного урона с TAKE_DAMAGE).
+	pass
 
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if is_dead: return

@@ -30,7 +30,7 @@ func _on_body_entered(body: Node2D) -> void:
 			NetworkManager.server_apply_poison_to_player_from_enemy(
 				body,
 				GameConstants.POISON_DURATION,
-				GameConstants.POISON_PROJECTILE_DAMAGE,
+				GameConstants.get_scaled_enemy_stat(GameConstants.POISON_PROJECTILE_DAMAGE),
 				GameConstants.POISON_TICK_RATE
 			)
-	queue_free()
+	call_deferred("queue_free")

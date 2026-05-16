@@ -131,7 +131,7 @@ func _return_to_previous_scene() -> void:
 		get_tree().change_scene_to_file(came_from_scene)
 	else:
 		# По умолчанию возвращаемся в игру
-		get_tree().change_scene_to_file("res://World/layer.tscn")
+		get_tree().change_scene_to_file(GameConstants.get_current_floor_scene_path())
 
 func _save_joystick_settings() -> void:
 	var cfg := ConfigFile.new()
@@ -147,7 +147,7 @@ func _save_joystick_settings() -> void:
 		cfg.set_value("joystick", "attack_pos_y", attack_joystick.position.y)
 		cfg.set_value("joystick", "attack_scale", attack_joystick.scale.x)
 
-	cfg.set_value("joystick", "layout_version", 3)
+	cfg.set_value("joystick", "layout_version", 5)
 	cfg.save(CFG_PATH)
 	print("Joystick settings saved!")
 
@@ -157,7 +157,7 @@ func _load_joystick_settings() -> void:
 		return
 
 	var vps := get_viewport().get_visible_rect().size
-	var def_y := clampf(vps.y * 0.58, 168.0, maxf(160.0, vps.y - 140.0))
+	var def_y := clampf(vps.y * 0.46, 130.0, maxf(140.0, vps.y - 200.0))
 	var def_move := Vector2(maxf(16.0, vps.x * 0.035), def_y)
 	var def_attack := Vector2(clampf(vps.x * 0.72, def_move.x + 130.0, vps.x - 20.0), def_y)
 

@@ -173,7 +173,7 @@ func update_minimap_visuals():
 				else:
 					cell.color = Color.TRANSPARENT
 
-func get_room_color(type, pos):
+func get_room_color(type, _pos):
 	match type:
 		map_manager.RoomType.START: return Color.LIGHT_GREEN
 		map_manager.RoomType.BOSS: return Color.INDIAN_RED

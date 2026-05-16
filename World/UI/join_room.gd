@@ -4,6 +4,7 @@ const CodeKeyboard := preload("res://World/UI/code_keyboard.gd")
 
 @onready var code_input: LineEdit = $Panel/VBoxContainer/CodeInput
 @onready var error_label: Label = $Panel/VBoxContainer/ErrorLabel
+@onready var back_button: TextureButton = $Panel/VBoxContainer/BackButton
 
 var _code_keyboard: Control
 var _syncing_code_input := false
@@ -12,11 +13,22 @@ var _syncing_code_input := false
 func _ready() -> void:
 	error_label.text = ""
 	code_input.virtual_keyboard_enabled = false
+	_ignore_button_label_mouse($Panel/VBoxContainer/PasteButton)
+	_ignore_button_label_mouse($Panel/VBoxContainer/ConnectButton)
+	_ignore_button_label_mouse(back_button)
 	code_input.text_changed.connect(_on_code_input_text_changed)
 	code_input.focus_entered.connect(_show_virtual_keyboard)
 	code_input.gui_input.connect(_on_code_input_gui_input)
+	if not back_button.pressed.is_connected(_on_back_pressed):
+		back_button.pressed.connect(_on_back_pressed)
 	_create_code_keyboard()
 	call_deferred("_focus_code_input")
+
+
+func _ignore_button_label_mouse(button: Control) -> void:
+	for child in button.get_children():
+		if child is Control:
+			(child as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
 func _focus_code_input() -> void:
@@ -60,6 +72,7 @@ func _create_code_keyboard() -> void:
 	_code_keyboard.offset_top = 0
 	_code_keyboard.offset_right = 0
 	_code_keyboard.offset_bottom = 0
+	_code_keyboard.mouse_filter = Control.MOUSE_FILTER_STOP
 	if code_input.has_theme_font("font"):
 		_code_keyboard.key_font = code_input.get_theme_font("font")
 	_code_keyboard.key_pressed.connect(_on_code_keyboard_key_pressed)

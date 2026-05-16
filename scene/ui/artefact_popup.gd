@@ -28,7 +28,7 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventMouseButton and event.pressed:
 		fade_out()
 
-func set_artefact_info(artefact_name: String, description: String):
+func set_artefact_info(artefact_name: String, _description: String):
 	print("set_artefact_info вызван: ", artefact_name)
 	title_label.text = artefact_name
 

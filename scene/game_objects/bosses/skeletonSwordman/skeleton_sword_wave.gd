@@ -29,4 +29,4 @@ func _on_body_entered(body: Node2D) -> void:
 		return
 	if body.has_method("take_damage"):
 		NetworkManager.server_apply_damage_to_player_from_enemy(body, damage)
-	queue_free()
+	call_deferred("queue_free")

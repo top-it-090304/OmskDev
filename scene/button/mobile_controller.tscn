@@ -10,9 +10,9 @@ layer = 10
 
 [node name="VirtualJoystick" parent="." instance=ExtResource("1_meroc")]
 offset_left = 16.0
-offset_top = -108.0
+offset_top = 80.0
 offset_right = 336.0
-offset_bottom = 192.0
+offset_bottom = 380.0
 scale = Vector2(0.42, 0.42)
 clampzone_size = 35.0
 action_left = "move_left"
@@ -22,9 +22,9 @@ action_down = "move_down"
 
 [node name="VirtualJoystick2" parent="." instance=ExtResource("2_5v1cm")]
 offset_left = -113.0
-offset_top = -108.0
+offset_top = 80.0
 offset_right = 207.0
-offset_bottom = 192.0
+offset_bottom = 380.0
 grow_horizontal = 0
 grow_vertical = 0
 scale = Vector2(0.42, 0.42)

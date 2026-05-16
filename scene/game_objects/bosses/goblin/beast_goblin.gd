@@ -346,10 +346,7 @@ func _on_detector_shoot_body_entered(body): if body.is_in_group("player"): playe
 func _on_detector_shoot_body_exited(body):  if body.is_in_group("player"): player_in_shoot_zone = false
 
 func _on_hitbox_area_entered(_area) -> void:
-	if is_dead:
-		return
-	var dmg := GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_TAKE_DAMAGE)
-	NetworkManager.apply_melee_damage_to_enemy_from_player(self, dmg)
+	pass
 func _on_attack_timer_timeout(): pass  # кулдауны теперь через delta
 
 func update_run_animation(direction: Vector2):

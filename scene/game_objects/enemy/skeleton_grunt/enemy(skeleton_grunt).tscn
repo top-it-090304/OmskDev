@@ -1,6 +1,6 @@
 [gd_scene load_steps=149 format=3 uid="uid://bod4l7cighd5o"]
 
-[ext_resource type="Script" uid="uid://coq8n75720cd7" path="res://scene/game_objects/enemy/skeleton_grunt/enemy(skeleton_grunt).gd" id="1_sklt"]
+[ext_resource type="Script" uid="uid://0blcwcd33hli" path="res://scene/game_objects/enemy/skeleton_grunt/enemy(skeleton_grunt).gd" id="1_sklt"]
 [ext_resource type="Texture2D" uid="uid://8f0kt6mojt35" path="res://sprites/enemys/skeletonGrunt/Down/Png/SkeletonWithSwordDownAttack01.png" id="2_rabh0"]
 [ext_resource type="Texture2D" uid="uid://gkmrv7l71k6m" path="res://sprites/enemys/skeletonGrunt/Left/Png/SkeletonWithSwordLeftAttack01.png" id="3_o01ol"]
 [ext_resource type="Texture2D" uid="uid://bp22elb328sm1" path="res://sprites/enemys/skeletonGrunt/Right/Png/SkeletonWithSwordRightAttack01.png" id="4_f8jc8"]
@@ -915,7 +915,7 @@ tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
 tracks/1/path = NodePath("AnimatedSprite2D:animation")
-tracks/1/interp = 1
+tracks/1/interp = 0
 tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0),
@@ -959,7 +959,7 @@ tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
 tracks/1/path = NodePath("AnimatedSprite2D:animation")
-tracks/1/interp = 1
+tracks/1/interp = 0
 tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0),
@@ -1003,7 +1003,7 @@ tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
 tracks/1/path = NodePath("AnimatedSprite2D:animation")
-tracks/1/interp = 1
+tracks/1/interp = 0
 tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0),
@@ -1047,7 +1047,7 @@ tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
 tracks/1/path = NodePath("AnimatedSprite2D:animation")
-tracks/1/interp = 1
+tracks/1/interp = 0
 tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0),
@@ -1092,7 +1092,7 @@ tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
 tracks/1/path = NodePath("AnimatedSprite2D:animation")
-tracks/1/interp = 1
+tracks/1/interp = 0
 tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0),
@@ -1120,7 +1120,7 @@ tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
 tracks/1/path = NodePath("AnimatedSprite2D:animation")
-tracks/1/interp = 1
+tracks/1/interp = 0
 tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0),
@@ -1148,7 +1148,7 @@ tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
 tracks/1/path = NodePath("AnimatedSprite2D:animation")
-tracks/1/interp = 1
+tracks/1/interp = 0
 tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0),
@@ -1176,7 +1176,7 @@ tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
 tracks/1/path = NodePath("AnimatedSprite2D:animation")
-tracks/1/interp = 1
+tracks/1/interp = 0
 tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0),
@@ -1204,7 +1204,7 @@ tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
 tracks/1/path = NodePath("AnimatedSprite2D:animation")
-tracks/1/interp = 1
+tracks/1/interp = 0
 tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0),

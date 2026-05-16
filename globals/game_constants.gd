@@ -50,14 +50,16 @@ const HEALTH_POTION = preload("res://scene/pick_up/Heal potion/heal_potion.tscn"
 # --- ХАРАКТЕРИСТИКИ ИГРОКА ---
 var PLAYER_MAX_SPEED = 200
 var PLAYER_MAX_HEALTH = 300
-var PLAYER_ATTACK_DAMAGE = 100
+var PLAYER_ATTACK_DAMAGE = 25
 var PLAYER_ARMOR = 0
 var PLAYER_DODGE_CHANCE = 0.0
 var PLAYER_CRIT_CHANCE = 0.0
 var PLAYER_CRIT_MULTIPLIER = 2.0
 var PLAYER_LIFESTEAL = 0.0
 var PLAYER_ATTACK_SPEED = 1.3
-var PLAYER_ENEMY_CONTACT_DAMAGE = 100
+var PLAYER_ENEMY_CONTACT_DAMAGE = 15
+## Неуязвимость после удара (сек). Слишком мало — смерть от пачки врагов за кадр.
+var PLAYER_DAMAGE_INVINCIBILITY_SEC: float = 0.35
 
 # --- СИСТЕМА УРОВНЕЙ ИГРОКА ---
 var PLAYER_LEVEL: int = 1
@@ -181,8 +183,8 @@ var ENEMY_LEVEL = 1
 var ENEMY_LEVEL_SCALING = 0.15
 
 
-func get_scene_path_for_floor(floor: int) -> String:
-	if floor == 3 or floor == 4:
+func get_scene_path_for_floor(floor_index: int) -> String:
+	if floor_index == 1 or floor_index == 2:
 		return ACT2_FLOOR_SCENE_PATH
 	return DEFAULT_FLOOR_SCENE_PATH
 

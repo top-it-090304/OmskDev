@@ -137,7 +137,7 @@ func rpc_heal(amount: int) -> void:
 		heal(amount)
 
 @rpc("authority", "call_local")
-func rpc_attack(from_rpc: bool) -> void:
+func rpc_attack(_from_rpc: bool) -> void:
 	if not is_local_player and not is_dead:
 		attack(true)
 
@@ -576,6 +576,7 @@ func _on_can_attack_timeout() -> void:
 
 func _ready() -> void:
 	add_to_group("player")
+	damage_timer.wait_time = GameConstants.PLAYER_DAMAGE_INVINCIBILITY_SEC
 
 	if NetworkManager.is_game_offline():
 		is_local_player = true

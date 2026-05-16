@@ -69,7 +69,7 @@ func _on_area_2d_area_entered(area: Area2D) -> void:
 		var player = area.get_parent()
 		pickup(player)
 
-func pickup(player: Node) -> void:
+func pickup(_player: Node) -> void:
 	if is_picked_up:
 		return
 	var tree := _main_scene_tree()
@@ -82,6 +82,10 @@ func pickup(player: Node) -> void:
 			server_run_pickup_effects(false)
 			NetworkManager.rpc_client_mirror_artefact_pickup.rpc(scene_file_path, rid.x, rid.y, mp.get_unique_id())
 		else:
+			is_picked_up = true
+			if has_node("Area2D"):
+				var area := get_node("Area2D") as Area2D
+				area.set_deferred("monitoring", false)
 			NetworkManager.rpc_request_artefact_pickup_from_client.rpc_id(
 				NetworkManager.SERVER_ID,
 				scene_file_path,

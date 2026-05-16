@@ -42,7 +42,7 @@ var item_draw_pile: Array[PackedScene] = []
 var generation_seed: int = 0
 
 #minimap
-var current_room_grid_pos = Vector2i(GameConstants.MAP_MANAGER_GRID_SIZE / 2, GameConstants.MAP_MANAGER_GRID_SIZE / 2)
+var current_room_grid_pos = Vector2i(int(GameConstants.MAP_MANAGER_GRID_SIZE / 2.0), int(GameConstants.MAP_MANAGER_GRID_SIZE / 2.0))
 signal room_changed(new_grid_pos)
 var visited_rooms = []
 var seen_rooms = []
@@ -63,6 +63,7 @@ const _ENEMY_NET_SYNC_NEIGHBORS: Array[Vector2i] = [
 const _NET_SYNC_POS_EPS2: float = 9.0
 const _NET_SYNC_VEL_EPS2: float = 25.0
 const ENEMY_STATE_KEY := "enemy_spawns"
+const TREASURE_STATE_KEY := "treasure_spawns"
 
 
 func _ready() -> void:
@@ -84,7 +85,9 @@ func _client_retry_finalize_if_needed() -> void:
 	if PlayerManager.network_spawn_finalize_done:
 		return
 	push_warning("MapManager: клиент — повторный finalize_network_spawns (после сбоя загрузки данжа?)")
-	PlayerManager.finalize_network_spawns()
+	if not SaveSystem.has_dungeon_state():
+		return
+	await PlayerManager.finalize_network_spawns()
 
 
 func _boot_dungeon_async() -> void:
@@ -97,11 +100,11 @@ func _boot_dungeon_async() -> void:
 		if not ok:
 			NetworkManager.rpc_request_dungeon_resync.rpc_id(NetworkManager.SERVER_ID)
 			ok = await NetworkManager.client_wait_dungeon_ready(30.0)
-		if SaveSystem.has_dungeon_state():
-			await load_dungeon_state()
-		else:
+		if not SaveSystem.has_dungeon_state():
 			push_error("MapManager: клиент так и не получил dungeon_state")
-		PlayerManager.finalize_network_spawns()
+			return
+		await load_dungeon_state()
+		await PlayerManager.finalize_network_spawns()
 		# Если load_dungeon_state упал по ошибке, finalize не отработал — повтор через несколько секунд
 		var retry_t := get_tree().create_timer(3.0)
 		retry_t.timeout.connect(_client_retry_finalize_if_needed, CONNECT_ONE_SHOT)
@@ -133,7 +136,9 @@ func _boot_dungeon_async() -> void:
 	if NetworkManager.is_multiplayer_active() and NetworkManager.is_hosting():
 		NetworkManager.host_publish_dungeon_state()
 
-	PlayerManager.finalize_network_spawns()
+	await PlayerManager.finalize_network_spawns()
+	if NetworkManager.is_multiplayer_active() and NetworkManager.is_hosting():
+		PlayerManager.host_authoritative_floor_spawn_sync()
 
 
 ## Глобальная точка спавна в стартовой комнате: PlayerSpawn → старый Marker2D → центр bbox (тайлы могут быть со сдвигом от центра комнаты).
@@ -217,53 +222,115 @@ func _spawn_player():
 			break
 
 # =============
-func _get_next_treasure_item() -> PackedScene:
-	if treasure_items.is_empty():
-		return null
-		
-	# Если колода пуста, берем все предметы из инспектора, копируем их и перемешиваем
-	if item_draw_pile.is_empty():
-		item_draw_pile = treasure_items.duplicate()
-		item_draw_pile.shuffle()
-	if item_draw_pile.is_empty():
-		return null
-	# Достаем верхнюю карту из колоды (pop_back() быстрее, чем pop_front())
-	return item_draw_pile.pop_back()
+func _treasure_rng_seed() -> int:
+	return int(generation_seed) ^ 0x5472454C  # "TREL"
 
-func _spawn_treasure_items():
+
+func _cmp_room_grid(a: Dictionary, b: Dictionary) -> bool:
+	var pa: Vector2i = a["grid_pos"]
+	var pb: Vector2i = b["grid_pos"]
+	if pa.x != pb.x:
+		return pa.x < pb.x
+	return pa.y < pb.y
+
+
+func _shuffle_packed_scenes(arr: Array, rng: RandomNumberGenerator) -> void:
+	for i in range(arr.size() - 1, 0, -1):
+		var j := rng.randi_range(0, i)
+		var tmp = arr[i]
+		arr[i] = arr[j]
+		arr[j] = tmp
+
+
+func _sorted_treasure_rooms() -> Array:
+	var rooms: Array = []
 	for room_data in spawned_rooms:
 		if room_data["type"] == RoomType.TREASURE:
-			var room_pos = room_data["grid_pos"]
+			rooms.append(room_data)
+	rooms.sort_custom(_cmp_room_grid)
+	return rooms
 
-			# Проверяем, был ли артефакт уже собран в этой комнате
-			if SaveSystem.is_treasure_collected(room_pos):
-				print("Артефакт в комнате ", room_pos, " уже собран, пропускаем")
+
+func _spawn_treasure_in_room(room_data: Dictionary, item_scene: PackedScene) -> void:
+	if item_scene == null:
+		return
+	var room_pos: Vector2i = room_data["grid_pos"]
+	if SaveSystem.is_treasure_collected(room_pos):
+		return
+	var room_node: Node = room_data["node"]
+	var item_instance = item_scene.instantiate()
+	room_node.add_child(item_instance)
+	item_instance.set_meta("_treasure_room_grid", room_pos)
+	var local_center := Vector2(
+		GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2.0,
+		GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2.0
+	)
+	var world_pos: Vector2 = (room_node as Node2D).to_global(local_center)
+	item_instance.global_position = world_pos + Vector2(0, -10)
+	var pedestal_scene := preload("res://scene/pick_up/artefacts/artefact_pedestal.tscn")
+	var pedestal := pedestal_scene.instantiate()
+	room_node.add_child(pedestal)
+	pedestal.global_position = world_pos
+	pedestal.z_index = -1
+
+
+func _spawn_treasure_items() -> void:
+	if treasure_items.is_empty():
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = _treasure_rng_seed()
+	var pile: Array = treasure_items.duplicate()
+	_shuffle_packed_scenes(pile, rng)
+	for room_data in _sorted_treasure_rooms():
+		if pile.is_empty():
+			break
+		var item_scene: PackedScene = pile.pop_back()
+		_spawn_treasure_in_room(room_data, item_scene)
+
+
+func _collect_treasure_spawn_state() -> Array:
+	var out: Array = []
+	for room_data in spawned_rooms:
+		if room_data["type"] != RoomType.TREASURE:
+			continue
+		var room_pos: Vector2i = room_data["grid_pos"]
+		if SaveSystem.is_treasure_collected(room_pos):
+			continue
+		var room_node: Node = room_data["node"]
+		for c in room_node.get_children():
+			if not c.has_method("server_run_pickup_effects"):
 				continue
-
-			var item_scene = _get_next_treasure_item()
-
-			if item_scene == null:
-				push_warning("Массив treasure_items пуст, предмет не заспавнен.")
+			var sp := str(c.scene_file_path)
+			if sp == "":
 				continue
+			out.append({
+				"room": {"x": room_pos.x, "y": room_pos.y},
+				"scene": sp,
+			})
+			break
+	return out
 
-			var room_node = room_data["node"]
-			var item_instance = item_scene.instantiate()
 
-			# Добавляем предмет напрямую в корень комнаты
-			room_node.add_child(item_instance)
-			item_instance.set_meta("_treasure_room_grid", room_pos)
-
-			# Строго по центру комнаты
-			var local_center = Vector2(GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2.0, GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2.0)
-			var world_pos: Vector2 = (room_node as Node2D).to_global(local_center)
-			item_instance.global_position = world_pos + Vector2(0, -10)
-
-			# Спавним подставку под артефактом
-			var pedestal_scene := preload("res://scene/pick_up/artefacts/artefact_pedestal.tscn")
-			var pedestal := pedestal_scene.instantiate()
-			room_node.add_child(pedestal)
-			pedestal.global_position = world_pos
-			pedestal.z_index = -1  # render behind artefact
+func _spawn_treasures_from_state(spawns: Array) -> void:
+	for raw in spawns:
+		if not raw is Dictionary:
+			continue
+		var spec := raw as Dictionary
+		var room_raw: Variant = spec.get("room", {})
+		if not room_raw is Dictionary:
+			continue
+		var grid_pos := Vector2i(int(room_raw.get("x", 0)), int(room_raw.get("y", 0)))
+		if SaveSystem.is_treasure_collected(grid_pos):
+			continue
+		var room_data := _get_room_data_by_grid(grid_pos)
+		if room_data.is_empty():
+			continue
+		var scene_path := str(spec.get("scene", ""))
+		var item_scene := load(scene_path) as PackedScene
+		if item_scene == null:
+			push_warning("MapManager: не удалось загрузить артефакт: " + scene_path)
+			continue
+		_spawn_treasure_in_room(room_data, item_scene)
 
 # --- Генерация скелета ---
 func generate_layout():
@@ -273,7 +340,7 @@ func generate_layout():
 		for y in range(GameConstants.MAP_MANAGER_GRID_SIZE):
 			layout[x].append(RoomType.EMPTY)
 
-	var start_pos = Vector2i(GameConstants.MAP_MANAGER_GRID_SIZE / 2, GameConstants.MAP_MANAGER_GRID_SIZE / 2)
+	var start_pos = Vector2i(int(GameConstants.MAP_MANAGER_GRID_SIZE / 2.0), int(GameConstants.MAP_MANAGER_GRID_SIZE / 2.0))
 	layout[start_pos.x][start_pos.y] = RoomType.START
 
 	var boss_pos = Vector2i(GameConstants.MAP_MANAGER_GRID_SIZE - 2, randi_range(1, GameConstants.MAP_MANAGER_GRID_SIZE - 2))
@@ -321,7 +388,6 @@ func generate_layout():
 		var directions = [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]
 		directions.shuffle()
 		
-		var placed = false
 		# Проверяем все 4 стороны случайно выбранной комнаты
 		for dir in directions:
 			var new_pos = rand_room + dir
@@ -330,7 +396,6 @@ func generate_layout():
 			if is_valid_pos(new_pos) and layout[new_pos.x][new_pos.y] == RoomType.EMPTY:
 				layout[new_pos.x][new_pos.y] = RoomType.TREASURE
 				treasures_placed += 1
-				placed = true
 				break # Место нашли, дальше эту комнату не проверяем
 
 func is_valid_pos(pos):
@@ -371,8 +436,8 @@ func draw_map():
 	var cell_size_x = GameConstants.MAP_MANAGER_ROOM_SIZE_X + GameConstants.MAP_MANAGER_CORRIDOR_LENGTH
 	var cell_size_y = GameConstants.MAP_MANAGER_ROOM_SIZE_Y + GameConstants.MAP_MANAGER_CORRIDOR_LENGTH
 	
-	var offset_x = -(GameConstants.MAP_MANAGER_GRID_SIZE * cell_size_x) / 2
-	var offset_y = -(GameConstants.MAP_MANAGER_GRID_SIZE * cell_size_y) / 2
+	var offset_x = -(GameConstants.MAP_MANAGER_GRID_SIZE * cell_size_x) / 2.0
+	var offset_y = -(GameConstants.MAP_MANAGER_GRID_SIZE * cell_size_y) / 2.0
 
 	for x in range(GameConstants.MAP_MANAGER_GRID_SIZE):
 		for y in range(GameConstants.MAP_MANAGER_GRID_SIZE):
@@ -430,12 +495,12 @@ func draw_map():
 				if has_right:
 					var corr = corridor_h_scene.instantiate()
 					corr.position.x = room_pos.x + GameConstants.MAP_MANAGER_ROOM_SIZE_X
-					corr.position.y = room_pos.y + (GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2) - (GameConstants.MAP_MANAGER_CORRIDOR_LENGTH / 2) 
+					corr.position.y = room_pos.y + (GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2.0) - (GameConstants.MAP_MANAGER_CORRIDOR_LENGTH / 2.0)
 					add_child(corr)
 				
 				if has_bottom:
 					var corr = corridor_v_scene.instantiate()
-					corr.position.x = room_pos.x + (GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2) - (GameConstants.MAP_MANAGER_CORRIDOR_LENGTH / 2)
+					corr.position.x = room_pos.x + (GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2.0) - (GameConstants.MAP_MANAGER_CORRIDOR_LENGTH / 2.0)
 					corr.position.y = room_pos.y + GameConstants.MAP_MANAGER_ROOM_SIZE_Y
 					add_child(corr)
 
@@ -483,12 +548,13 @@ func _spawn_obstacles_in_room(room_node: Node2D, room_type: RoomType, detail_lev
 		0:
 			obstacle_count = 0
 		1:
-			obstacle_count = obstacle_count / 2
+			obstacle_count = int(obstacle_count / 2.0)
 		_:
 			pass
 		
 	var space_state = get_world_2d().direct_space_state
 	var spawned_rects: Array[Rect2] = []
+	var blocked_rects := _get_room_door_block_rects(room_node)
 	var padding = 8.0 
 
 	for _i in range(obstacle_count):
@@ -537,6 +603,8 @@ func _spawn_obstacles_in_room(room_node: Node2D, room_type: RoomType, detail_lev
 				continue
 				
 			var new_rect = Rect2(global_pos - half_size, size).grow(padding)
+			if _rect_overlaps_any(new_rect, blocked_rects):
+				continue
 			var overlaps_obstacle = false
 			for existing_rect in spawned_rects:
 				if new_rect.intersects(existing_rect):
@@ -551,6 +619,46 @@ func _spawn_obstacles_in_room(room_node: Node2D, room_type: RoomType, detail_lev
 			obstacle.global_position = global_pos
 			spawned_rects.append(new_rect)
 			break
+
+
+func _get_room_door_block_rects(room_node: Node2D) -> Array[Rect2]:
+	var rects: Array[Rect2] = []
+	if room_node == null:
+		return rects
+
+	var door_width := 168.0
+	var door_depth := 128.0
+	var room_w := float(GameConstants.MAP_MANAGER_ROOM_SIZE_X)
+	var room_h := float(GameConstants.MAP_MANAGER_ROOM_SIZE_Y)
+
+	var top := room_node.get_node_or_null("DoorTop") as Node2D
+	if top != null:
+		rects.append(_local_rect_to_global(room_node, Rect2(top.position.x - door_width * 0.5, 0.0, door_width, door_depth)))
+
+	var bottom := room_node.get_node_or_null("DoorBottom") as Node2D
+	if bottom != null:
+		rects.append(_local_rect_to_global(room_node, Rect2(bottom.position.x - door_width * 0.5, room_h - door_depth, door_width, door_depth)))
+
+	var left := room_node.get_node_or_null("DoorLeft") as Node2D
+	if left != null:
+		rects.append(_local_rect_to_global(room_node, Rect2(0.0, left.position.y - door_width * 0.5, door_depth, door_width)))
+
+	var right := room_node.get_node_or_null("DoorRight") as Node2D
+	if right != null:
+		rects.append(_local_rect_to_global(room_node, Rect2(room_w - door_depth, right.position.y - door_width * 0.5, door_depth, door_width)))
+
+	return rects
+
+
+func _local_rect_to_global(node: Node2D, rect: Rect2) -> Rect2:
+	return Rect2(node.to_global(rect.position), rect.size)
+
+
+func _rect_overlaps_any(rect: Rect2, others: Array[Rect2]) -> bool:
+	for other in others:
+		if rect.intersects(other):
+			return true
+	return false
 
 func _spawn_obstacles_after_physics() -> void:
 	await get_tree().physics_frame 
@@ -586,7 +694,7 @@ func _spawn_enemies_after_physics():
 		
 		if room_type==RoomType.BOSS: 
 			_spawn_boss(space_state, room_node)
-			return
+			continue
 			
 		var slot_idx := 0
 		for _i in range(enemy_count):
@@ -630,6 +738,7 @@ func _spawn_boss(space_state, room_node):
 
 		var boss = selected_boss_scene.instantiate()
 		_set_spawned_enemy_identity(boss, 0, true)
+		_assign_enemy_net_identity(boss, room_node as Node2D, 0, true)
 		
 		var area_enemys = room_node.find_child("Enemys")
 		if area_enemys == null:
@@ -694,6 +803,7 @@ func _spawn_single_enemy_online_deterministic(room_node: Node2D, slot_idx: int) 
 	var selected_enemy_scene: PackedScene = enemy_variations[idx]
 	var enemy := selected_enemy_scene.instantiate()
 	_set_spawned_enemy_identity(enemy, slot_idx)
+	_assign_enemy_net_identity(enemy, room_node, slot_idx)
 	var margin := 80.0
 	var rx: float = float(GameConstants.MAP_MANAGER_ROOM_SIZE_X) - 2.0 * margin
 	var ry: float = float(GameConstants.MAP_MANAGER_ROOM_SIZE_Y) - 2.0 * margin
@@ -731,6 +841,7 @@ func _spawn_single_enemy(space_state, room_node, slot_idx: int = 0) -> void:
 			var selected_enemy_scene = enemy_variations.pick_random()
 			var enemy = selected_enemy_scene.instantiate()
 			_set_spawned_enemy_identity(enemy, slot_idx)
+			_assign_enemy_net_identity(enemy, room_node as Node2D, slot_idx)
 			
 			var area_enemys = room_node.find_child("Enemys")
 			if area_enemys == null:
@@ -746,6 +857,36 @@ func _set_spawned_enemy_identity(enemy: Node, slot_idx: int, is_boss: bool = fal
 		return
 	enemy.name = ("%s_%02d" % ["Boss" if is_boss else "Enemy", slot_idx])
 	enemy.set_meta(&"_spawn_slot", slot_idx)
+
+
+func _enemy_net_key(room_grid: Vector2i, slot_idx: int) -> String:
+	return "%d,%d:%d" % [room_grid.x, room_grid.y, slot_idx]
+
+
+func _assign_enemy_net_identity(enemy: Node, room_node: Node2D, slot_idx: int, is_boss: bool = false) -> void:
+	if enemy == null or room_node == null:
+		return
+	var room_grid := Vector2i(int(room_node.get("grid_x")), int(room_node.get("grid_y")))
+	enemy.set_meta(&"_spawn_slot", slot_idx)
+	enemy.set_meta(&"_spawn_room", room_grid)
+	enemy.set_meta(&"_net_enemy_key", _enemy_net_key(room_grid, slot_idx))
+	enemy.set_meta(&"_is_boss_spawn", is_boss)
+
+
+func get_enemy_by_net_key(enemy_key: String) -> Node:
+	if enemy_key.is_empty():
+		return null
+	for room_data in spawned_rooms:
+		var room_node := room_data.get("node") as Node2D
+		if room_node == null or not is_instance_valid(room_node):
+			continue
+		var enemys_node := room_node.find_child("Enemys", true, false)
+		if enemys_node == null:
+			continue
+		for enemy in enemys_node.get_children():
+			if is_instance_valid(enemy) and str(enemy.get_meta(&"_net_enemy_key", "")) == enemy_key:
+				return enemy
+	return null
 
 ## Кооп: зачистка комнаты на всех машинах + прогресс только на хосте
 func apply_room_cleared_for_network(grid: Vector2i) -> void:
@@ -982,20 +1123,21 @@ func update_visibility():
 				room_node.visible = true
 				_show_room_contents(room_node, false)
 
-func _show_room_contents(room_node: Node2D, show: bool):
-	# Скрываем/показываем врагов
+func _show_room_contents(room_node: Node2D, contents_visible: bool):
+	# Скрываем/показываем врагов; в тумане — без симуляции (ИИ, move_and_slide, сканы игроков)
 	var enemys_node = room_node.find_child("Enemys")
 	if enemys_node:
 		for enemy in enemys_node.get_children():
-			enemy.visible = show
+			enemy.visible = contents_visible
+			enemy.process_mode = Node.PROCESS_MODE_INHERIT if contents_visible else Node.PROCESS_MODE_DISABLED
 	
 	# Скрываем/показываем артефакты
 	for child in room_node.get_children():
 		if child.is_in_group("artefact"):
-			child.visible = show
+			child.visible = contents_visible
 		# Также скрываем подставки под артефакты
 		if child.name == "ArtefactPedestal" or "pedestal" in child.name.to_lower():
-			child.visible = show
+			child.visible = contents_visible
 
 func _reset_room_aggression():
 	# Прогоняем по всем комнатам и сбрасываем агрессию врагов
@@ -1044,6 +1186,7 @@ func save_dungeon_state():
 		"seen_rooms": [],
 		"cleared_rooms": [],
 		"collected_treasure_rooms": [],
+		TREASURE_STATE_KEY: [],
 		ENEMY_STATE_KEY: []
 	}
 
@@ -1065,6 +1208,7 @@ func save_dungeon_state():
 
 	# Сохраняем комнаты с собранными сокровищами
 	dungeon_data["collected_treasure_rooms"] = SaveSystem.collected_treasure_rooms
+	dungeon_data[TREASURE_STATE_KEY] = _collect_treasure_spawn_state()
 	dungeon_data[ENEMY_STATE_KEY] = _collect_enemy_spawn_state()
 
 	SaveSystem.save_dungeon_data(dungeon_data)
@@ -1081,12 +1225,12 @@ func _collect_enemy_spawn_state() -> Array:
 		if enemys_node == null:
 			continue
 		var grid_pos: Vector2i = room_data["grid_pos"]
-		var slot_idx := 0
 		for enemy in enemys_node.get_children():
 			if not is_instance_valid(enemy) or not enemy is Node2D:
 				continue
 			if GameConstants.variant_to_bool(enemy.get("is_dead")):
 				continue
+			var slot_idx := int(enemy.get_meta(&"_spawn_slot", 0))
 			var scene_path := str(enemy.scene_file_path)
 			if scene_path == "":
 				continue
@@ -1099,7 +1243,6 @@ func _collect_enemy_spawn_state() -> Array:
 				"name": str(enemy.name),
 				"is_boss": room_data["type"] == RoomType.BOSS
 			})
-			slot_idx += 1
 	return out
 
 
@@ -1138,6 +1281,7 @@ func _spawn_enemies_from_state(enemy_spawns: Array) -> void:
 		var is_boss := GameConstants.variant_to_bool(spec.get("is_boss", room_data["type"] == RoomType.BOSS))
 		var enemy := enemy_scene.instantiate()
 		_set_spawned_enemy_identity(enemy, slot_idx, is_boss)
+		_assign_enemy_net_identity(enemy, room_node, slot_idx, is_boss)
 		var saved_name := str(spec.get("name", ""))
 		if saved_name != "":
 			enemy.name = saved_name
@@ -1197,7 +1341,10 @@ func load_dungeon_state():
 		_spawn_enemies_from_state(dungeon_data[ENEMY_STATE_KEY])
 	else:
 		await _spawn_enemies_after_physics()
-	_spawn_treasure_items()
+	if dungeon_data.has(TREASURE_STATE_KEY) and dungeon_data[TREASURE_STATE_KEY] is Array:
+		_spawn_treasures_from_state(dungeon_data[TREASURE_STATE_KEY])
+	else:
+		_spawn_treasure_items()
 
 	# Восстанавливаем посещенные комнаты
 	visited_rooms.clear()
@@ -1362,7 +1509,8 @@ func _physics_process_host_sync_enemies() -> void:
 			ch.set_meta(&"_net_sync_last_vel", vel)
 			ch.set_meta(&"_net_sync_last_spr", spr)
 			ch.set_meta(&"_net_sync_last_ap", ap)
-			NetworkManager.rpc_sync_enemy_transform.rpc(str(ch.get_path()), pos, vel, spr, ap)
+			var enemy_key := str(ch.get_meta(&"_net_enemy_key", ""))
+			NetworkManager.rpc_sync_enemy_transform.rpc(str(ch.get_path()), pos, vel, spr, ap, enemy_key)
 
 
 func _physics_process(delta: float) -> void:

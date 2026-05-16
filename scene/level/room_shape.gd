@@ -11,7 +11,7 @@ func _ready():
 func _on_body_entered(body: Node2D) -> void:
 	if not body.is_in_group("player"):
 		return
-	var manager = get_tree().root.find_child("MapManager", true, false)
+	var manager = get_tree().get_first_node_in_group("map_manager")
 	if manager == null:
 		return
 	var mp := get_tree().get_multiplayer()

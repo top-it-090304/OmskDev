@@ -14,4 +14,4 @@ func _on_pressed() -> void:
 	NetworkManager.disconnect_game()
 
 	# Запускаем игру
-	get_tree().change_scene_to_packed(target_scene1)
+	get_tree().change_scene_to_file(GameConstants.get_current_floor_scene_path())

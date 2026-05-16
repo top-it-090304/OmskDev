@@ -147,27 +147,27 @@ func stop_music() -> void:
 
 # --- SFX (АСИНХРОННОЕ ПРОИГРЫВАНИЕ) ---
 
-func play_sfx(name: String) -> void:
+func play_sfx(sfx_name: String) -> void:
 	# Инициализируем массив если нужно
-	if not _active_sfx.has(name):
-		_active_sfx[name] = []
+	if not _active_sfx.has(sfx_name):
+		_active_sfx[sfx_name] = []
 	
-	var active: Array = _active_sfx[name]
+	var active: Array = _active_sfx[sfx_name]
 	
 	# Удаляем завершённые звуки из отслеживания
 	active = active.filter(func(p): return p and is_instance_valid(p) and p.playing)
-	_active_sfx[name] = active
+	_active_sfx[sfx_name] = active
 	
 	# ВАЖНО: Используем MAX_SFX_PER_TYPE, чтобы не спамить звуками
 	# Дляигрок_атакаограничиваем до одного одновременно
 	var limit := MAX_SFX_PER_TYPE
-	if name == "игрок_атака":
+	if sfx_name == "игрок_атака":
 		limit = 1
 	if active.size() >= limit:
 		return # Если уже играют нужное количество звуков, новый не играем
 	
 	# Создаём новый плеер
-	var stream = _get_sfx_stream(name)
+	var stream = _get_sfx_stream(sfx_name)
 	if stream == null:
 		return
 	
@@ -182,31 +182,31 @@ func play_sfx(name: String) -> void:
 	player.finished.connect(func():
 		if is_instance_valid(player):
 			player.queue_free()
-		if _active_sfx.has(name):
-			_active_sfx[name].erase(player)
+		if _active_sfx.has(sfx_name):
+			_active_sfx[sfx_name].erase(player)
 	)
 
-func _get_sfx_stream(name: String) -> AudioStream:
+func _get_sfx_stream(sfx_name: String) -> AudioStream:
 	# Сначала проверяем кэш файлов
-	if _sfx_files_cache.has(name):
-		return _sfx_files_cache[name]
+	if _sfx_files_cache.has(sfx_name):
+		return _sfx_files_cache[sfx_name]
 	
 	# Проверяем папки
-	if SFX_FOLDERS.has(name):
-		return _get_random_from_folder(name, SFX_FOLDERS[name])
+	if SFX_FOLDERS.has(sfx_name):
+		return _get_random_from_folder(sfx_name, SFX_FOLDERS[sfx_name])
 	
 	return null
 
 func _get_random_from_folder(cache_key: String, folder_path: String) -> AudioStream:
 	# Если папка уже загружена - берём рандомный
 	if _sfx_folders_cache.has(cache_key):
-		var files: Array = _sfx_folders_cache[cache_key]
-		if files.is_empty():
+		var cached_files: Array = _sfx_folders_cache[cache_key]
+		if cached_files.is_empty():
 			return null
-		return files[randi() % files.size()]
+		return cached_files[randi() % cached_files.size()]
 	
 	# Загружаем папку
-	var files: Array[AudioStream] = []
+	var loaded_files: Array[AudioStream] = []
 	var dir = DirAccess.open(folder_path)
 	if dir:
 		dir.list_dir_begin()
@@ -215,12 +215,12 @@ func _get_random_from_folder(cache_key: String, folder_path: String) -> AudioStr
 			if not dir.current_is_dir() and (file_name.ends_with(".wav") or file_name.ends_with(".mp3")):
 				var stream = load(folder_path + file_name)
 				if stream:
-					files.append(stream)
+					loaded_files.append(stream)
 			file_name = dir.get_next()
 		dir.list_dir_end()
 	
-	_sfx_folders_cache[cache_key] = files
+	_sfx_folders_cache[cache_key] = loaded_files
 	
-	if files.is_empty():
+	if loaded_files.is_empty():
 		return null
-	return files[randi() % files.size()]
+	return loaded_files[randi() % loaded_files.size()]

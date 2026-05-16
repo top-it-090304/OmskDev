@@ -98,7 +98,7 @@ func _save_came_from_scene() -> void:
 			# Проверяем есть ли игрок (значит зашли из игры)
 			var player = get_tree().get_first_node_in_group("player")
 			if player:
-				scene_path = "res://World/layer.tscn"
+				scene_path = GameConstants.get_current_floor_scene_path()
 			else:
 				scene_path = "res://World/UI/menu.tscn"
 	

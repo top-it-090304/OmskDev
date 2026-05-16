@@ -17,6 +17,7 @@ const ATTACK_COOLDOWN := 2.4
 const SPAN_ATTACK_COOLDOWN := 8.0
 const SUMMON_COUNT := 2
 const MAX_MINIONS := 4
+const MINION_Z_OFFSET := 1
 
 enum Dir { DOWN, UP, LEFT, RIGHT }
 
@@ -252,6 +253,8 @@ func _spawn_minions(count: int) -> void:
 	for i in range(to_spawn):
 		var minion := MINION_SCENE.instantiate()
 		parent.add_child(minion)
+		if minion is CanvasItem:
+			(minion as CanvasItem).z_index = z_index + MINION_Z_OFFSET
 		var angle := TAU * float(i) / float(to_spawn)
 		minion.global_position = global_position + Vector2(cos(angle), sin(angle)) * 62.0
 		active_minions.append(minion)
@@ -300,9 +303,7 @@ func death() -> void:
 
 
 func _on_hitbox_area_entered(_area: Area2D) -> void:
-	if is_dead:
-		return
-	NetworkManager.apply_melee_damage_to_enemy_from_player(self, GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_SWORDMAN_TAKE_DAMAGE))
+	pass
 
 
 func _on_detector_swing_body_entered(body: Node2D) -> void:

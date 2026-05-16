@@ -22,7 +22,6 @@ signal disconnected_from_server
 signal connection_failed
 signal player_connected(player_id)
 signal player_disconnected(player_id)
-signal game_started
 ## Клиент получил dungeon_state.dat от хоста и может вызывать load_dungeon_state()
 signal dungeon_sync_received
 
@@ -173,7 +172,21 @@ func rpc_coop_transition_next_floor() -> void:
 func _deferred_coop_change_floor_scene() -> void:
 	if not is_inside_tree():
 		return
-	get_tree().change_scene_to_file(GameConstants.get_current_floor_scene_path())
+	_change_to_floor_scene(GameConstants.get_current_floor_scene_path())
+
+
+## Этажи 1–2 используют один .tscn — change_scene_to_file на тот же путь может не перезагрузить дерево.
+func _change_to_floor_scene(path: String) -> void:
+	var cs := get_tree().current_scene
+	if cs != null and cs.scene_file_path == path:
+		get_tree().reload_current_scene()
+	else:
+		get_tree().change_scene_to_file(path)
+
+
+@rpc("authority", "call_local", "reliable")
+func rpc_coop_floor_spawn_positions(spawn_data: Dictionary) -> void:
+	PlayerManager.apply_coop_floor_spawn_positions(spawn_data)
 
 
 @rpc("any_peer", "call_remote", "reliable")
@@ -263,20 +276,16 @@ func _resolve_node_by_path_for_damage(path_str: String) -> Node:
 	return null
 
 
-func _find_artefact_pickup_node(resource_path: String, room: Vector2i) -> Node:
+func _find_artefact_in_room(room: Vector2i) -> Node:
 	var mm := get_tree().get_first_node_in_group("map_manager")
 	if mm == null:
 		return null
-	var want_file := resource_path.get_file()
 	for room_data in mm.spawned_rooms:
 		if room_data["grid_pos"] != room:
 			continue
 		var room_node: Node = room_data["node"]
 		for c in room_node.get_children():
-			if not c.has_method("server_run_pickup_effects"):
-				continue
-			var sp := str(c.scene_file_path)
-			if sp == resource_path or (want_file != "" and sp.get_file() == want_file):
+			if is_instance_valid(c) and c.has_method("server_run_pickup_effects"):
 				return c
 	return null
 
@@ -287,15 +296,17 @@ func rpc_request_artefact_pickup_from_client(resource_path: String, room_x: int,
 		return
 	if int(multiplayer.get_remote_sender_id()) != int(picker_peer_id):
 		return
-	var node := _find_artefact_pickup_node(resource_path, Vector2i(room_x, room_y))
+	var room := Vector2i(room_x, room_y)
+	var node := _find_artefact_in_room(room)
 	if node == null:
 		return
+	var actual_path := str(node.scene_file_path)
 	if node.has_method("server_consume_world_only_for_remote_client_pickup"):
 		node.server_consume_world_only_for_remote_client_pickup()
 	else:
 		if is_instance_valid(node):
 			node.queue_free()
-	rpc_client_mirror_artefact_pickup.rpc(resource_path, room_x, room_y, picker_peer_id)
+	rpc_client_mirror_artefact_pickup.rpc(actual_path, room_x, room_y, picker_peer_id)
 
 
 @rpc("authority", "call_remote", "reliable")
@@ -304,7 +315,7 @@ func rpc_client_mirror_artefact_pickup(resource_path: String, room_x: int, room_
 		return
 	var room := Vector2i(room_x, room_y)
 	SaveSystem.mark_treasure_collected(room)
-	var n := _find_artefact_pickup_node(resource_path, room)
+	var n := _find_artefact_in_room(room)
 	if n != null and is_instance_valid(n):
 		n.queue_free()
 	var my_pid: int = int(multiplayer.get_unique_id())
@@ -451,9 +462,9 @@ func _apply_net_enemy_visual_from_meta(ch: Node) -> void:
 			ap_node.play(ap)
 
 
-@rpc("authority", "call_remote", "reliable")
-func rpc_sync_enemy_transform(path_str: String, pos: Vector2, vel: Vector2, spr_anim: String, ap_anim: String) -> void:
-	var n := _resolve_node_by_path_for_damage(path_str)
+@rpc("authority", "call_remote", "unreliable_ordered")
+func rpc_sync_enemy_transform(path_str: String, pos: Vector2, vel: Vector2, spr_anim: String, ap_anim: String, enemy_key: String = "") -> void:
+	var n := _resolve_enemy_for_sync(path_str, enemy_key)
 	if n == null or not is_instance_valid(n) or not n is CharacterBody2D:
 		return
 	var ch := n as CharacterBody2D
@@ -462,6 +473,16 @@ func rpc_sync_enemy_transform(path_str: String, pos: Vector2, vel: Vector2, spr_
 	ch.set_meta(_META_NET_ENEMY_VEL, vel)
 	ch.set_meta(_META_NET_ENEMY_SPR, spr_anim)
 	ch.set_meta(_META_NET_ENEMY_AP, ap_anim)
+
+
+func _resolve_enemy_for_sync(path_str: String, enemy_key: String = "") -> Node:
+	if not enemy_key.is_empty():
+		var mm := get_tree().get_first_node_in_group("map_manager")
+		if mm != null and mm.has_method("get_enemy_by_net_key"):
+			var by_key: Node = mm.get_enemy_by_net_key(enemy_key)
+			if by_key != null and is_instance_valid(by_key):
+				return by_key
+	return _resolve_node_by_path_for_damage(path_str)
 
 
 func server_apply_damage_to_player_from_enemy(player: Node, amount: int) -> void:

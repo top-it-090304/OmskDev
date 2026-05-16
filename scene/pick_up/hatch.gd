@@ -52,8 +52,7 @@ func _on_body_entered(body: Node2D) -> void:
 	if NetworkManager.is_game_offline():
 		_go_to_next_floor_solo()
 		return
-	var mp := get_tree().get_multiplayer()
-	if mp.is_server():
+	if get_tree().get_multiplayer().is_server():
 		NetworkManager.rpc_coop_transition_next_floor.rpc()
 	else:
 		NetworkManager.rpc_request_coop_next_floor.rpc_id(NetworkManager.SERVER_ID)
@@ -69,4 +68,9 @@ func _go_to_next_floor_solo() -> void:
 	SaveSystem.save_game()
 	SaveSystem.delete_dungeon_state()
 	GameConstants.save_to_disk()
-	get_tree().change_scene_to_file(GameConstants.get_current_floor_scene_path())
+	var path := GameConstants.get_current_floor_scene_path()
+	var cs := get_tree().current_scene
+	if cs != null and cs.scene_file_path == path:
+		get_tree().reload_current_scene()
+	else:
+		get_tree().change_scene_to_file(path)
