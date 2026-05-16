@@ -1313,9 +1313,8 @@ script = ExtResource("1_sklt")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 z_index = 1
 sprite_frames = SubResource("SpriteFrames_yl1a4")
-animation = &"hurt_up"
+animation = &"attack_down"
 autoplay = "idle_down"
-frame = 3
 
 [node name="hitbox" type="Area2D" parent="."]
 collision_layer = 0

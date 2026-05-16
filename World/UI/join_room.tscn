@@ -193,9 +193,9 @@ autoplay = "new_animation"
 self_modulate = Color(0, 0, 0, 0.6)
 layout_mode = 0
 anchor_left = 0.25
-anchor_top = 0.18
+anchor_top = 0.05
 anchor_right = 0.75
-anchor_bottom = 0.85
+anchor_bottom = 0.6
 
 [node name="Border" type="Sprite2D" parent="Panel"]
 position = Vector2(135, 85)
@@ -206,7 +206,7 @@ texture = ExtResource("5_panel")
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
-theme_override_constants/separation = 6
+theme_override_constants/separation = 4
 alignment = 1
 
 [node name="Title" type="Label" parent="Panel/VBoxContainer"]
@@ -227,7 +227,7 @@ theme_override_font_sizes/font_size = 13
 placeholder_text = "Введите код"
 alignment = 1
 max_length = 8
-virtual_keyboard_enabled = true
+virtual_keyboard_enabled = false
 
 [node name="PasteButton" type="TextureButton" parent="Panel/VBoxContainer"]
 custom_minimum_size = Vector2(125, 24)

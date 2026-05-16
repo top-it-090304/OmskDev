@@ -1,14 +1,21 @@
 extends Control
 
+const CodeKeyboard := preload("res://World/UI/code_keyboard.gd")
+
 @onready var code_input: LineEdit = $Panel/VBoxContainer/CodeInput
 @onready var error_label: Label = $Panel/VBoxContainer/ErrorLabel
+
+var _code_keyboard: Control
+var _syncing_code_input := false
 
 
 func _ready() -> void:
 	error_label.text = ""
+	code_input.virtual_keyboard_enabled = false
 	code_input.text_changed.connect(_on_code_input_text_changed)
 	code_input.focus_entered.connect(_show_virtual_keyboard)
 	code_input.gui_input.connect(_on_code_input_gui_input)
+	_create_code_keyboard()
 	call_deferred("_focus_code_input")
 
 
@@ -24,25 +31,100 @@ func _on_code_input_gui_input(event: InputEvent) -> void:
 
 
 func _on_code_input_text_changed(new_text: String) -> void:
-	var upper := new_text.to_upper()
-	if upper != new_text:
-		var caret := code_input.caret_column
-		code_input.text = upper
-		code_input.caret_column = mini(caret, upper.length())
+	if _syncing_code_input:
+		return
+	var sanitized := _sanitize_code(new_text)
+	if sanitized != new_text:
+		_set_code_text(sanitized, code_input.caret_column)
 
 
 func _show_virtual_keyboard() -> void:
-	if not DisplayServer.has_feature(DisplayServer.FEATURE_VIRTUAL_KEYBOARD):
+	if _code_keyboard:
+		_code_keyboard.visible = true
+
+
+func _hide_virtual_keyboard() -> void:
+	if _code_keyboard:
+		_code_keyboard.visible = false
+
+
+func _create_code_keyboard() -> void:
+	_code_keyboard = CodeKeyboard.new()
+	_code_keyboard.name = "CodeKeyboard"
+	_code_keyboard.visible = false
+	_code_keyboard.anchor_left = 0.04
+	_code_keyboard.anchor_top = 0.62
+	_code_keyboard.anchor_right = 0.96
+	_code_keyboard.anchor_bottom = 0.98
+	_code_keyboard.offset_left = 0
+	_code_keyboard.offset_top = 0
+	_code_keyboard.offset_right = 0
+	_code_keyboard.offset_bottom = 0
+	if code_input.has_theme_font("font"):
+		_code_keyboard.key_font = code_input.get_theme_font("font")
+	_code_keyboard.key_pressed.connect(_on_code_keyboard_key_pressed)
+	_code_keyboard.backspace_pressed.connect(_on_code_keyboard_backspace_pressed)
+	_code_keyboard.clear_pressed.connect(_on_code_keyboard_clear_pressed)
+	_code_keyboard.done_pressed.connect(_on_code_keyboard_done_pressed)
+	add_child(_code_keyboard)
+
+
+func _on_code_keyboard_key_pressed(value: String) -> void:
+	if code_input.text.length() >= code_input.max_length:
 		return
-	DisplayServer.virtual_keyboard_show(
-		code_input.text,
-		DisplayServer.VirtualKeyboardType.KEYBOARD_TYPE_DEFAULT,
-		code_input.max_length
+	var caret := clampi(code_input.caret_column, 0, code_input.text.length())
+	var new_text := code_input.text.substr(0, caret) + value + code_input.text.substr(caret)
+	_set_code_text(new_text, caret + value.length())
+	code_input.grab_focus()
+
+
+func _on_code_keyboard_backspace_pressed() -> void:
+	var text := code_input.text
+	if text.is_empty():
+		return
+	var caret := clampi(code_input.caret_column, 0, text.length())
+	if caret == 0:
+		caret = text.length()
+	_set_code_text(text.substr(0, caret - 1) + text.substr(caret), caret - 1)
+	code_input.grab_focus()
+
+
+func _on_code_keyboard_clear_pressed() -> void:
+	_set_code_text("", 0)
+	code_input.grab_focus()
+
+
+func _on_code_keyboard_done_pressed() -> void:
+	_hide_virtual_keyboard()
+	code_input.release_focus()
+
+
+func _set_code_text(value: String, caret_column := -1) -> void:
+	var sanitized := _sanitize_code(value)
+	_syncing_code_input = true
+	code_input.text = sanitized
+	code_input.caret_column = clampi(
+		caret_column if caret_column >= 0 else sanitized.length(),
+		0,
+		sanitized.length()
 	)
+	_syncing_code_input = false
+
+
+func _sanitize_code(value: String) -> String:
+	var result := ""
+	var upper := value.to_upper()
+	for i in upper.length():
+		var character := upper.substr(i, 1)
+		if character.is_valid_hex_number():
+			result += character
+		if result.length() >= code_input.max_length:
+			break
+	return result
 
 
 func _on_paste_pressed() -> void:
-	code_input.text = DisplayServer.clipboard_get().strip_edges().to_upper()
+	_set_code_text(DisplayServer.clipboard_get().strip_edges())
 	code_input.grab_focus()
 	_show_virtual_keyboard()
 
@@ -74,7 +156,7 @@ func _on_connect_pressed() -> void:
 
 
 func _on_connected() -> void:
-	DisplayServer.virtual_keyboard_hide()
+	_hide_virtual_keyboard()
 	get_tree().change_scene_to_file("res://World/UI/lobby.tscn")
 
 
@@ -83,5 +165,5 @@ func _on_connection_failed() -> void:
 
 
 func _on_back_pressed() -> void:
-	DisplayServer.virtual_keyboard_hide()
+	_hide_virtual_keyboard()
 	get_tree().change_scene_to_file("res://World/UI/multiplayer_menu.tscn")
