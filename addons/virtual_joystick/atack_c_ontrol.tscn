@@ -63,7 +63,7 @@ expand_mode = 1
 stretch_mode = 3
 
 [node name="HintIcon" type="Label" parent="Base/Tip"]
-z_index = -2
+z_index = 1
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5

@@ -53,7 +53,7 @@ texture = ExtResource("3_3etdg")
 stretch_mode = 5
 
 [node name="HintIcon" type="Label" parent="Base/Tip"]
-z_index = -2
+z_index = 1
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5

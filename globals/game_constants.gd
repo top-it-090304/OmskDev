@@ -115,6 +115,16 @@ var ENEMY_GOBLIN_AXE_ATTACK_RANGE: float = 105.0
 const ENEMY_GOBLIN_AXE_SMITE = preload("res://scene/game_objects/enemy/goblin_axe/smite.tscn")
 var ENEMY_GOBLIN_AXE_SMITE_OFFSET: float = 20.0
 
+# Скелет-grunt
+const ENEMY_SKELETON_GRUNT_SMITE = preload("res://scene/game_objects/enemy/goblin_axe/smite.tscn")
+var ENEMY_SKELETON_GRUNT_HP = 60
+var ENEMY_SKELETON_GRUNT_MAX_SPEED = 130
+var ENEMY_SKELETON_GRUNT_DAMAGE = 18
+var ENEMY_SKELETON_GRUNT_EXP_REWARD = 18
+var ENEMY_SKELETON_GRUNT_TAKE_DAMAGE: int = 8
+var ENEMY_SKELETON_GRUNT_ATTACK_RANGE: float = 90.0
+var ENEMY_SKELETON_GRUNT_SMITE_OFFSET: float = 22.0
+
 ## Удар смайта: 2× урон стрелы скелета (ARROW_DAMAGE)
 var SMITE_DAMAGE: int = 40
 var SMITE_RADIUS: float = 20.0
