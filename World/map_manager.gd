@@ -62,6 +62,7 @@ const _ENEMY_NET_SYNC_NEIGHBORS: Array[Vector2i] = [
 ]
 const _NET_SYNC_POS_EPS2: float = 9.0
 const _NET_SYNC_VEL_EPS2: float = 25.0
+const ENEMY_STATE_KEY := "enemy_spawns"
 
 
 func _ready() -> void:
@@ -628,6 +629,7 @@ func _spawn_boss(space_state, room_node):
 		SaveSystem.last_spawned_boss_scene_path = selected_boss_scene.resource_path
 
 		var boss = selected_boss_scene.instantiate()
+		_set_spawned_enemy_identity(boss, 0, true)
 		
 		var area_enemys = room_node.find_child("Enemys")
 		if area_enemys == null:
@@ -636,16 +638,25 @@ func _spawn_boss(space_state, room_node):
 		area_enemys.add_child(boss)
 		boss.global_position = global_point
 		# Люк в геометрическом центре комнаты босса (локальные координаты комнаты)
-		if boss_hatch != null and is_instance_valid(boss_hatch):
-			boss_hatch.queue_free()
-			boss_hatch = null
-		var hatch_inst := HATCH_SCENE.instantiate() as Area2D
-		room_node.add_child(hatch_inst)
-		hatch_inst.position = local_point
-		boss_hatch = hatch_inst
-		if SaveSystem.is_boss_hatch_opened() and hatch_inst.has_method("apply_save_open_state"):
-			hatch_inst.apply_save_open_state()
+		_ensure_boss_hatch(room_node)
 		return
+
+
+func _ensure_boss_hatch(room_node: Node2D) -> void:
+	if room_node == null:
+		return
+	if boss_hatch != null and is_instance_valid(boss_hatch):
+		boss_hatch.queue_free()
+		boss_hatch = null
+	var hatch_inst := HATCH_SCENE.instantiate() as Area2D
+	room_node.add_child(hatch_inst)
+	hatch_inst.position = Vector2(
+		GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2.0,
+		GameConstants.MAP_MANAGER_ROOM_SIZE_Y / 2.0
+	)
+	boss_hatch = hatch_inst
+	if SaveSystem.is_boss_hatch_opened() and hatch_inst.has_method("apply_save_open_state"):
+		hatch_inst.apply_save_open_state()
 
 
 func open_boss_hatch() -> void:
@@ -682,6 +693,7 @@ func _spawn_single_enemy_online_deterministic(room_node: Node2D, slot_idx: int) 
 	var idx: int = rng.randi() % enemy_variations.size()
 	var selected_enemy_scene: PackedScene = enemy_variations[idx]
 	var enemy := selected_enemy_scene.instantiate()
+	_set_spawned_enemy_identity(enemy, slot_idx)
 	var margin := 80.0
 	var rx: float = float(GameConstants.MAP_MANAGER_ROOM_SIZE_X) - 2.0 * margin
 	var ry: float = float(GameConstants.MAP_MANAGER_ROOM_SIZE_Y) - 2.0 * margin
@@ -718,6 +730,7 @@ func _spawn_single_enemy(space_state, room_node, slot_idx: int = 0) -> void:
 				return
 			var selected_enemy_scene = enemy_variations.pick_random()
 			var enemy = selected_enemy_scene.instantiate()
+			_set_spawned_enemy_identity(enemy, slot_idx)
 			
 			var area_enemys = room_node.find_child("Enemys")
 			if area_enemys == null:
@@ -726,6 +739,13 @@ func _spawn_single_enemy(space_state, room_node, slot_idx: int = 0) -> void:
 			area_enemys.add_child(enemy)
 			enemy.global_position = global_point
 			return 
+
+
+func _set_spawned_enemy_identity(enemy: Node, slot_idx: int, is_boss: bool = false) -> void:
+	if enemy == null:
+		return
+	enemy.name = ("%s_%02d" % ["Boss" if is_boss else "Enemy", slot_idx])
+	enemy.set_meta(&"_spawn_slot", slot_idx)
 
 ## Кооп: зачистка комнаты на всех машинах + прогресс только на хосте
 func apply_room_cleared_for_network(grid: Vector2i) -> void:
@@ -1023,7 +1043,8 @@ func save_dungeon_state():
 		"visited_rooms": [],
 		"seen_rooms": [],
 		"cleared_rooms": [],
-		"collected_treasure_rooms": []
+		"collected_treasure_rooms": [],
+		ENEMY_STATE_KEY: []
 	}
 
 	# Сохраняем посещенные комнаты
@@ -1044,9 +1065,87 @@ func save_dungeon_state():
 
 	# Сохраняем комнаты с собранными сокровищами
 	dungeon_data["collected_treasure_rooms"] = SaveSystem.collected_treasure_rooms
+	dungeon_data[ENEMY_STATE_KEY] = _collect_enemy_spawn_state()
 
 	SaveSystem.save_dungeon_data(dungeon_data)
 	print("Состояние данжена сохранено (seed: ", generation_seed, ")")
+
+
+func _collect_enemy_spawn_state() -> Array:
+	var out: Array = []
+	for room_data in spawned_rooms:
+		var room_node := room_data.get("node") as Node2D
+		if room_node == null or not is_instance_valid(room_node):
+			continue
+		var enemys_node := room_node.find_child("Enemys", true, false)
+		if enemys_node == null:
+			continue
+		var grid_pos: Vector2i = room_data["grid_pos"]
+		var slot_idx := 0
+		for enemy in enemys_node.get_children():
+			if not is_instance_valid(enemy) or not enemy is Node2D:
+				continue
+			if GameConstants.variant_to_bool(enemy.get("is_dead")):
+				continue
+			var scene_path := str(enemy.scene_file_path)
+			if scene_path == "":
+				continue
+			var local_pos := room_node.to_local((enemy as Node2D).global_position)
+			out.append({
+				"scene": scene_path,
+				"room": {"x": grid_pos.x, "y": grid_pos.y},
+				"local_pos": {"x": local_pos.x, "y": local_pos.y},
+				"slot": slot_idx,
+				"name": str(enemy.name),
+				"is_boss": room_data["type"] == RoomType.BOSS
+			})
+			slot_idx += 1
+	return out
+
+
+func _get_room_data_by_grid(grid_pos: Vector2i) -> Dictionary:
+	for room_data in spawned_rooms:
+		if room_data["grid_pos"] == grid_pos:
+			return room_data
+	return {}
+
+
+func _spawn_enemies_from_state(enemy_spawns: Array) -> void:
+	for raw in enemy_spawns:
+		if not raw is Dictionary:
+			continue
+		var spec := raw as Dictionary
+		var room_raw: Variant = spec.get("room", {})
+		var local_raw: Variant = spec.get("local_pos", {})
+		if not room_raw is Dictionary or not local_raw is Dictionary:
+			continue
+		var grid_pos := Vector2i(int(room_raw.get("x", 0)), int(room_raw.get("y", 0)))
+		var room_data := _get_room_data_by_grid(grid_pos)
+		if room_data.is_empty():
+			continue
+		var room_node := room_data.get("node") as Node2D
+		if room_node == null:
+			continue
+		var enemys_node := room_node.find_child("Enemys", true, false)
+		if enemys_node == null:
+			continue
+		var scene_path := str(spec.get("scene", ""))
+		var enemy_scene := load(scene_path) as PackedScene
+		if enemy_scene == null:
+			push_warning("MapManager: не удалось загрузить врага из dungeon_state: " + scene_path)
+			continue
+		var slot_idx := int(spec.get("slot", enemys_node.get_child_count()))
+		var is_boss := GameConstants.variant_to_bool(spec.get("is_boss", room_data["type"] == RoomType.BOSS))
+		var enemy := enemy_scene.instantiate()
+		_set_spawned_enemy_identity(enemy, slot_idx, is_boss)
+		var saved_name := str(spec.get("name", ""))
+		if saved_name != "":
+			enemy.name = saved_name
+		enemys_node.add_child(enemy)
+		var local_pos := Vector2(float(local_raw.get("x", 0.0)), float(local_raw.get("y", 0.0)))
+		(enemy as Node2D).global_position = room_node.to_global(local_pos)
+		if is_boss:
+			_ensure_boss_hatch(room_node)
 
 
 ## Старые сейвы без полей map_* — оставляем текущие GameConstants (кооп-снимок хоста и т.д.).
@@ -1094,7 +1193,10 @@ func load_dungeon_state():
 	_spawn_player()
 	await _spawn_obstacles_after_physics()
 	_obstacle_detail_spawn_override = -1
-	await _spawn_enemies_after_physics()
+	if dungeon_data.has(ENEMY_STATE_KEY) and dungeon_data[ENEMY_STATE_KEY] is Array:
+		_spawn_enemies_from_state(dungeon_data[ENEMY_STATE_KEY])
+	else:
+		await _spawn_enemies_after_physics()
 	_spawn_treasure_items()
 
 	# Восстанавливаем посещенные комнаты

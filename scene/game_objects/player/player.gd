@@ -47,6 +47,9 @@ var can_attack = true
 var is_dead = false
 
 var last_known_max_health = 0
+var _debug_boost_active := false
+var _debug_prev_max_speed := 0.0
+var _debug_prev_attack_speed := 0.0
 
 # =========================================================
 # СЕТЬ
@@ -209,12 +212,16 @@ func _process(delta: float) -> void:
 
 	# DEBUG BOOST
 	if Input.is_action_just_pressed("ui_focus_next"):
+		_debug_prev_max_speed = GameConstants.PLAYER_MAX_SPEED
+		_debug_prev_attack_speed = GameConstants.PLAYER_ATTACK_SPEED
+		_debug_boost_active = true
 		GameConstants.PLAYER_MAX_SPEED = 500
 		GameConstants.PLAYER_ATTACK_SPEED = 5.0
 
-	if Input.is_action_just_released("ui_focus_next"):
-		GameConstants.PLAYER_MAX_SPEED = SaveSystem.BASE_VALUES["PLAYER_MAX_SPEED"]
-		GameConstants.PLAYER_ATTACK_SPEED = 1.0
+	if Input.is_action_just_released("ui_focus_next") and _debug_boost_active:
+		GameConstants.PLAYER_MAX_SPEED = _debug_prev_max_speed
+		GameConstants.PLAYER_ATTACK_SPEED = _debug_prev_attack_speed
+		_debug_boost_active = false
 
 	# =====================================================
 	# ЯД

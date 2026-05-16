@@ -5,15 +5,35 @@ var speed: float = GameConstants.ARROW_SPEED
 var lifetime: float = 5.0
 var shooter: Node = null
 
+@export var max_distance: float = 432.0
+@export var min_scale_ratio: float = 0.05
+
+var _distance_traveled := 0.0
+var _base_scale := Vector2.ONE
+
 func _ready() -> void:
-	rotation = direction.angle()
+	if direction.length_squared() > 0.0:
+		direction = direction.normalized()
+		rotation = direction.angle()
+	_base_scale = scale
 	await get_tree().create_timer(lifetime).timeout
 	if is_instance_valid(self):
 		queue_free()
 
 func _process(delta: float) -> void:
 	if direction != Vector2.ZERO:
-		global_position += direction * speed * delta
+		var frame_distance := speed * delta
+		global_position += direction * frame_distance
+		_distance_traveled += frame_distance
+		_update_distance_scale()
+		if _distance_traveled >= max_distance:
+			queue_free()
+
+
+func _update_distance_scale() -> void:
+	var progress := clampf(_distance_traveled / max_distance, 0.0, 1.0)
+	var scale_ratio := maxf(min_scale_ratio, 1.0 - progress)
+	scale = _base_scale * scale_ratio
 
 func _on_body_entered(body: Node2D) -> void:
 	_apply_hit(body)

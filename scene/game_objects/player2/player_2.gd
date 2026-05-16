@@ -4,6 +4,9 @@ extends CharacterBody2D
 @export var gameover: PackedScene
 @export var hit_particles: PackedScene
 @export var fireball_scene: PackedScene = preload("res://scene/abilities/fireball.tscn")
+@export_range(0.1, 5.0, 0.05) var attack_speed_multiplier: float = 1
+@export_range(0.1, 3.0, 0.05) var attack_cooldown: float = 0.5
+@export_range(1.0, 5.0, 0.1) var max_health_divisor: float = 1.5
 
 @onready var attack_joystick = $MobileController/VirtualJoystick2
 @onready var anim = $AnimatedSprite2D
@@ -50,6 +53,10 @@ var is_dead = false
 var last_known_max_health = 0
 var _shot_direction := Vector2.DOWN
 var _last_shot_msec: int = 0
+var _debug_boost_active := false
+var _debug_prev_max_speed := 0.0
+var _debug_prev_attack_speed := 0.0
+var _hurt_anim_token: int = 0
 
 # =========================================================
 # СЕТЬ
@@ -191,12 +198,16 @@ func _process(delta: float) -> void:
 
 	# DEBUG BOOST
 	if Input.is_action_just_pressed("ui_focus_next"):
+		_debug_prev_max_speed = GameConstants.PLAYER_MAX_SPEED
+		_debug_prev_attack_speed = GameConstants.PLAYER_ATTACK_SPEED
+		_debug_boost_active = true
 		GameConstants.PLAYER_MAX_SPEED = 500
 		GameConstants.PLAYER_ATTACK_SPEED = 5.0
 
-	if Input.is_action_just_released("ui_focus_next"):
-		GameConstants.PLAYER_MAX_SPEED = SaveSystem.BASE_VALUES["PLAYER_MAX_SPEED"]
-		GameConstants.PLAYER_ATTACK_SPEED = 1.0
+	if Input.is_action_just_released("ui_focus_next") and _debug_boost_active:
+		GameConstants.PLAYER_MAX_SPEED = _debug_prev_max_speed
+		GameConstants.PLAYER_ATTACK_SPEED = _debug_prev_attack_speed
+		_debug_boost_active = false
 
 	# =====================================================
 	# ЯД
@@ -330,7 +341,7 @@ func play_idle_animation():
 # =========================================================
 
 func attack(from_rpc: bool = false) -> void:
-	if not can_attack or is_dead:
+	if not can_attack or is_dead or not can_anim:
 		return
 	if NetworkManager.is_game_online() and NetworkManager.coop_run_finished and is_local_player:
 		return
@@ -339,9 +350,10 @@ func attack(from_rpc: bool = false) -> void:
 	update_direction(_shot_direction)
 
 	can_attack = false
-	attack_timer.start(attack_timer.wait_time / GameConstants.PLAYER_ATTACK_SPEED)
+	var effective_attack_speed := _get_effective_attack_speed()
+	attack_timer.start(attack_cooldown)
 
-	animP.speed_scale = GameConstants.PLAYER_ATTACK_SPEED
+	animP.speed_scale = effective_attack_speed
 	match current_dir:
 		Dir.UP:
 			animP.play("attack_up")
@@ -360,6 +372,10 @@ func attack(from_rpc: bool = false) -> void:
 			rpc_attack.rpc(true)
 		else:
 			rpc_attack.rpc_id(NetworkManager.SERVER_ID, true)
+
+
+func _get_effective_attack_speed() -> float:
+	return maxf(0.1, attack_speed_multiplier)
 
 
 func _is_attack_anim_playing() -> bool:
@@ -508,12 +524,14 @@ func take_damage(amount: int):
 
 	health_changed.emit(
 		health_int,
-		GameConstants.PLAYER_MAX_HEALTH
+		_get_max_health()
 	)
 
 	if health_int <= 0:
 		die()
 		return
+
+	play_hurt_animation()
 
 	var restore_color = (
 		Color(0.3, 1, 0.3, 1)
@@ -533,6 +551,33 @@ func take_damage(amount: int):
 		get_tree().current_scene.add_child(particles)
 
 	damage_timer.start()
+
+
+func play_hurt_animation() -> void:
+	if is_dead or animP == null:
+		return
+	_hurt_anim_token += 1
+	var token := _hurt_anim_token
+	can_anim = false
+	animP.stop()
+	animP.speed_scale = 1.0
+	match current_dir:
+		Dir.UP:
+			animP.play("hurt_up")
+		Dir.DOWN:
+			animP.play("hurt_down")
+		Dir.LEFT:
+			animP.play("hurt_left")
+		Dir.RIGHT:
+			animP.play("hurt_right")
+	await animP.animation_finished
+	if token != _hurt_anim_token or is_dead:
+		return
+	can_anim = true
+	if movement_vector() != Vector2.ZERO:
+		play_walk_animation()
+	else:
+		play_idle_animation()
 
 # =========================================================
 # DEATH
@@ -627,12 +672,18 @@ func _on_can_take_damage_timeout() -> void:
 func _on_can_attack_timeout() -> void:
 	can_attack = true
 
+
+func _get_max_health() -> int:
+	return maxi(1, int(ceil(float(GameConstants.PLAYER_MAX_HEALTH) / max_health_divisor)))
+
 # =========================================================
 # READY
 # =========================================================
 
 func _ready() -> void:
 	add_to_group("player")
+	attack_timer.one_shot = true
+	attack_timer.wait_time = attack_cooldown
 
 	if NetworkManager.is_game_offline():
 		is_local_player = true
@@ -647,19 +698,19 @@ func _ready() -> void:
 	)
 
 	health_int = (
-		maxi(1, SaveSystem.saved_player_health)
+		clampi(SaveSystem.saved_player_health, 1, _get_max_health())
 		if SaveSystem.should_restore_player
-		else GameConstants.PLAYER_MAX_HEALTH
+		else _get_max_health()
 	)
 
-	last_known_max_health = GameConstants.PLAYER_MAX_HEALTH
+	last_known_max_health = _get_max_health()
 
 	if not GameConstants.constants_changed.is_connected(_on_constants_changed):
 		GameConstants.constants_changed.connect(_on_constants_changed)
 
 	health_changed.emit(
 		health_int,
-		GameConstants.PLAYER_MAX_HEALTH
+		_get_max_health()
 	)
 
 	exp_changed.emit(
@@ -717,7 +768,7 @@ func _hide_ui_for_remote_peer() -> void:
 # =========================================================
 
 func _on_constants_changed() -> void:
-	var new_max = GameConstants.PLAYER_MAX_HEALTH
+	var new_max = _get_max_health()
 
 	if new_max > last_known_max_health:
 		health_int = min(health_int * 2, new_max)
@@ -768,11 +819,11 @@ func _on_hitbox_attack_body_entered(body: Node2D) -> void:
 # =========================================================
 
 func heal(amount: int) -> void:
-	health_int += amount
+	health_int = mini(health_int + amount, _get_max_health())
 
 	health_changed.emit(
 		health_int,
-		GameConstants.PLAYER_MAX_HEALTH
+		_get_max_health()
 	)
 	
 	# Показываем хил
@@ -849,7 +900,7 @@ func level_up_player() -> void:
 		999
 	)
 
-	last_known_max_health = GameConstants.PLAYER_MAX_HEALTH
+	last_known_max_health = _get_max_health()
 
 	_show_level_up_popup()
 
@@ -859,7 +910,7 @@ func level_up_player() -> void:
 
 	health_changed.emit(
 		health_int,
-		GameConstants.PLAYER_MAX_HEALTH
+		_get_max_health()
 	)
 
 	exp_changed.emit(

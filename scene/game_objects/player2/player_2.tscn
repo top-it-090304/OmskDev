@@ -1,4 +1,4 @@
-[gd_scene load_steps=163 format=3 uid="uid://de86lga3qrnjr"]
+[gd_scene load_steps=183 format=3 uid="uid://de86lga3qrnjr"]
 
 [ext_resource type="Texture2D" uid="uid://pagggpic45vn" path="res://sprites/player/Health/Health_progressbar_sprite_under.png" id="1_o0ofg"]
 [ext_resource type="Script" uid="uid://dxvimbfajb7yw" path="res://scene/game_objects/player2/player_2.gd" id="1_wqtsj"]
@@ -13,9 +13,13 @@
 [ext_resource type="Texture2D" uid="uid://teqifhipcbuj" path="res://sprites/player2/Right/Png/SorceressRightDeath.png" id="10_wqtsj"]
 [ext_resource type="Texture2D" uid="uid://v0k2u0tar5if" path="res://sprites/player2/Up/Png/SorceressUpDeath.png" id="11_dvmra"]
 [ext_resource type="Texture2D" uid="uid://urwbkuvhote4" path="res://sprites/player2/Down/Png/SorceressDownIdle.png" id="12_msnq1"]
+[ext_resource type="Texture2D" uid="uid://kix0n4lg2s3m" path="res://sprites/player2/Down/Png/SorceressDownHurt.png" id="13_mvo2b"]
 [ext_resource type="Texture2D" uid="uid://cgnboc1hbu3j4" path="res://sprites/player2/Left/Png/SorceressLeftIdle.png" id="13_o0ofg"]
+[ext_resource type="Texture2D" uid="uid://sk3hmw3ub7pp" path="res://sprites/player2/Left/Png/SorceressLefttHurt.png" id="14_hsllf"]
 [ext_resource type="Texture2D" uid="uid://ttgx45rt43ur" path="res://sprites/player2/Right/Png/SorceressRightIdle.png" id="14_mvo2b"]
 [ext_resource type="Texture2D" uid="uid://dibft3jj47qpb" path="res://sprites/player2/Up/Png/SorceressUpIdle.png" id="15_hsllf"]
+[ext_resource type="Texture2D" uid="uid://ccebuky44yqwl" path="res://sprites/player2/Right/Png/SorceressRightHurt.png" id="15_l40kf"]
+[ext_resource type="Texture2D" uid="uid://cblqcfcmvex51" path="res://sprites/player2/Up/Png/SorceressUpHurt.png" id="16_3ntbr"]
 [ext_resource type="Texture2D" uid="uid://c6xpkxi6b0sqx" path="res://sprites/player2/Down/Png/SorceressDownRun.png" id="16_l40kf"]
 [ext_resource type="Texture2D" uid="uid://wn45lqb8xm4y" path="res://sprites/player2/Left/Png/SorceressLeftRun.png" id="17_3ntbr"]
 [ext_resource type="Texture2D" uid="uid://c8mlbdkf7ws17" path="res://sprites/player2/Right/Png/SorceressRightRun.png" id="18_qi5c4"]
@@ -276,6 +280,70 @@ region = Rect2(384, 0, 48, 48)
 atlas = ExtResource("11_dvmra")
 region = Rect2(432, 0, 48, 48)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_ihr38"]
+atlas = ExtResource("13_mvo2b")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_br7he"]
+atlas = ExtResource("13_mvo2b")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_x5c8a"]
+atlas = ExtResource("13_mvo2b")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_eu3wt"]
+atlas = ExtResource("13_mvo2b")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6sobx"]
+atlas = ExtResource("14_hsllf")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_54m6p"]
+atlas = ExtResource("14_hsllf")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xu0rf"]
+atlas = ExtResource("14_hsllf")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tdb6f"]
+atlas = ExtResource("14_hsllf")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2eoyp"]
+atlas = ExtResource("15_l40kf")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fg53g"]
+atlas = ExtResource("15_l40kf")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ji0j8"]
+atlas = ExtResource("15_l40kf")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_iy1je"]
+atlas = ExtResource("15_l40kf")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ankm7"]
+atlas = ExtResource("16_3ntbr")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_86qdx"]
+atlas = ExtResource("16_3ntbr")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5fqkq"]
+atlas = ExtResource("16_3ntbr")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_twfh3"]
+atlas = ExtResource("16_3ntbr")
+region = Rect2(144, 0, 48, 48)
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_prck5"]
 atlas = ExtResource("12_msnq1")
 region = Rect2(0, 0, 48, 48)
@@ -488,7 +556,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"attack_down",
-"speed": 7.0
+"speed": 5.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -508,7 +576,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"attack_left",
-"speed": 7.0
+"speed": 5.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -528,7 +596,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"attack_right",
-"speed": 7.0
+"speed": 5.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -548,7 +616,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"attack_up",
-"speed": 7.0
+"speed": 5.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -689,6 +757,74 @@ animations = [{
 "loop": false,
 "name": &"death_up",
 "speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ihr38")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_br7he")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_x5c8a")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_eu3wt")
+}],
+"loop": false,
+"name": &"hurt_down",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6sobx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_54m6p")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xu0rf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tdb6f")
+}],
+"loop": false,
+"name": &"hurt_left",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2eoyp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fg53g")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ji0j8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_iy1je")
+}],
+"loop": false,
+"name": &"hurt_right",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ankm7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_86qdx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5fqkq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_twfh3")
+}],
+"loop": false,
+"name": &"hurt_up",
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -1585,7 +1721,7 @@ debug_color = Color(0.290712, 0.629766, 0, 0.42)
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 z_index = 2
 sprite_frames = SubResource("SpriteFrames_f8kpb")
-animation = &"idle_up"
+animation = &"hurt_down"
 autoplay = "idle_down"
 
 [node name="Camera2D" type="Camera2D" parent="."]
@@ -1632,7 +1768,9 @@ shape = SubResource("CapsuleShape2D_nbsmq")
 disabled = true
 
 [node name="can_attack" type="Timer" parent="."]
-wait_time = 0.3
+process_callback = 0
+wait_time = 0.5
+one_shot = true
 
 [node name="MobileController" parent="." instance=ExtResource("30_th1yf")]
 
