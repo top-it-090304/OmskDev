@@ -15,6 +15,8 @@ const ATTACK_1_RANGE := 170.0
 const MANY_SWING_RANGE := 115.0
 const ATTACK_COOLDOWN := 2.4
 const SPAN_ATTACK_COOLDOWN := 8.0
+const SUMMON_COUNT := 2
+const MAX_MINIONS := 4
 
 enum Dir { DOWN, UP, LEFT, RIGHT }
 
@@ -28,9 +30,17 @@ var is_attacking := false
 var can_anim := true
 var _attack_cd := 1.0
 var _span_cd := 4.0
+var player_in_swing_zone := false
+var player_in_swings_zone := false
+var player_in_spawn_zone := false
+var active_minions: Array = []
 
 @onready var anim: AnimatedSprite2D = $AnimatedSprite2D
+@onready var animP: AnimationPlayer = get_node_or_null("AnimationPlayer") as AnimationPlayer
 @onready var hp_bar: TextureProgressBar = $TextureProgressBar
+@onready var detector_swing: Area2D = $detector_swing
+@onready var detector_swings: Area2D = $detector_swings
+@onready var detector_spawn: Area2D = $detector_spawn
 
 
 func _ready() -> void:
@@ -52,6 +62,10 @@ func _physics_process(delta: float) -> void:
 	if is_dead:
 		return
 	player = PlayerManager.get_nearest_target_player_node(global_position) as Node2D
+	if NetworkManager.is_multiplayer_active():
+		player_in_swing_zone = PlayerManager.detector_has_living_player(detector_swing)
+		player_in_swings_zone = PlayerManager.detector_has_living_player(detector_swings)
+		player_in_spawn_zone = PlayerManager.detector_has_living_player(detector_spawn)
 	_attack_cd = maxf(0.0, _attack_cd - delta)
 	_span_cd = maxf(0.0, _span_cd - delta)
 	var aggressive := parent_node != null and GameConstants.variant_to_bool(parent_node.get("aggression"))
@@ -68,14 +82,14 @@ func _physics_process(delta: float) -> void:
 	var to_player := PlayerManager.get_player_world_pos_for_hosting_ai(player) - global_position
 	var dist := to_player.length()
 	var dir := to_player.normalized()
-	if _span_cd <= 0.0:
+	if _span_cd <= 0.0 and player_in_spawn_zone:
 		_span_cd = SPAN_ATTACK_COOLDOWN
 		_attack_cd = ATTACK_COOLDOWN
 		attack_span()
 		return
-	if _attack_cd <= 0.0 and dist <= ATTACK_1_RANGE:
+	if _attack_cd <= 0.0 and (player_in_swing_zone or dist <= ATTACK_1_RANGE):
 		_attack_cd = ATTACK_COOLDOWN
-		if dist <= MANY_SWING_RANGE and randf() < 0.55:
+		if (player_in_swings_zone or dist <= MANY_SWING_RANGE) and randf() < 0.55:
 			attack_swings()
 		else:
 			attack_swing()
@@ -98,11 +112,16 @@ func attack_swing() -> void:
 	is_attacking = true
 	can_anim = false
 	_face_player()
-	_play_anim("attack_swing_" + _dir_string(), "attack_swing_down")
-	await get_tree().create_timer(0.36).timeout
-	_strong_melee_hit()
-	_spawn_wave_to_player(GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_SWORDMAN_WAVE_DAMAGE))
-	await _wait_anim_or_timeout(0.65)
+	_play_boss_anim("attack_swing_" + _dir_string(), "attack_swing_down")
+	if _anim_player_has_current_attack():
+		await get_tree().create_timer(0.36).timeout
+		activate_strong_swing()
+		await _wait_anim_player_or_timeout(0.9)
+	else:
+		await get_tree().create_timer(0.36).timeout
+		activate_strong_swing()
+		spawn_swing_wave()
+		await _wait_anim_or_timeout(0.65)
 	_reset_after_attack()
 
 
@@ -112,18 +131,18 @@ func attack_swings() -> void:
 	is_attacking = true
 	can_anim = false
 	_face_player()
-	_play_anim("attack_swings_" + _dir_string(), "attack_swings_down")
+	_play_boss_anim("attack_swings_" + _dir_string(), "attack_swings_down")
 	for _i in range(3):
 		if is_dead or not is_instance_valid(player):
 			break
-		var dir := (PlayerManager.get_player_world_pos_for_hosting_ai(player) - global_position).normalized()
-		update_run_animation(dir)
-		velocity = dir * speed * 3.0
-		move_and_slide()
-		_normal_melee_hit()
 		await get_tree().create_timer(0.18).timeout
+		dash_many_swing()
+		activate_normal_swing()
 	velocity = Vector2.ZERO
-	await _wait_anim_or_timeout(0.35)
+	if _anim_player_has_current_attack():
+		await _wait_anim_player_or_timeout(0.35)
+	else:
+		await _wait_anim_or_timeout(0.35)
 	_reset_after_attack()
 
 
@@ -133,11 +152,14 @@ func attack_span() -> void:
 	is_attacking = true
 	can_anim = false
 	_face_player()
-	_play_anim("attack_spawn_" + _dir_string(), "attack_spawn_down")
-	await get_tree().create_timer(0.35).timeout
-	_spawn_minions(2)
-	_spawn_waves_8()
-	await _wait_anim_or_timeout(0.75)
+	_play_boss_anim("attack_spawn_" + _dir_string(), "attack_spawn_down")
+	if _anim_player_has_current_attack():
+		await _wait_anim_player_or_timeout(1.1)
+	else:
+		await get_tree().create_timer(0.35).timeout
+		spawn_sword_minions()
+		spawn_radial_waves()
+		await _wait_anim_or_timeout(0.75)
 	_reset_after_attack()
 
 
@@ -149,12 +171,33 @@ func _reset_after_attack() -> void:
 	_play_idle_animation()
 
 
-func _strong_melee_hit() -> void:
+func activate_strong_swing() -> void:
 	_apply_melee_damage(GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_SWORDMAN_STRONG_DAMAGE), 760.0)
 
 
-func _normal_melee_hit() -> void:
+func activate_normal_swing() -> void:
 	_apply_melee_damage(GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_SWORDMAN_DAMAGE), 420.0)
+
+
+func spawn_swing_wave() -> void:
+	_spawn_wave_to_player(GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_SWORDMAN_WAVE_DAMAGE))
+
+
+func dash_many_swing() -> void:
+	if is_dead or not is_instance_valid(player):
+		return
+	var dir := (PlayerManager.get_player_world_pos_for_hosting_ai(player) - global_position).normalized()
+	update_run_animation(dir)
+	velocity = dir * speed * 3.0
+	move_and_slide()
+
+
+func spawn_sword_minions() -> void:
+	_spawn_minions(SUMMON_COUNT)
+
+
+func spawn_radial_waves() -> void:
+	_spawn_waves_8()
 
 
 func _apply_melee_damage(damage: int, knockback: float) -> void:
@@ -197,14 +240,28 @@ func _spawn_wave(dir: Vector2, damage: int) -> void:
 
 
 func _spawn_minions(count: int) -> void:
+	_cleanup_minions()
+	var can_spawn := MAX_MINIONS - active_minions.size()
+	if can_spawn <= 0:
+		return
+	var to_spawn: int = mini(count, can_spawn)
+	AudioManager.play_sfx("босс_суммон")
 	var parent := get_parent()
 	if parent == null:
 		parent = get_tree().current_scene
-	for i in range(count):
+	for i in range(to_spawn):
 		var minion := MINION_SCENE.instantiate()
 		parent.add_child(minion)
-		var angle := TAU * float(i) / float(count)
+		var angle := TAU * float(i) / float(to_spawn)
 		minion.global_position = global_position + Vector2(cos(angle), sin(angle)) * 62.0
+		active_minions.append(minion)
+		var tween := create_tween()
+		tween.tween_property(minion, "modulate:a", 0.0, 0.0)
+		tween.tween_property(minion, "modulate:a", 1.0, 0.3)
+
+
+func _cleanup_minions() -> void:
+	active_minions = active_minions.filter(func(m): return is_instance_valid(m) and (not ("is_dead" in m) or not m.is_dead))
 
 
 func take_damage(amount: int) -> void:
@@ -230,6 +287,8 @@ func death() -> void:
 	AudioManager.play_sfx("босс_смерть")
 	set_collision_layer_value(1, false)
 	set_collision_mask_value(1, false)
+	if animP != null:
+		animP.stop()
 	_play_anim("death_" + _dir_string(), "death_down")
 	await _wait_anim_or_timeout(1.6)
 	_give_exp_to_player()
@@ -244,6 +303,36 @@ func _on_hitbox_area_entered(_area: Area2D) -> void:
 	if is_dead:
 		return
 	NetworkManager.apply_melee_damage_to_enemy_from_player(self, GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_SWORDMAN_TAKE_DAMAGE))
+
+
+func _on_detector_swing_body_entered(body: Node2D) -> void:
+	if body.is_in_group("player"):
+		player_in_swing_zone = true
+
+
+func _on_detector_swing_body_exited(body: Node2D) -> void:
+	if body.is_in_group("player"):
+		player_in_swing_zone = false
+
+
+func _on_detector_swings_body_entered(body: Node2D) -> void:
+	if body.is_in_group("player"):
+		player_in_swings_zone = true
+
+
+func _on_detector_swings_body_exited(body: Node2D) -> void:
+	if body.is_in_group("player"):
+		player_in_swings_zone = false
+
+
+func _on_detector_spawn_body_entered(body: Node2D) -> void:
+	if body.is_in_group("player"):
+		player_in_spawn_zone = true
+
+
+func _on_detector_spawn_body_exited(body: Node2D) -> void:
+	if body.is_in_group("player"):
+		player_in_spawn_zone = false
 
 
 func update_run_animation(direction: Vector2) -> void:
@@ -287,6 +376,12 @@ func _wait_anim_or_timeout(timeout_sec: float) -> void:
 		await get_tree().process_frame
 
 
+func _wait_anim_player_or_timeout(timeout_sec: float) -> void:
+	var deadline := Time.get_ticks_msec() + int(timeout_sec * 1000.0)
+	while animP != null and animP.is_playing() and Time.get_ticks_msec() < deadline:
+		await get_tree().process_frame
+
+
 func _play_anim(anim_name: String, fallback: String) -> void:
 	if anim.sprite_frames == null:
 		return
@@ -294,6 +389,17 @@ func _play_anim(anim_name: String, fallback: String) -> void:
 		anim.play(anim_name)
 	elif anim.sprite_frames.has_animation(fallback):
 		anim.play(fallback)
+
+
+func _play_boss_anim(anim_name: String, fallback: String) -> void:
+	if animP != null and animP.has_animation(anim_name):
+		animP.play(anim_name)
+	else:
+		_play_anim(anim_name, fallback)
+
+
+func _anim_player_has_current_attack() -> bool:
+	return animP != null and animP.is_playing()
 
 
 func _give_exp_to_player() -> void:

@@ -1784,4 +1784,5 @@ offset_bottom = 260.0
 [connection signal="pressed" from="TextureButton" to="TextureButton" method="_on_pressed"]
 [connection signal="pressed" from="InventoryButton" to="InventoryButton" method="_on_pressed"]
 [connection signal="timeout" from="can_take_damage" to="." method="_on_can_take_damage_timeout"]
+[connection signal="body_entered" from="hitbox_attack" to="." method="_on_hitbox_attack_body_entered"]
 [connection signal="timeout" from="can_attack" to="." method="_on_can_attack_timeout"]
