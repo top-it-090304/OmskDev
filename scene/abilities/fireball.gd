@@ -28,8 +28,8 @@ func _apply_hit(target: Node) -> void:
 	if not target.has_method("take_damage"):
 		return
 
-	var dmg := GameConstants.PLAYER_ATTACK_DAMAGE
-	var is_crit := false
+	var dmg = GameConstants.PLAYER_ATTACK_DAMAGE
+	var is_crit = false
 	if is_instance_valid(shooter) and shooter.has_method("roll_attack_damage"):
 		var roll: Dictionary = shooter.roll_attack_damage()
 		dmg = int(roll.get("damage", dmg))
