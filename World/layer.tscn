@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3 uid="uid://bq40uiaugbfjq"]
+[gd_scene load_steps=26 format=3 uid="uid://bq40uiaugbfjq"]
 
 [ext_resource type="PackedScene" uid="uid://n6dhykg53x0b" path="res://World/map_manager.tscn" id="1_mln5v"]
 [ext_resource type="PackedScene" uid="uid://ec471alip6hl" path="res://scene/game_objects/player/exp_bar.tscn" id="2_jn37s"]
@@ -8,7 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://bbelva8io0yft" path="res://scene/pick_up/artefacts/artefact(boots_of_travel).tscn" id="5_v7fgi"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/blue_shroom.tscn" id="6_ikq8h"]
 [ext_resource type="PackedScene" uid="uid://ot1bjrnddml7" path="res://scene/game_objects/enemy/skeleton_bow/skeleton_bow.tscn" id="6_n4o4r"]
-[ext_resource type="PackedScene" uid="uid://dyfq8emof0pax" path="res://scene/game_objects/enemy/skeleton_grunt/enemy(skeleton_grunt).tscn" id="7_sklg"]
+[ext_resource type="PackedScene" path="res://scene/game_objects/enemy/skeleton_grunt/enemy(skeleton_grunt).tscn" id="7_sklg"]
 [ext_resource type="PackedScene" uid="uid://bx8m4n7p2qlar" path="res://scene/game_objects/enemy/goblin_slinger/goblin_slinger.tscn" id="7_1olng"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/clock.tscn" id="7_qpvvc"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/coffee_mug.tscn" id="8_shab0"]
@@ -17,6 +17,7 @@
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/golden_cup.tscn" id="11_3hlwg"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/injector.tscn" id="12_0el4m"]
 [ext_resource type="PackedScene" uid="uid://cqu11x06knfef" path="res://scene/game_objects/bosses/skeleton_king/skeleton_king.tscn" id="12_hhjyk"]
+[ext_resource type="PackedScene" uid="uid://bky7ny1a51sc" path="res://scene/game_objects/bosses/skeletonSwordman/skeleton_swordman.tscn" id="12_sword"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/metal_shield.tscn" id="13_cueid"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/old_book.tscn" id="14_36tnp"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/red_potion.tscn" id="15_rhie0"]
@@ -84,5 +85,5 @@ offset_bottom = 0.120001
 [node name="MapManager" parent="." node_paths=PackedStringArray("layer") instance=ExtResource("1_mln5v")]
 layer = NodePath("..")
 enemy_variations = Array[PackedScene]([ExtResource("5_d0rex"), ExtResource("6_n4o4r"), ExtResource("7_sklg"), ExtResource("7_1olng")])
-boss_variations = Array[PackedScene]([ExtResource("12_hhjyk")])
+boss_variations = Array[PackedScene]([ExtResource("12_sword")])
 treasure_items = Array[PackedScene]([ExtResource("5_v7fgi"), ExtResource("6_ikq8h"), ExtResource("7_qpvvc"), ExtResource("8_shab0"), ExtResource("9_f2vw5"), ExtResource("10_ylsjx"), ExtResource("11_3hlwg"), ExtResource("12_0el4m"), ExtResource("13_cueid"), ExtResource("14_36tnp"), ExtResource("15_rhie0"), ExtResource("16_art01")])

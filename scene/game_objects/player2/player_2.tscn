@@ -1,4 +1,4 @@
-[gd_scene load_steps=183 format=3 uid="uid://de86lga3qrnjr"]
+[gd_scene load_steps=184 format=3 uid="uid://de86lga3qrnjr"]
 
 [ext_resource type="Texture2D" uid="uid://pagggpic45vn" path="res://sprites/player/Health/Health_progressbar_sprite_under.png" id="1_o0ofg"]
 [ext_resource type="Script" uid="uid://dxvimbfajb7yw" path="res://scene/game_objects/player2/player_2.gd" id="1_wqtsj"]
@@ -32,6 +32,7 @@
 [ext_resource type="Script" uid="uid://d2csheqwcyoey" path="res://scene/game_objects/player/inventory_button.gd" id="29_j70ss"]
 [ext_resource type="PackedScene" uid="uid://5f3o7tew7oun" path="res://scene/button/mobile_controller.tscn" id="30_th1yf"]
 [ext_resource type="PackedScene" uid="uid://tqdnqu04xabq" path="res://scene/ui/level_up_popup.tscn" id="31_x434b"]
+[ext_resource type="PackedScene" uid="uid://5b5gg5popt2v" path="res://World/UI/game_over.tscn" id="32_gameover"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_jvrbn"]
 radius = 9.0
@@ -1688,6 +1689,7 @@ collision_layer = 3
 floor_max_angle = 0.0
 safe_margin = 0.001
 script = ExtResource("1_wqtsj")
+gameover = ExtResource("32_gameover")
 
 [node name="TextureProgressBar" type="TextureProgressBar" parent="."]
 z_index = 10

@@ -1,3 +1,16 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Local editor/agent files
+.openclaude/
+.kilo/
+
+# Generated temporary scene/resource files
+*.tmp
+
+# Local context dumps
+[path].json
+chathistory.txt
+project_context.txt
+scripts_only.txt

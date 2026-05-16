@@ -16,6 +16,7 @@ extends CharacterBody2D
 
 const LEVEL_UP_POPUP = preload("res://scene/ui/level_up_popup.tscn")
 const DAMAGE_POPUP = preload("res://scene/ui/damage_popup.tscn")
+const DEFAULT_GAME_OVER = preload("res://World/UI/game_over.tscn")
 
 # =========================================================
 # ОСНОВНЫЕ ПЕРЕМЕННЫЕ
@@ -638,7 +639,8 @@ func _death_presentation_async() -> void:
 
 	SaveSystem.invalidate_run_after_death()
 
-	var over = gameover.instantiate()
+	var gameover_scene := gameover if gameover != null else DEFAULT_GAME_OVER
+	var over = gameover_scene.instantiate()
 	add_child(over)
 
 
