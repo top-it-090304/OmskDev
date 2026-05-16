@@ -398,7 +398,7 @@ func draw_map():
 					continue
 					
 				# ВОТ ЗДЕСЬ ИЗМЕНЕНИЕ: as RoomBase
-				var room_instance = selected_room_scene.instantiate() as RoomBase
+				var room_instance = selected_room_scene.instantiate() 
 				
 				# Если somehow сцена оказалась не той, пропускаем (защита от вылета)
 				if room_instance == null:
@@ -461,8 +461,8 @@ func _spawn_obstacles_in_room(room_node: Node2D, room_type: RoomType, detail_lev
 
 	var gx := 0
 	var gy := 0
-	if room_node is RoomBase:
-		var rb := room_node as RoomBase
+	if room_node :
+		var rb := room_node
 		gx = rb.grid_x
 		gy = rb.grid_y
 	var rng := RandomNumberGenerator.new()
@@ -670,8 +670,8 @@ func _spawn_single_enemy_online_deterministic(room_node: Node2D, slot_idx: int) 
 		return
 	var gx := 0
 	var gy := 0
-	if room_node is RoomBase:
-		var rb := room_node as RoomBase
+	if room_node:
+		var rb := room_node 
 		gx = rb.grid_x
 		gy = rb.grid_y
 	var rng := RandomNumberGenerator.new()

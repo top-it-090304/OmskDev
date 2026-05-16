@@ -61,7 +61,7 @@ position = Vector2(-4.76837e-07, 0)
 scale = Vector2(0.596774, 0.596774)
 sprite_frames = SubResource("SpriteFrames_5t054")
 autoplay = "default"
-frame_progress = 0.31608
+frame_progress = 0.856693
 
 [node name="PointLight2D" type="PointLight2D" parent="."]
 position = Vector2(2, 0)
