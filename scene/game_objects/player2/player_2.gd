@@ -371,8 +371,8 @@ func _is_attack_anim_playing() -> bool:
 
 ## Как у Knight: урон + крит для файрбола.
 func roll_attack_damage() -> Dictionary:
-	var dmg := GameConstants.PLAYER_ATTACK_DAMAGE
-	var is_crit := randf() < GameConstants.PLAYER_CRIT_CHANCE
+	var dmg = GameConstants.PLAYER_ATTACK_DAMAGE
+	var is_crit = randf() < GameConstants.PLAYER_CRIT_CHANCE
 	if is_crit:
 		dmg = int(dmg * GameConstants.PLAYER_CRIT_MULTIPLIER)
 	return {"damage": dmg, "is_crit": is_crit}
