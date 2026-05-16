@@ -173,7 +173,7 @@ func rpc_coop_transition_next_floor() -> void:
 func _deferred_coop_change_floor_scene() -> void:
 	if not is_inside_tree():
 		return
-	get_tree().change_scene_to_file("res://World/layer.tscn")
+	get_tree().change_scene_to_file(GameConstants.get_current_floor_scene_path())
 
 
 @rpc("any_peer", "call_remote", "reliable")

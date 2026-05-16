@@ -150,6 +150,9 @@ var ENEMY_BEASTGOBLIN_TAKE_DAMAGE = 10
 var ENEMY_BEASTGOBLIN_EXP_REWARD = 200
 
 # --- ПРОГРЕССИЯ ОКРУЖЕНИЯ ---
+const DEFAULT_FLOOR_SCENE_PATH := "res://World/layer.tscn"
+const ACT2_FLOOR_SCENE_PATH := "res://World/layer_act2.tscn"
+
 var _current_floor_internal: int = 1
 var CURRENT_FLOOR: int:
 	get:
@@ -167,6 +170,16 @@ var CURRENT_FLOOR: int:
 
 var ENEMY_LEVEL = 1
 var ENEMY_LEVEL_SCALING = 0.15
+
+
+func get_scene_path_for_floor(floor: int) -> String:
+	if floor == 3 or floor == 4:
+		return ACT2_FLOOR_SCENE_PATH
+	return DEFAULT_FLOOR_SCENE_PATH
+
+
+func get_current_floor_scene_path() -> String:
+	return get_scene_path_for_floor(CURRENT_FLOOR)
 
 # --- СИСТЕМНЫЕ ПЕРЕМЕННЫЕ (Авто-перезагрузка конфига) ---
 var _reload_timer_sec := 0.0

@@ -69,4 +69,4 @@ func _go_to_next_floor_solo() -> void:
 	SaveSystem.save_game()
 	SaveSystem.delete_dungeon_state()
 	GameConstants.save_to_disk()
-	get_tree().change_scene_to_file("res://World/layer.tscn")
+	get_tree().change_scene_to_file(GameConstants.get_current_floor_scene_path())

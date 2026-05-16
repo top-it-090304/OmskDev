@@ -20,6 +20,6 @@ func _on_pressed() -> void:
 		# Перезапускаем музыку перед сменой сцены
 		AudioManager.restart_music()
 		# Запускаем игру
-		get_tree().change_scene_to_packed(target_scene)
+		get_tree().change_scene_to_file(GameConstants.get_current_floor_scene_path())
 	else:
 		push_error("Не удалось загрузить сохранение")
