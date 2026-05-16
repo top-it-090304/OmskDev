@@ -1,4 +1,4 @@
-[gd_scene load_steps=62 format=3 uid="uid://btc3fcnovye8d"]
+[gd_scene load_steps=70 format=3 uid="uid://btc3fcnovye8d"]
 
 [ext_resource type="Texture2D" uid="uid://4oxwsurkv5fc" path="res://assets/Button/GenericButton.png" id="1_fiq8v"]
 [ext_resource type="Texture2D" uid="uid://b70s4hl2nftxd" path="res://assets/Button/GenericPanel.png" id="1_kiqlh"]
@@ -54,7 +54,7 @@
 [ext_resource type="Texture2D" uid="uid://bsfd2gitdnquq" path="res://assets/menu/Main Menu animated background 39.png" id="49_dxcqv"]
 [ext_resource type="Texture2D" uid="uid://c5x2kkafq3ial" path="res://assets/menu/Main Menu animated background 40.png" id="50_au5xu"]
 [ext_resource type="Script" uid="uid://ds3shfulev8d1" path="res://World/UI/multiplayer_button.gd" id="51_mpbtn"]
-[ext_resource type="Script" path="res://World/UI/menu.gd" id="52_menu"]
+[ext_resource type="Script" uid="uid://5jwl6sf0arnj" path="res://World/UI/menu.gd" id="52_menu"]
 [ext_resource type="Texture2D" uid="uid://urwbkuvhote4" path="res://sprites/player2/Down/Png/SorceressDownIdle.png" id="60_hsllf"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_u7pht"]
@@ -508,5 +508,3 @@ metadata/_edit_use_anchors_ = true
 [connection signal="pressed" from="VBoxContainer/TextureButton5" to="VBoxContainer/TextureButton5" method="_on_pressed"]
 [connection signal="pressed" from="VBoxContainer/TextureButton3" to="VBoxContainer/TextureButton3" method="_on_pressed"]
 [connection signal="pressed" from="VBoxContainer/TextureButton4" to="VBoxContainer/TextureButton4" method="_on_pressed"]
-[connection signal="pressed" from="TextureButton" to="Control" method="_on_left_arrow_pressed"]
-[connection signal="pressed" from="TextureButton2" to="Control" method="_on_right_arrow_pressed"]

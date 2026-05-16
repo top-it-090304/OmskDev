@@ -50,8 +50,8 @@ var current_dir: Dir
 ### 1. Спавн (`map_manager.gd`)
 ```gdscript
 _spawn_enemies_after_physics():
-    enemy = enemy_scene.instantiate()
-    enemys_container.add_child(enemy)
+	enemy = enemy_scene.instantiate()
+	enemys_container.add_child(enemy)
 ```
 
 ### 2. Инициализация (`_ready()`)
@@ -67,11 +67,11 @@ if is_dead: return
 
 # Если агрессивный и игрок в зоне атаки
 if is_aggressive and player_in_range and can_attack:
-    attack()
+	attack()
 
 # Движение к игроку
 if is_aggressive and get_closer:
-    velocity = direction * max_speed
+	velocity = direction * max_speed
 ```
 
 ### 4. Получение урона (`take_damage()`)
@@ -80,8 +80,8 @@ hp -= amount
 hp_bar.update_hp(hp, max_hp)
 
 if hp <= 0:
-    death()
-    return
+	death()
+	return
 
 # Прервать анимацию, показать hurt
 ```
@@ -100,7 +100,7 @@ _give_exp_to_player()
 
 # Спавнуть лут (25% шанс)
 if randf() <= 0.25:
-    _spawn_loot()
+	_spawn_loot()
 
 queue_free()
 ```
@@ -157,25 +157,25 @@ ENEMY_LEVEL_SCALING = 0.20  # Было 0.15 (+20% за уровень вмест
 ```gdscript
 # В enemy.gd
 func attack():
-    if not can_attack or not player_in_range: return
-    
-    can_attack = false
-    can_move = false
-    
-    # Анимация атаки
-    match current_dir:
-        Dir.UP: animP.play("attack_up")
-        # ...
-    
-    await animP.animation_finished
-    
-    # Логика атаки
-    spawn_projectile()  # Или melee_attack()
-    
-    # Перезапуск таймера
-    if not is_dead:
-        can_move = true
-        attack_timer.start()
+	if not can_attack or not player_in_range: return
+	
+	can_attack = false
+	can_move = false
+	
+	# Анимация атаки
+	match current_dir:
+		Dir.UP: animP.play("attack_up")
+		# ...
+	
+	await animP.animation_finished
+	
+	# Логика атаки
+	spawn_projectile()  # Или melee_attack()
+	
+	# Перезапуск таймера
+	if not is_dead:
+		can_move = true
+		attack_timer.start()
 ```
 
 ### Как добавить снаряд
@@ -185,14 +185,14 @@ const ENEMY_NEW_PROJECTILE = preload("res://scene/game_objects/enemy/.../project
 
 # В enemy.gd
 func shoot_projectile():
-    var projectile = GameConstants.ENEMY_NEW_PROJECTILE.instantiate()
-    projectile.global_position = global_position
-    
-    var target_dir = (player.global_position - global_position).normalized()
-    projectile.direction = target_dir
-    projectile.rotation = target_dir.angle()
-    
-    get_tree().current_scene.add_child.call_deferred(projectile)
+	var projectile = GameConstants.ENEMY_NEW_PROJECTILE.instantiate()
+	projectile.global_position = global_position
+	
+	var target_dir = (player.global_position - global_position).normalized()
+	projectile.direction = target_dir
+	projectile.rotation = target_dir.angle()
+	
+	get_tree().current_scene.add_child.call_deferred(projectile)
 ```
 
 ---
@@ -212,8 +212,8 @@ func shoot_projectile():
 var enemys_node = room_node.find_child("Enemys")
 var alive_enemies = []
 for enemy in enemys_node.get_children():
-    if not enemy.is_dead:
-        alive_enemies.append(enemy)
+	if not enemy.is_dead:
+		alive_enemies.append(enemy)
 ```
 
 ### Проверить, зачищена ли комната
@@ -222,12 +222,12 @@ var enemys_node = room_node.find_child("Enemys")
 var is_cleared = enemys_node.get_child_count() == 0
 
 if is_cleared:
-    GameConstants.on_room_cleared()
+	GameConstants.on_room_cleared()
 ```
 
 ### Найти конкретного врага по типу
 ```gdscript
 for enemy in enemys_node.get_children():
-    if enemy is GoblinSlinger:
-        print("Найдён Goblin Slinger!")
+	if enemy is GoblinSlinger:
+		print("Найдён Goblin Slinger!")
 ```
