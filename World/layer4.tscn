@@ -1,0 +1,78 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="PackedScene" path="res://World/map_manager4.tscn" id="1_map"]
+[ext_resource type="PackedScene" uid="uid://ec471alip6hl" path="res://scene/game_objects/player/exp_bar.tscn" id="2_exp"]
+[ext_resource type="PackedScene" uid="uid://capqga0p285u0" path="res://World/minimap.tscn" id="3_minimap"]
+[ext_resource type="PackedScene" uid="uid://d00qjcqxvua3o" path="res://scene/game_objects/player/backpack.tscn" id="4_backpack"]
+[ext_resource type="Script" uid="uid://dsey46gvbv6sr" path="res://scene/ui/floor_label.gd" id="5_floor"]
+[ext_resource type="FontFile" uid="uid://wbjr6hf3uxdc" path="res://Font/PixelRpgFont-Regular.ttf" id="6_font"]
+[ext_resource type="Script" uid="uid://b6lp37p7qsno" path="res://scene/ui/inventory_screen.gd" id="7_inv"]
+[ext_resource type="Script" path="res://scene/ui/distance_fog.gd" id="8_fog"]
+
+[node name="Layer4" type="Node"]
+
+[node name="DistanceFogLayer" type="CanvasLayer" parent="."]
+layer = 1
+
+[node name="DistanceFog" type="ColorRect" parent="DistanceFogLayer"]
+anchors_preset = 0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 1)
+script = ExtResource("8_fog")
+
+[node name="UI" type="CanvasLayer" parent="."]
+layer = 2
+
+[node name="InventoryScreen" type="CanvasLayer" parent="UI"]
+layer = 2
+script = ExtResource("7_inv")
+
+[node name="FloorLabel" type="Label" parent="UI"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -150.0
+offset_top = 26.0
+offset_right = 150.0
+offset_bottom = 86.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("6_font")
+theme_override_font_sizes/font_size = 48
+text = "Floor 4"
+horizontal_alignment = 1
+vertical_alignment = 1
+script = ExtResource("5_floor")
+
+[node name="minimap" parent="UI" node_paths=PackedStringArray("map_manager") instance=ExtResource("3_minimap")]
+map_manager = NodePath("../../MapManager4")
+
+[node name="ExpBar" parent="UI" instance=ExtResource("2_exp")]
+anchor_left = 0.711111
+anchor_top = 0.356
+anchor_right = 1.0
+anchor_bottom = 0.443231
+offset_left = -376.0
+offset_top = -52.56
+offset_right = -377.0
+offset_bottom = -53.24
+grow_horizontal = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+
+[node name="Backpack" parent="UI" instance=ExtResource("4_backpack")]
+visible = false
+modulate = Color(1, 1, 1, 0.67451)
+z_index = 50
+offset_left = -146.0
+offset_top = 135.0
+offset_right = -8.0
+offset_bottom = 325.0
+
+[node name="MapManager4" parent="." node_paths=PackedStringArray("layer") instance=ExtResource("1_map")]
+layer = NodePath("..")

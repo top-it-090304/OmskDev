@@ -196,6 +196,8 @@ var ENEMY_SKELETON_SWORDMAN_EXP_REWARD = 275
 # --- ПРОГРЕССИЯ ОКРУЖЕНИЯ ---
 const DEFAULT_FLOOR_SCENE_PATH := "res://World/layer.tscn"
 const ACT2_FLOOR_SCENE_PATH := "res://World/layer_act2.tscn"
+const LAYER3_FLOOR_SCENE_PATH := "res://World/layer3.tscn"
+const LAYER4_FLOOR_SCENE_PATH := "res://World/layer4.tscn"
 
 var _current_floor_internal: int = 1
 var CURRENT_FLOOR: int:
@@ -217,9 +219,15 @@ var ENEMY_LEVEL_SCALING = 0.15
 
 
 func get_scene_path_for_floor(floor_index: int) -> String:
-	if floor_index == 2:
-		return ACT2_FLOOR_SCENE_PATH
-	return DEFAULT_FLOOR_SCENE_PATH
+	match floor_index:
+		1:
+			return DEFAULT_FLOOR_SCENE_PATH
+		2:
+			return ACT2_FLOOR_SCENE_PATH
+		3:
+			return LAYER3_FLOOR_SCENE_PATH
+		_:
+			return LAYER4_FLOOR_SCENE_PATH
 
 
 func get_current_floor_scene_path() -> String:
