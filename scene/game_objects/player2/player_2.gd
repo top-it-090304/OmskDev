@@ -6,7 +6,7 @@ extends CharacterBody2D
 @export var fireball_scene: PackedScene = preload("res://scene/abilities/fireball.tscn")
 @export_range(0.1, 5.0, 0.05) var attack_speed_multiplier: float = 1
 @export_range(0.1, 3.0, 0.05) var attack_cooldown: float = 0.5
-@export_range(1.0, 5.0, 0.1) var max_health_divisor: float = 1.5
+@export_range(1.0, 5.0, 0.1) var max_health_divisor: float = 2.25
 
 @onready var attack_joystick = $MobileController/VirtualJoystick2
 @onready var anim = $AnimatedSprite2D
@@ -352,13 +352,13 @@ func play_idle_animation():
 # =========================================================
 
 func attack(from_rpc: bool = false, shot_direction: Vector2 = Vector2.ZERO) -> void:
-	if not can_attack or is_dead or not can_anim:
+	if not can_attack or is_dead:
 		return
 	if NetworkManager.is_game_online() and NetworkManager.coop_run_finished and is_local_player:
 		return
 
 	_shot_direction = shot_direction.normalized() if shot_direction.length_squared() > 0.01 else _get_attack_direction()
-	update_direction(_shot_direction)
+	_force_direction(_shot_direction)
 
 	can_attack = false
 	var effective_attack_speed := _get_effective_attack_speed()
@@ -390,6 +390,15 @@ func attack(from_rpc: bool = false, shot_direction: Vector2 = Vector2.ZERO) -> v
 
 func _get_effective_attack_speed() -> float:
 	return maxf(0.1, attack_speed_multiplier)
+
+
+func _force_direction(dir_vec: Vector2) -> void:
+	if dir_vec.length_squared() <= 0.01:
+		return
+	if abs(dir_vec.x) > abs(dir_vec.y):
+		current_dir = Dir.LEFT if dir_vec.x < 0.0 else Dir.RIGHT
+	else:
+		current_dir = Dir.UP if dir_vec.y < 0.0 else Dir.DOWN
 
 
 func _is_attack_anim_playing() -> bool:
@@ -573,7 +582,7 @@ func take_damage(amount: int):
 
 	var tween = create_tween()
 	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.0)
-	tween.tween_property(anim, "modulate", restore_color, 0.12)
+	tween.tween_property(anim, "modulate", restore_color, 0.1)
 
 	AudioManager.play_sfx("игрок_урон")
 
@@ -592,24 +601,56 @@ func play_hurt_animation() -> void:
 	var token := _hurt_anim_token
 	can_anim = false
 	animP.stop()
-	animP.speed_scale = 1.0
+	animP.speed_scale = _get_hurt_anim_speed_scale()
+	var hurt_anim_name := "hurt_down"
 	match current_dir:
 		Dir.UP:
-			animP.play("hurt_up")
+			hurt_anim_name = "hurt_up"
 		Dir.DOWN:
-			animP.play("hurt_down")
+			hurt_anim_name = "hurt_down"
 		Dir.LEFT:
-			animP.play("hurt_left")
+			hurt_anim_name = "hurt_left"
 		Dir.RIGHT:
-			animP.play("hurt_right")
-	await animP.animation_finished
+			hurt_anim_name = "hurt_right"
+	animP.play(hurt_anim_name)
+	await get_tree().create_timer(0.15).timeout
 	if token != _hurt_anim_token or is_dead:
 		return
+	var interrupted_by_attack := _is_attack_anim_playing()
+	if not interrupted_by_attack:
+		animP.stop()
+		animP.speed_scale = 1.0
 	can_anim = true
+	if interrupted_by_attack:
+		return
 	if movement_vector() != Vector2.ZERO:
 		play_walk_animation()
 	else:
 		play_idle_animation()
+
+
+func _get_hurt_anim_speed_scale() -> float:
+	var hurt_anim_name := "hurt_down"
+	match current_dir:
+		Dir.UP:
+			hurt_anim_name = "hurt_up"
+		Dir.DOWN:
+			hurt_anim_name = "hurt_down"
+		Dir.LEFT:
+			hurt_anim_name = "hurt_left"
+		Dir.RIGHT:
+			hurt_anim_name = "hurt_right"
+	if animP.has_animation(hurt_anim_name):
+		var length: float = animP.get_animation(hurt_anim_name).length
+		if length > 0.0:
+			return maxf(1.0, length / 0.15)
+	return 1.0
+
+
+func _is_hurt_anim_playing() -> bool:
+	if not animP.is_playing():
+		return false
+	return str(animP.current_animation).begins_with("hurt_")
 
 # =========================================================
 # DEATH

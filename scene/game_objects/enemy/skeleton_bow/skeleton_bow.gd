@@ -123,7 +123,7 @@ func take_damage(amount: int):
 	AudioManager.play_sfx("враг_урон")
 	var tween = create_tween()
 	tween.tween_property(anim, "modulate", Color(1, 0, 0, 1), 0.0)
-	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.15)
+	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.1)
 
 func shoot():
 	if not player or not is_instance_valid(player) or is_dead: return

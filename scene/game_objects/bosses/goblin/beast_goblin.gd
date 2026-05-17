@@ -152,6 +152,7 @@ func attack(type: String):
 	is_attacking = true
 	can_walk = false
 	can_anim = false
+	_show_attack_warning(Color(0.3, 1.0, 0.25, 0.5), 105.0, 0.28)
 	var anim_type = "shoot" if type == "summon" else type
 	var anim_name = anim_type + "_" + _get_dir_string()
 	if animP.has_animation(anim_name):
@@ -336,7 +337,7 @@ func take_damage(amount: int):
 	AudioManager.play_sfx("враг_урон")
 	var tween = create_tween()
 	tween.tween_property(anim, "modulate", Color(1, 0, 0, 1), 0.0)
-	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.15)
+	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.1)
 
 func _on_detector_bite_body_entered(body):  if body.is_in_group("player"): player_in_bite_zone  = true
 func _on_detector_bite_body_exited(body):   if body.is_in_group("player"): player_in_bite_zone  = false
@@ -366,6 +367,22 @@ func _get_dir_string() -> String:
 
 func _play_idle_animation():
 	if anim.animation != "idle_down": anim.play("idle_down")
+
+
+func _show_attack_warning(color: Color, radius: float, duration: float) -> void:
+	var warning := Polygon2D.new()
+	var points := PackedVector2Array()
+	for i in range(32):
+		var angle := TAU * float(i) / 32.0
+		points.append(Vector2(cos(angle), sin(angle)) * radius)
+	warning.polygon = points
+	warning.color = color
+	warning.z_index = z_index + 4
+	warning.global_position = global_position
+	get_tree().current_scene.add_child(warning)
+	var tween := warning.create_tween()
+	tween.tween_property(warning, "color:a", 0.0, duration)
+	tween.tween_callback(warning.queue_free)
 
 func death():
 	if is_dead:

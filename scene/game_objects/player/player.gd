@@ -465,7 +465,7 @@ func take_damage(amount: int):
 
 	var tween = create_tween()
 	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.0)
-	tween.tween_property(anim, "modulate", restore_color, 0.12)
+	tween.tween_property(anim, "modulate", restore_color, 0.1)
 
 	AudioManager.play_sfx("игрок_урон")
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://xtd4steqwtno"]
+[gd_scene load_steps=9 format=3 uid="uid://xtd4steqwtno"]
 
 [ext_resource type="PackedScene" uid="uid://kpybtxybty40" path="res://World/map_manager2.tscn" id="1_mln5v"]
 [ext_resource type="PackedScene" uid="uid://ec471alip6hl" path="res://scene/game_objects/player/exp_bar.tscn" id="2_jn37s"]
@@ -7,10 +7,23 @@
 [ext_resource type="Script" uid="uid://dsey46gvbv6sr" path="res://scene/ui/floor_label.gd" id="5_floor"]
 [ext_resource type="FontFile" uid="uid://wbjr6hf3uxdc" path="res://Font/PixelRpgFont-Regular.ttf" id="6_font"]
 [ext_resource type="Script" uid="uid://b6lp37p7qsno" path="res://scene/ui/inventory_screen.gd" id="7_inv"]
+[ext_resource type="Script" path="res://scene/ui/distance_fog.gd" id="8_fog"]
 
 [node name="Layer" type="Node"]
 
+[node name="DistanceFogLayer" type="CanvasLayer" parent="."]
+layer = 1
+
+[node name="DistanceFog" type="ColorRect" parent="DistanceFogLayer"]
+anchors_preset = 0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 1)
+script = ExtResource("8_fog")
+
 [node name="UI" type="CanvasLayer" parent="."]
+layer = 2
 
 [node name="InventoryScreen" type="CanvasLayer" parent="UI"]
 layer = 2

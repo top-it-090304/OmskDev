@@ -5,7 +5,7 @@ var speed: float = GameConstants.ARROW_SPEED
 var lifetime: float = 5.0
 var shooter: Node = null
 
-@export var max_distance: float = 432.0
+@export var max_distance: float = 216.0
 @export var min_scale_ratio: float = 0.05
 @export var explosion_radius: float = 46.0
 @export var explosion_damage_multiplier: float = 1.0
@@ -36,7 +36,7 @@ func _process(delta: float) -> void:
 		_distance_traveled += frame_distance
 		_update_distance_scale()
 		if _distance_traveled >= max_distance:
-			_explode(global_position)
+			queue_free()
 
 
 func _can_fly_to_position(world_pos: Vector2) -> bool:
@@ -124,7 +124,7 @@ func _collect_explosion_targets(pos: Vector2) -> Array:
 	if space == null:
 		return out
 	var circle := CircleShape2D.new()
-	circle.radius = explosion_radius
+	circle.radius = _get_current_explosion_radius()
 	var params := PhysicsShapeQueryParameters2D.new()
 	params.shape = circle
 	params.transform = Transform2D(0, pos)
@@ -212,12 +212,25 @@ func _explode(pos: Vector2, direct_target: Node = null) -> void:
 	call_deferred("queue_free")
 
 
+func _get_current_explosion_radius() -> float:
+	return explosion_radius * _get_current_scale_ratio()
+
+
+func _get_current_scale_ratio() -> float:
+	if _base_scale.x == 0.0 or _base_scale.y == 0.0:
+		return 1.0
+	var x_ratio := absf(scale.x / _base_scale.x)
+	var y_ratio := absf(scale.y / _base_scale.y)
+	return maxf(min_scale_ratio, (x_ratio + y_ratio) * 0.5)
+
+
 func _show_explosion_visual(pos: Vector2) -> void:
 	var circle := Polygon2D.new()
 	var points := PackedVector2Array()
+	var radius := _get_current_explosion_radius()
 	for i in range(24):
 		var angle := TAU * float(i) / 24.0
-		points.append(Vector2(cos(angle), sin(angle)) * explosion_radius)
+		points.append(Vector2(cos(angle), sin(angle)) * radius)
 	circle.polygon = points
 	circle.color = Color(1.0, 0.45, 0.1, 0.55)
 	circle.z_index = 20

@@ -1,6 +1,6 @@
 extends "res://scene/game_objects/enemy/enemy_base.gd"
 
-const WAVE_SCENE = preload("res://scene/effects/big_wave.tscn")
+const WAVE_SCENE = preload("res://scene/game_objects/bosses/skeletonSwordman/skeleton_sword_wave.tscn")
 const MINION_SCENE = preload("res://scene/game_objects/enemy/skeleton_grunt/enemy(skeleton_grunt).tscn")
 const ARTEFACT_SCENES = [
 	preload("res://scene/pick_up/artefacts/old_book.tscn"),
@@ -113,6 +113,7 @@ func attack_swing() -> void:
 	is_attacking = true
 	can_anim = false
 	_face_player()
+	_show_attack_warning(Color(0.65, 0.85, 1.0, 0.55), 82.0, 0.28)
 	_play_boss_anim("attack_swing_" + _dir_string(), "attack_swing_down")
 	if _anim_player_has_current_attack():
 		await get_tree().create_timer(0.36).timeout
@@ -132,6 +133,7 @@ func attack_swings() -> void:
 	is_attacking = true
 	can_anim = false
 	_face_player()
+	_show_attack_warning(Color(0.95, 0.95, 1.0, 0.5), 110.0, 0.22)
 	_play_boss_anim("attack_swings_" + _dir_string(), "attack_swings_down")
 	for _i in range(3):
 		if is_dead or not is_instance_valid(player):
@@ -153,6 +155,7 @@ func attack_span() -> void:
 	is_attacking = true
 	can_anim = false
 	_face_player()
+	_show_attack_warning(Color(0.45, 0.75, 1.0, 0.55), 145.0, 0.35)
 	_play_boss_anim("attack_spawn_" + _dir_string(), "attack_spawn_down")
 	if _anim_player_has_current_attack():
 		await _wait_anim_player_or_timeout(1.1)
@@ -278,7 +281,7 @@ func take_damage(amount: int) -> void:
 	AudioManager.play_sfx("враг_урон")
 	var tween := create_tween()
 	tween.tween_property(anim, "modulate", Color(1, 0, 0, 1), 0.0)
-	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.15)
+	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.1)
 
 
 func death() -> void:
@@ -356,6 +359,22 @@ func _face_player() -> void:
 
 func _play_idle_animation() -> void:
 	_play_anim("idle_" + _dir_string(), "idle_down")
+
+
+func _show_attack_warning(color: Color, radius: float, duration: float) -> void:
+	var warning := Polygon2D.new()
+	var points := PackedVector2Array()
+	for i in range(32):
+		var angle := TAU * float(i) / 32.0
+		points.append(Vector2(cos(angle), sin(angle)) * radius)
+	warning.polygon = points
+	warning.color = color
+	warning.z_index = z_index + 4
+	warning.global_position = global_position
+	get_tree().current_scene.add_child(warning)
+	var tween := warning.create_tween()
+	tween.tween_property(warning, "color:a", 0.0, duration)
+	tween.tween_callback(warning.queue_free)
 
 
 func _dir_string() -> String:
