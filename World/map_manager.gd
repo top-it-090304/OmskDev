@@ -18,6 +18,16 @@ extends Node2D
 @export var player_scene:PackedScene
 # Люк на следующий этаж — в центре комнаты босса, ссылка для лута боссов
 const HATCH_SCENE := preload("res://scene/pick_up/hatch.tscn")
+const FLOOR1_GOBLIN_AXE := preload("res://scene/game_objects/enemy/goblin_axe/enemy(goblin_axe).tscn")
+const FLOOR1_GOBLIN_SLINGER := preload("res://scene/game_objects/enemy/goblin_slinger/goblin_slinger.tscn")
+const FLOOR1_BEAST_GOBLIN := preload("res://scene/game_objects/bosses/goblin/beastGoblin.tscn")
+const FLOOR1_GOBLIN_RAIDER := preload("res://scene/game_objects/bosses/govlinRaider/goblinRider.tscn")
+const FLOOR2_MAGICAN := preload("res://scene/game_objects/enemy/magican/magican.tscn")
+const FLOOR2_MAN_STICK := preload("res://scene/game_objects/enemy/manStick/man_stick.tscn")
+const FLOOR2_SKELETON_SWORDMAN := preload("res://scene/game_objects/bosses/skeletonSwordman/skeleton_swordman.tscn")
+const FLOOR3_SKELETON_GRUNT := preload("res://scene/game_objects/enemy/skeleton_grunt/enemy(skeleton_grunt).tscn")
+const FLOOR3_SKELETON_BOW := preload("res://scene/game_objects/enemy/skeleton_bow/skeleton_bow.tscn")
+const FLOOR3_SKELETON_KING := preload("res://scene/game_objects/bosses/skeleton_king/skeleton_king.tscn")
 var boss_hatch: Area2D = null
 # Гибкий массив препятствий
 @export var obstacle_data: Array[Dictionary] = [
@@ -55,13 +65,13 @@ var _obstacle_detail_spawn_override: int = -1
 var _enemy_net_sync_accum: float = 0.0
 ## На сервере: peer_id -> последняя клетка комнаты (для sync врагов, когда игроки в разных комнатах).
 var _coop_peer_last_room_grid: Dictionary = {}
-## Один batch RPC ~6 раз/сек только для комнат с игроками: меньше фризов в коопе.
-const ENEMY_NET_SYNC_INTERVAL: float = 0.16
+## Один batch RPC ~4 раза/сек только для комнат с игроками: меньше фризов в коопе.
+const ENEMY_NET_SYNC_INTERVAL: float = 0.25
 const _ENEMY_NET_SYNC_NEIGHBORS: Array[Vector2i] = [
 	Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)
 ]
-const _NET_SYNC_POS_EPS2: float = 9.0
-const _NET_SYNC_VEL_EPS2: float = 25.0
+const _NET_SYNC_POS_EPS2: float = 36.0
+const _NET_SYNC_VEL_EPS2: float = 64.0
 const ENEMY_STATE_KEY := "enemy_spawns"
 const TREASURE_STATE_KEY := "treasure_spawns"
 
@@ -71,12 +81,26 @@ func _ready() -> void:
 	if NetworkManager.is_game_online():
 		set_multiplayer_authority(NetworkManager.SERVER_ID)
 	get_tree().auto_accept_quit = false  # Перехватываем попытки выхода
+	_apply_floor_enemy_pools()
 
 	if start_room_variations.is_empty() or normal_room_variations.is_empty() or boss_room_variations.is_empty():
 		push_error("ОШИБКА: Добавь хотя бы по одной сцене для Start, Normal и Boss комнат!")
 		return
 
 	call_deferred("_boot_dungeon_async")
+
+
+func _apply_floor_enemy_pools() -> void:
+	match GameConstants.CURRENT_FLOOR:
+		1:
+			enemy_variations = [FLOOR1_GOBLIN_AXE, FLOOR1_GOBLIN_SLINGER]
+			boss_variations = [FLOOR1_BEAST_GOBLIN, FLOOR1_GOBLIN_RAIDER]
+		2:
+			enemy_variations = [FLOOR2_MAN_STICK, FLOOR2_MAGICAN]
+			boss_variations = [FLOOR2_SKELETON_SWORDMAN]
+		_:
+			enemy_variations = [FLOOR3_SKELETON_GRUNT, FLOOR3_SKELETON_BOW]
+			boss_variations = [FLOOR3_SKELETON_KING]
 
 
 func _client_retry_finalize_if_needed() -> void:
@@ -1346,6 +1370,9 @@ func _resolve_saved_enemy_scene_path(saved_path: String, slot_idx: int) -> Strin
 
 
 func _resolve_saved_boss_scene_path(_saved_path: String, slot_idx: int) -> String:
+	for boss_scene: PackedScene in boss_variations:
+		if boss_scene != null and boss_scene.resource_path == _saved_path:
+			return _saved_path
 	if not boss_variations.is_empty():
 		var replacement: PackedScene = boss_variations[slot_idx % boss_variations.size()]
 		if replacement != null:

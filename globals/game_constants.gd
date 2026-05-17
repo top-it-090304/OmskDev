@@ -217,7 +217,7 @@ var ENEMY_LEVEL_SCALING = 0.15
 
 
 func get_scene_path_for_floor(floor_index: int) -> String:
-	if floor_index == 1 or floor_index == 2:
+	if floor_index == 2:
 		return ACT2_FLOOR_SCENE_PATH
 	return DEFAULT_FLOOR_SCENE_PATH
 

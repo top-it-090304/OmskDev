@@ -249,6 +249,7 @@ func death() -> void:
 	_give_exp_to_player()
 	if randf() <= 0.35:
 		_spawn_loot()
+	_open_hatch_via_map_manager()
 	queue_free()
 
 
@@ -339,6 +340,22 @@ func _spawn_loot() -> void:
 	var potion := GameConstants.HEALTH_POTION.instantiate()
 	potion.global_position = global_position
 	get_tree().current_scene.add_child(potion)
+
+
+func _open_hatch_via_map_manager() -> void:
+	var map_manager := _find_map_manager()
+	if map_manager and map_manager.has_method("open_boss_hatch"):
+		map_manager.open_boss_hatch()
+
+
+func _find_map_manager() -> Node:
+	var mm := get_tree().get_first_node_in_group("map_manager")
+	if mm != null:
+		return mm
+	mm = get_tree().root.find_child("MapManager", true, false)
+	if mm != null:
+		return mm
+	return get_tree().root.find_child("MapManager2", true, false)
 
 
 func _on_detector_bite_body_entered(body: Node2D) -> void:

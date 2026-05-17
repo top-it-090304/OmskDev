@@ -83,6 +83,7 @@ func pickup(_player: Node) -> void:
 			NetworkManager.rpc_client_mirror_artefact_pickup.rpc(scene_file_path, rid.x, rid.y, mp.get_unique_id())
 		else:
 			is_picked_up = true
+			visible = false
 			if has_node("Area2D"):
 				var area := get_node("Area2D") as Area2D
 				area.set_deferred("monitoring", false)

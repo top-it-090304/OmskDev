@@ -282,18 +282,23 @@ func _resolve_node_by_path_for_damage(path_str: String) -> Node:
 	return null
 
 
-func _find_artefact_in_room(room: Vector2i) -> Node:
+func _find_artefact_in_room(room: Vector2i, preferred_scene_path: String = "") -> Node:
 	var mm := get_tree().get_first_node_in_group("map_manager")
 	if mm == null:
 		return null
+	var fallback: Node = null
 	for room_data in mm.spawned_rooms:
 		if room_data["grid_pos"] != room:
 			continue
 		var room_node: Node = room_data["node"]
 		for c in room_node.get_children():
-			if is_instance_valid(c) and c.has_method("server_run_pickup_effects"):
+			if not is_instance_valid(c) or not c.has_method("server_run_pickup_effects"):
+				continue
+			if fallback == null:
+				fallback = c
+			if preferred_scene_path != "" and str(c.scene_file_path) == preferred_scene_path:
 				return c
-	return null
+	return fallback
 
 
 @rpc("any_peer", "call_remote", "reliable")
@@ -303,7 +308,7 @@ func rpc_request_artefact_pickup_from_client(resource_path: String, room_x: int,
 	if int(multiplayer.get_remote_sender_id()) != int(picker_peer_id):
 		return
 	var room := Vector2i(room_x, room_y)
-	var node := _find_artefact_in_room(room)
+	var node := _find_artefact_in_room(room, resource_path)
 	if node == null:
 		return
 	var actual_path := str(node.scene_file_path)
@@ -321,7 +326,7 @@ func rpc_client_mirror_artefact_pickup(resource_path: String, room_x: int, room_
 		return
 	var room := Vector2i(room_x, room_y)
 	SaveSystem.mark_treasure_collected(room)
-	var n := _find_artefact_in_room(room)
+	var n := _find_artefact_in_room(room, resource_path)
 	if n != null and is_instance_valid(n):
 		n.queue_free()
 	var my_pid: int = int(multiplayer.get_unique_id())
