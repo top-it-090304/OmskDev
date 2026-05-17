@@ -55,12 +55,8 @@ func setup_grid():
 	grid_container.position = Vector2(10, 10)
 
 func add_artefact(artefact_data) -> void:
-	# Проверяем, нет ли уже такого артефакта (защита от дублей)
 	var artefact_name = artefact_data.artefact_name if "artefact_name" in artefact_data else "Unknown"
-	if has_artefact(artefact_name):
-		print("Артефакт уже есть в рюкзаке, пропускаем: ", artefact_name)
-		return
-	
+
 	# Сохраняем данные артефакта
 	var artefact_info = {
 		"name": artefact_name,
@@ -68,10 +64,6 @@ func add_artefact(artefact_data) -> void:
 		"icon_path": artefact_data.artefact_icon.resource_path if (artefact_data.artefact_icon and "artefact_icon" in artefact_data) else "",
 		"description": artefact_data.artefact_description if "artefact_description" in artefact_data else ""
 	}
-
-	for a in collected_artefacts:
-		if a.get("name", "") == artefact_info["name"]:
-			return
 
 	collected_artefacts.append(artefact_info)
 
@@ -89,9 +81,6 @@ func add_artefact(artefact_data) -> void:
 ## Кооп: подбор по RPC без узла в дереве — словарь из NetworkManager.
 func add_artefact_from_network(info: Dictionary) -> void:
 	var artefact_name := str(info.get("name", "Unknown"))
-	if has_artefact(artefact_name):
-		print("Артефакт уже есть в рюкзаке (network), пропускаем: ", artefact_name)
-		return
 	var icon_texture = null
 	var icon_path := str(info.get("icon_path", ""))
 	if icon_path != "":
@@ -102,9 +91,6 @@ func add_artefact_from_network(info: Dictionary) -> void:
 		"icon_path": icon_path,
 		"description": str(info.get("description", "")),
 	}
-	for a in collected_artefacts:
-		if a.get("name", "") == artefact_info["name"]:
-			return
 	collected_artefacts.append(artefact_info)
 	create_icon(artefact_info)
 	var tree := get_tree()

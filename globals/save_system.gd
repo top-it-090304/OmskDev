@@ -94,6 +94,8 @@ func save_game() -> bool:
 	# Сохраняем текущее здоровье и позицию игрока
 	var player = get_tree().get_first_node_in_group("player")
 	if player and "health_int" in player:
+		saved_player_health = int(player.health_int)
+		saved_player_position = player.global_position
 		save_data["player_current_health"] = player.health_int
 		save_data["player_position"] = {
 			"x": player.global_position.x,

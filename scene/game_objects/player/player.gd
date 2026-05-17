@@ -591,7 +591,7 @@ func _ready() -> void:
 	)
 
 	health_int = (
-		maxi(1, SaveSystem.saved_player_health)
+		clampi(SaveSystem.saved_player_health, 1, GameConstants.PLAYER_MAX_HEALTH)
 		if SaveSystem.should_restore_player
 		else GameConstants.PLAYER_MAX_HEALTH
 	)
@@ -662,10 +662,7 @@ func _hide_ui_for_remote_peer() -> void:
 func _on_constants_changed() -> void:
 	var new_max = GameConstants.PLAYER_MAX_HEALTH
 
-	if new_max > last_known_max_health:
-		health_int = min(health_int * 2, new_max)
-
-	elif health_int > new_max:
+	if health_int > new_max:
 		health_int = new_max
 
 	last_known_max_health = new_max
@@ -711,16 +708,27 @@ func _on_hitbox_attack_body_entered(body: Node2D) -> void:
 # =========================================================
 
 func heal(amount: int) -> void:
-	health_int += amount
+	if amount <= 0:
+		return
+	var max_health: int = GameConstants.PLAYER_MAX_HEALTH
+	var old_health: int = health_int
+	health_int = mini(health_int + amount, max_health)
+	var healed: int = health_int - old_health
+	if healed <= 0:
+		return
 
 	health_changed.emit(
 		health_int,
-		GameConstants.PLAYER_MAX_HEALTH
+		max_health
 	)
 	
 	# Показываем хил
-	if GameConstants.SHOW_HEAL_NUMBERS and amount > 0:
-		_show_popup("heal", amount)
+	if GameConstants.SHOW_HEAL_NUMBERS:
+		_show_popup("heal", healed)
+
+
+func can_heal() -> bool:
+	return not is_dead and health_int < GameConstants.PLAYER_MAX_HEALTH
 
 # =========================================================
 # EXPERIENCE

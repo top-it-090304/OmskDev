@@ -1,0 +1,27 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scene/game_objects/bosses/govlinRaider/raider_rock_projectile.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://sprites/Rocks/rock_1.tscn" id="2_rock"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_rock_projectile"]
+radius = 8.0
+
+[node name="RaiderRockProjectile" type="Area2D"]
+z_index = 4
+collision_layer = 0
+collision_mask = 3
+script = ExtResource("1_script")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_rock_projectile")
+
+[node name="RockVisual" parent="." instance=ExtResource("2_rock")]
+z_index = 5
+scale = Vector2(0.32, 0.32)
+
+[node name="FallbackVisual" type="Polygon2D" parent="."]
+z_index = 6
+color = Color(0.42, 0.34, 0.27, 1)
+polygon = PackedVector2Array(-7, -4, -2, -8, 5, -6, 8, 0, 4, 7, -4, 6, -8, 1)
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]

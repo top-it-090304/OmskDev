@@ -1753,7 +1753,6 @@ offset_top = -112.0
 offset_right = 104.0
 offset_bottom = -80.0
 texture_normal = ExtResource("28_bj7nq")
-texture_pressed = ExtResource("25_pv3j8")
 stretch_mode = 0
 script = ExtResource("29_j70ss")
 metadata/_edit_use_anchors_ = true

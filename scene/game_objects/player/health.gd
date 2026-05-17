@@ -19,10 +19,10 @@ func setup_player_connection():
 		
 		# Синхронизируем значения сразу
 		max_value = GameConstants.PLAYER_MAX_HEALTH
-		value = player.health_int
+		value = clampi(player.health_int, 0, GameConstants.PLAYER_MAX_HEALTH)
 	else:
 		print("Полоска здоровья: Игрок не найден в группе 'player'")
 
 func _on_health_changed(new_health: int, new_max_health: int):
-	value = new_health
 	max_value = new_max_health
+	value = clampi(new_health, 0, new_max_health)

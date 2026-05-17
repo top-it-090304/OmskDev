@@ -60,6 +60,10 @@ func _on_body_entered(body: Node2D) -> void:
 
 func _go_to_next_floor_solo() -> void:
 	AudioManager.play_sfx("люк_переход")
+	var player = get_tree().get_first_node_in_group("player")
+	if player != null and "health_int" in player:
+		SaveSystem.saved_player_health = int(player.health_int)
+		SaveSystem.should_restore_player = true
 	# Новый этаж — люк босса снова закрыт (иначе флаг из прошлого этажа открывает люк сразу).
 	SaveSystem.set_boss_hatch_opened(false)
 	GameConstants.CURRENT_FLOOR += 1

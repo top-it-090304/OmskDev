@@ -783,10 +783,7 @@ func _hide_ui_for_remote_peer() -> void:
 func _on_constants_changed() -> void:
 	var new_max = _get_max_health()
 
-	if new_max > last_known_max_health:
-		health_int = min(health_int * 2, new_max)
-
-	elif health_int > new_max:
+	if health_int > new_max:
 		health_int = new_max
 
 	last_known_max_health = new_max
@@ -832,16 +829,27 @@ func _on_hitbox_attack_body_entered(body: Node2D) -> void:
 # =========================================================
 
 func heal(amount: int) -> void:
-	health_int = mini(health_int + amount, _get_max_health())
+	if amount <= 0:
+		return
+	var max_health: int = _get_max_health()
+	var old_health: int = health_int
+	health_int = mini(health_int + amount, max_health)
+	var healed: int = health_int - old_health
+	if healed <= 0:
+		return
 
 	health_changed.emit(
 		health_int,
-		_get_max_health()
+		max_health
 	)
 	
 	# Показываем хил
-	if GameConstants.SHOW_HEAL_NUMBERS and amount > 0:
-		_show_popup("heal", amount)
+	if GameConstants.SHOW_HEAL_NUMBERS:
+		_show_popup("heal", healed)
+
+
+func can_heal() -> bool:
+	return not is_dead and health_int < _get_max_health()
 
 # =========================================================
 # EXPERIENCE

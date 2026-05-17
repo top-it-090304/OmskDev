@@ -1,6 +1,6 @@
 extends "res://scene/game_objects/enemy/enemy_base.gd"
 
-const WAVE_SCENE = preload("res://scene/game_objects/bosses/skeletonSwordman/skeleton_sword_wave.tscn")
+const WAVE_SCENE = preload("res://scene/effects/big_wave.tscn")
 const MINION_SCENE = preload("res://scene/game_objects/enemy/skeleton_grunt/enemy(skeleton_grunt).tscn")
 const ARTEFACT_SCENES = [
 	preload("res://scene/pick_up/artefacts/old_book.tscn"),

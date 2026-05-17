@@ -1757,7 +1757,6 @@ offset_top = -112.0
 offset_right = 104.0
 offset_bottom = -80.0
 texture_normal = ExtResource("30_tigyi")
-texture_pressed = ExtResource("27_au6ap")
 stretch_mode = 0
 script = ExtResource("32_invbtn")
 metadata/_edit_use_anchors_ = true

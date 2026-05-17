@@ -785,6 +785,21 @@ func apply_boss_hatch_opened_visual() -> void:
 	SaveSystem.set_boss_hatch_opened(true)
 
 
+func _ensure_saved_open_boss_hatch() -> void:
+	if boss_hatch != null and is_instance_valid(boss_hatch):
+		if boss_hatch.has_method("apply_save_open_state"):
+			boss_hatch.apply_save_open_state()
+		return
+	for room_data in spawned_rooms:
+		if room_data.get("type", RoomType.EMPTY) != RoomType.BOSS:
+			continue
+		var room_node := room_data.get("node") as Node2D
+		if room_node == null or not is_instance_valid(room_node):
+			continue
+		_ensure_boss_hatch(room_node)
+		return
+
+
 func _spawn_single_enemy_online_deterministic(room_node: Node2D, slot_idx: int) -> void:
 	if enemy_variations.is_empty():
 		return
@@ -1186,6 +1201,7 @@ func save_dungeon_state():
 		"seen_rooms": [],
 		"cleared_rooms": [],
 		"collected_treasure_rooms": [],
+		"boss_hatch_opened": SaveSystem.is_boss_hatch_opened(),
 		TREASURE_STATE_KEY: [],
 		ENEMY_STATE_KEY: []
 	}
@@ -1273,12 +1289,16 @@ func _spawn_enemies_from_state(enemy_spawns: Array) -> void:
 		if enemys_node == null:
 			continue
 		var scene_path := str(spec.get("scene", ""))
+		var slot_idx := int(spec.get("slot", enemys_node.get_child_count()))
+		var is_boss := GameConstants.variant_to_bool(spec.get("is_boss", room_data["type"] == RoomType.BOSS))
+		if is_boss:
+			scene_path = _resolve_saved_boss_scene_path(scene_path, slot_idx)
+		else:
+			scene_path = _resolve_saved_enemy_scene_path(scene_path, slot_idx)
 		var enemy_scene := load(scene_path) as PackedScene
 		if enemy_scene == null:
 			push_warning("MapManager: не удалось загрузить врага из dungeon_state: " + scene_path)
 			continue
-		var slot_idx := int(spec.get("slot", enemys_node.get_child_count()))
-		var is_boss := GameConstants.variant_to_bool(spec.get("is_boss", room_data["type"] == RoomType.BOSS))
 		var enemy := enemy_scene.instantiate()
 		_set_spawned_enemy_identity(enemy, slot_idx, is_boss)
 		_assign_enemy_net_identity(enemy, room_node, slot_idx, is_boss)
@@ -1291,6 +1311,25 @@ func _spawn_enemies_from_state(enemy_spawns: Array) -> void:
 		if is_boss:
 			_ensure_boss_hatch(room_node)
 
+
+func _resolve_saved_enemy_scene_path(saved_path: String, slot_idx: int) -> String:
+	for enemy_scene: PackedScene in enemy_variations:
+		if enemy_scene != null and enemy_scene.resource_path == saved_path:
+			return saved_path
+	if enemy_variations.is_empty():
+		return saved_path
+	var replacement: PackedScene = enemy_variations[slot_idx % enemy_variations.size()]
+	if replacement == null:
+		return saved_path
+	return replacement.resource_path
+
+
+func _resolve_saved_boss_scene_path(_saved_path: String, slot_idx: int) -> String:
+	if not boss_variations.is_empty():
+		var replacement: PackedScene = boss_variations[slot_idx % boss_variations.size()]
+		if replacement != null:
+			return replacement.resource_path
+	return _saved_path
 
 ## Старые сейвы без полей map_* — оставляем текущие GameConstants (кооп-снимок хоста и т.д.).
 func _apply_saved_map_geometry(dd: Dictionary) -> void:
@@ -1341,7 +1380,10 @@ func load_dungeon_state():
 		_spawn_enemies_from_state(dungeon_data[ENEMY_STATE_KEY])
 	else:
 		await _spawn_enemies_after_physics()
-	if dungeon_data.has(TREASURE_STATE_KEY) and dungeon_data[TREASURE_STATE_KEY] is Array:
+	if GameConstants.variant_to_bool(dungeon_data.get("boss_hatch_opened", SaveSystem.is_boss_hatch_opened())):
+		SaveSystem.set_boss_hatch_opened(true)
+		_ensure_saved_open_boss_hatch()
+	if dungeon_data.has(TREASURE_STATE_KEY) and dungeon_data[TREASURE_STATE_KEY] is Array and not dungeon_data[TREASURE_STATE_KEY].is_empty():
 		_spawn_treasures_from_state(dungeon_data[TREASURE_STATE_KEY])
 	else:
 		_spawn_treasure_items()

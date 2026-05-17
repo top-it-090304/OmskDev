@@ -158,11 +158,17 @@ func rpc_coop_transition_next_floor() -> void:
 		return
 	_last_coop_floor_transition_ms = now
 	AudioManager.play_sfx("люк_переход")
+	var player = get_tree().get_first_node_in_group("local_player")
+	if player == null:
+		player = get_tree().get_first_node_in_group("player")
+	if player != null and "health_int" in player:
+		SaveSystem.saved_player_health = int(player.health_int)
+		SaveSystem.should_restore_player = true
 	SaveSystem.set_boss_hatch_opened(false)
-	SaveSystem.save_game()
-	SaveSystem.delete_dungeon_state()
 	GameConstants.CURRENT_FLOOR += 1
 	GameConstants.ROOMS_CLEARED = 0
+	SaveSystem.save_game()
+	SaveSystem.delete_dungeon_state()
 	GameConstants.save_to_disk()
 	# Сразу после RPC/сигналов смена сцены даёт «Trying to assign invalid previously freed instance»
 	# (Tween/экспорты/ссылки на старое дерево) — откладываем на следующий кадр.

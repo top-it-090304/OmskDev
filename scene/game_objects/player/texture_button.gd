@@ -1,16 +1,22 @@
 extends TextureButton
 @export var scene_to_open: PackedScene
 
+var _opened_scene: Node = null
+
 func _on_pressed() -> void:
-	var new_scene_instance = scene_to_open.instantiate()
-	get_parent().add_child(new_scene_instance) # Replace with function body.
-	disabled=true
-	visible=false 
-	
+	if scene_to_open == null:
+		return
+	if _opened_scene != null and is_instance_valid(_opened_scene):
+		return
+	_opened_scene = scene_to_open.instantiate()
+	get_parent().add_child(_opened_scene)
+	_opened_scene.tree_exited.connect(_on_opened_scene_closed)
+
+
+func _on_opened_scene_closed() -> void:
+	_opened_scene = null
 
 
 func _on_player_child_exiting_tree(_node: Node) -> void:
-	
-	disabled=false
-	visible=true 
-	
+	disabled = false
+	visible = true

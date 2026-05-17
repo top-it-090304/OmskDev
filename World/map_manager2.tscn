@@ -1,14 +1,28 @@
-[gd_scene load_steps=10 format=3 uid="uid://kpybtxybty40"]
+[gd_scene load_steps=25 format=3 uid="uid://kpybtxybty40"]
 
 [ext_resource type="Script" uid="uid://c71xmlpvgo7v2" path="res://World/map_manager.gd" id="1_l755g"]
 [ext_resource type="PackedScene" uid="uid://dkch1f7o4dp5j" path="res://scene/room_variants/BaseRoom[0]/corridorH.tscn" id="2_hkb3w"]
 [ext_resource type="PackedScene" uid="uid://ccsqj37mkmb8d" path="res://scene/room_variants/sand_rooms/sandroom_2.tscn" id="2_ijmp1"]
 [ext_resource type="PackedScene" uid="uid://r0v8453yqewl" path="res://scene/room_variants/BaseRoom[0]/corridorV.tscn" id="3_ati1j"]
 [ext_resource type="PackedScene" uid="uid://800whowwu1y0" path="res://scene/room_variants/BaseRoom[0]/treasure_room_0.tscn" id="5_4r2i8"]
-[ext_resource type="PackedScene" path="res://scene/game_objects/enemy/skeleton_grunt/enemy(skeleton_grunt).tscn" id="6_sklg"]
+[ext_resource type="PackedScene" uid="uid://d2lntm3kbh3t6" path="res://scene/game_objects/enemy/magican/magican.tscn" id="6_sklg"]
+[ext_resource type="PackedScene" uid="uid://c6le7tcy4xmwk" path="res://scene/game_objects/enemy/manStick/man_stick.tscn" id="7_man_stick"]
 [ext_resource type="PackedScene" uid="uid://dvni48vx1r4cj" path="res://scene/game_objects/bosses/goblin/beastGoblin.tscn" id="10_4r2i8"]
 [ext_resource type="PackedScene" uid="uid://bky7ny1a51sc" path="res://scene/game_objects/bosses/skeletonSwordman/skeleton_swordman.tscn" id="10_sword"]
+[ext_resource type="PackedScene" path="res://scene/game_objects/bosses/govlinRaider/goblinRider.tscn" id="10_raider"]
 [ext_resource type="PackedScene" uid="uid://mes1twfxfifa" path="res://scene/game_objects/player/player.tscn" id="11_ubomv"]
+[ext_resource type="PackedScene" uid="uid://bbelva8io0yft" path="res://scene/pick_up/artefacts/artefact(boots_of_travel).tscn" id="12_art_boots"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/blue_shroom.tscn" id="13_art_shroom"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/clock.tscn" id="14_art_clock"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/coffee_mug.tscn" id="15_art_coffee"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/crown.tscn" id="16_art_crown"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/diamond.tscn" id="17_art_diamond"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/golden_cup.tscn" id="18_art_cup"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/injector.tscn" id="19_art_injector"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/metal_shield.tscn" id="20_art_shield"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/old_book.tscn" id="21_art_book"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/red_potion.tscn" id="22_art_potion"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/bottle.tscn" id="23_art_bottle"]
 
 [node name="MapManager2" type="Node2D"]
 script = ExtResource("1_l755g")
@@ -18,6 +32,7 @@ boss_room_variations = Array[PackedScene]([ExtResource("2_ijmp1")])
 treasure_room_variations = Array[PackedScene]([ExtResource("5_4r2i8")])
 corridor_h_scene = ExtResource("2_hkb3w")
 corridor_v_scene = ExtResource("3_ati1j")
-enemy_variations = Array[PackedScene]([ExtResource("6_sklg")])
-boss_variations = Array[PackedScene]([ExtResource("10_sword")])
+enemy_variations = Array[PackedScene]([ExtResource("6_sklg"), ExtResource("7_man_stick")])
+boss_variations = Array[PackedScene]([ExtResource("10_raider")])
+treasure_items = Array[PackedScene]([ExtResource("12_art_boots"), ExtResource("13_art_shroom"), ExtResource("14_art_clock"), ExtResource("15_art_coffee"), ExtResource("16_art_crown"), ExtResource("17_art_diamond"), ExtResource("18_art_cup"), ExtResource("19_art_injector"), ExtResource("20_art_shield"), ExtResource("21_art_book"), ExtResource("22_art_potion"), ExtResource("23_art_bottle")])
 player_scene = ExtResource("11_ubomv")

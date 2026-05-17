@@ -278,13 +278,6 @@ func add_artefact(artefact_info) -> void:
 			"description": artefact_info.get("artefact_description") if "artefact_description" in artefact_info else ""
 		}
 	
-	# Проверяем на дубликаты
-	var artefact_name = info.get("name", "")
-	for existing in _artefacts:
-		if existing.get("name", "") == artefact_name:
-			print("Артефакт уже есть в inventory_screen, пропускаем: ", artefact_name)
-			return
-	
 	_artefacts.append(info)
 	_add_artefact_icon(info)
 
