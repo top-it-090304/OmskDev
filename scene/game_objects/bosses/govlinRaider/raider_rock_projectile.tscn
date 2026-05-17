@@ -17,11 +17,12 @@ shape = SubResource("CircleShape2D_rock_projectile")
 
 [node name="RockVisual" parent="." instance=ExtResource("2_rock")]
 z_index = 5
+modulate = Color(0.55, 0.55, 0.55, 1)
 scale = Vector2(0.32, 0.32)
 
 [node name="FallbackVisual" type="Polygon2D" parent="."]
 z_index = 6
-color = Color(0.42, 0.34, 0.27, 1)
+color = Color(0.48, 0.48, 0.48, 1)
 polygon = PackedVector2Array(-7, -4, -2, -8, 5, -6, 8, 0, 4, 7, -4, 6, -8, 1)
 
 [connection signal="body_entered" from="." to="." method="_on_body_entered"]

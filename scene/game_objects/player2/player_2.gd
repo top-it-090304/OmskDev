@@ -365,17 +365,20 @@ func attack(from_rpc: bool = false, shot_direction: Vector2 = Vector2.ZERO) -> v
 	attack_timer.start(attack_cooldown)
 
 	animP.speed_scale = effective_attack_speed
+	var attack_anim_name := "attack_down"
 	match current_dir:
 		Dir.UP:
-			animP.play("attack_up")
+			attack_anim_name = "attack_up"
 		Dir.DOWN:
-			animP.play("attack_down")
+			attack_anim_name = "attack_down"
 		Dir.LEFT:
-			animP.play("attack_left")
+			attack_anim_name = "attack_left"
 		Dir.RIGHT:
-			animP.play("attack_right")
+			attack_anim_name = "attack_right"
 
-	shoot()
+	animP.play(attack_anim_name)
+	if not _animation_calls_method(attack_anim_name, "shoot"):
+		shoot()
 
 	if NetworkManager.is_game_online() and not from_rpc and is_local_player:
 		var mp := get_tree().get_multiplayer()
@@ -396,6 +399,20 @@ func _is_attack_anim_playing() -> bool:
 	return str(anim_name).begins_with("attack_")
 
 
+func _animation_calls_method(anim_name: String, method_name: String) -> bool:
+	if animP == null or not animP.has_animation(anim_name):
+		return false
+	var animation: Animation = animP.get_animation(anim_name)
+	for track_idx in range(animation.get_track_count()):
+		if animation.track_get_type(track_idx) != Animation.TYPE_METHOD:
+			continue
+		for key_idx in range(animation.track_get_key_count(track_idx)):
+			var key_value: Variant = animation.track_get_key_value(track_idx, key_idx)
+			if key_value is Dictionary and str(key_value.get("method", "")) == method_name:
+				return true
+	return false
+
+
 ## Как у Knight: урон + крит для файрбола.
 func roll_attack_damage() -> Dictionary:
 	var dmg = GameConstants.PLAYER_ATTACK_DAMAGE
@@ -409,6 +426,10 @@ func roll_attack_damage() -> Dictionary:
 func shoot() -> void:
 	if is_dead:
 		return
+	if NetworkManager.is_game_online() and is_local_player:
+		var mp := get_tree().get_multiplayer()
+		if mp.has_multiplayer_peer() and not mp.is_server():
+			return
 	var now := Time.get_ticks_msec()
 	if now - _last_shot_msec < 100:
 		return

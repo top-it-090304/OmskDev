@@ -27,6 +27,9 @@ func _process(delta: float) -> void:
 	if direction != Vector2.ZERO:
 		var frame_distance := speed * delta
 		var next_position := global_position + direction * frame_distance
+		if not _can_fly_to_position(next_position):
+			queue_free()
+			return
 		if _explode_on_sweep_hit(global_position, next_position):
 			return
 		global_position = next_position
@@ -34,6 +37,16 @@ func _process(delta: float) -> void:
 		_update_distance_scale()
 		if _distance_traveled >= max_distance:
 			_explode(global_position)
+
+
+func _can_fly_to_position(world_pos: Vector2) -> bool:
+	var tree := get_tree()
+	if tree == null:
+		return true
+	var map_manager := tree.get_first_node_in_group("map_manager")
+	if map_manager == null or not map_manager.has_method("is_world_position_in_current_room"):
+		return true
+	return map_manager.is_world_position_in_current_room(world_pos, 8.0)
 
 
 func _explode_on_sweep_hit(from_pos: Vector2, to_pos: Vector2) -> bool:

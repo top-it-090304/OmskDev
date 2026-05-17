@@ -1,7 +1,7 @@
 [gd_scene load_steps=202 format=3 uid="uid://dbn00w8g6oo78"]
 
 [ext_resource type="Texture2D" uid="uid://7f7ha0au2vwj" path="res://sprites/bosses/goblinFly/Down/Png/GoblinRiderAttack01.png" id="1_j3wqw"]
-[ext_resource type="Script" path="res://scene/game_objects/bosses/govlinRaider/goblin_raider.gd" id="1_raider_script"]
+[ext_resource type="Script" uid="uid://b4ni608qfgqvo" path="res://scene/game_objects/bosses/govlinRaider/goblin_raider.gd" id="1_raider_script"]
 [ext_resource type="Texture2D" uid="uid://bsnxbatc40kcg" path="res://sprites/bosses/goblinFly/Down/Png/GoblinRiderIdle.png" id="1_xv738"]
 [ext_resource type="Script" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="2_hp_script"]
 [ext_resource type="Texture2D" uid="uid://cj31nrd3iw1ng" path="res://sprites/bosses/goblinFly/Left/Png/GoblinRiderLeftAttack01.png" id="2_lapew"]

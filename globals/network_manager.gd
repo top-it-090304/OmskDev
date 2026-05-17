@@ -427,7 +427,9 @@ const _META_NET_ENEMY_VALID := &"net_enemy_sync_valid"
 const _META_NET_ENEMY_POS := &"net_enemy_sync_pos"
 const _META_NET_ENEMY_VEL := &"net_enemy_sync_vel"
 const _META_NET_ENEMY_SPR := &"net_enemy_sync_spr"
+const _META_NET_ENEMY_SPR_FRAME := &"net_enemy_sync_spr_frame"
 const _META_NET_ENEMY_AP := &"net_enemy_sync_ap"
+const _META_NET_ENEMY_AP_POS := &"net_enemy_sync_ap_pos"
 
 
 func enemy_mp_is_network_client() -> bool:
@@ -457,15 +459,21 @@ func _apply_net_enemy_visual_from_meta(ch: Node) -> void:
 	if not is_instance_valid(ch):
 		return
 	var spr: String = str(ch.get_meta(_META_NET_ENEMY_SPR, ""))
+	var spr_frame: int = int(ch.get_meta(_META_NET_ENEMY_SPR_FRAME, -1))
 	var ap: String = str(ch.get_meta(_META_NET_ENEMY_AP, ""))
+	var ap_pos: float = float(ch.get_meta(_META_NET_ENEMY_AP_POS, -1.0))
 	var spr_node := ch.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 	if spr_node != null and spr_node.sprite_frames != null and spr != "":
 		if spr_node.sprite_frames.has_animation(spr) and spr_node.animation != spr:
 			spr_node.play(spr)
+		if spr_frame >= 0 and spr_node.frame != spr_frame and abs(spr_node.frame - spr_frame) > 1:
+			spr_node.frame = spr_frame
 	var ap_node := ch.get_node_or_null("AnimationPlayer") as AnimationPlayer
 	if ap_node != null and ap != "":
 		if ap_node.current_animation != ap or not ap_node.is_playing():
 			ap_node.play(ap)
+			if ap_pos >= 0.0:
+				ap_node.seek(ap_pos, true)
 
 
 @rpc("authority", "call_remote", "unreliable_ordered")
@@ -474,11 +482,59 @@ func rpc_sync_enemy_transform(path_str: String, pos: Vector2, vel: Vector2, spr_
 	if n == null or not is_instance_valid(n) or not n is CharacterBody2D:
 		return
 	var ch := n as CharacterBody2D
+	_apply_enemy_sync_state(ch, pos, vel, spr_anim, 0, ap_anim, -1.0, -1, -1, false)
+
+
+@rpc("authority", "call_remote", "unreliable_ordered")
+func rpc_sync_enemy_batch(states: Array) -> void:
+	for raw in states:
+		if not raw is Dictionary:
+			continue
+		var state := raw as Dictionary
+		var n := _resolve_enemy_for_sync(str(state.get("path", "")), str(state.get("key", "")))
+		if n == null or not is_instance_valid(n) or not n is CharacterBody2D:
+			continue
+		_apply_enemy_sync_state(
+			n as CharacterBody2D,
+			state.get("pos", (n as CharacterBody2D).global_position) as Vector2,
+			state.get("vel", Vector2.ZERO) as Vector2,
+			str(state.get("spr", "")),
+			int(state.get("spr_frame", -1)),
+			str(state.get("ap", "")),
+			float(state.get("ap_pos", -1.0)),
+			int(state.get("hp", -1)),
+			int(state.get("max_hp", -1)),
+			GameConstants.variant_to_bool(state.get("dead", false))
+		)
+
+
+func _apply_enemy_sync_state(
+	ch: CharacterBody2D,
+	pos: Vector2,
+	vel: Vector2,
+	spr_anim: String,
+	spr_frame: int,
+	ap_anim: String,
+	ap_pos: float,
+	hp_val: int,
+	max_hp_val: int,
+	dead: bool
+) -> void:
 	ch.set_meta(_META_NET_ENEMY_VALID, true)
 	ch.set_meta(_META_NET_ENEMY_POS, pos)
 	ch.set_meta(_META_NET_ENEMY_VEL, vel)
 	ch.set_meta(_META_NET_ENEMY_SPR, spr_anim)
+	ch.set_meta(_META_NET_ENEMY_SPR_FRAME, spr_frame)
 	ch.set_meta(_META_NET_ENEMY_AP, ap_anim)
+	ch.set_meta(_META_NET_ENEMY_AP_POS, ap_pos)
+	if hp_val >= 0:
+		if ch.get("hp") != null:
+			ch.set("hp", hp_val)
+		var bar := ch.get_node_or_null("TextureProgressBar")
+		if bar and bar.has_method("update_hp"):
+			bar.call("update_hp", hp_val, max_hp_val)
+	if dead:
+		_apply_synced_enemy_death(ch)
 
 
 func _resolve_enemy_for_sync(path_str: String, enemy_key: String = "") -> Node:
@@ -620,12 +676,13 @@ func _replicate_enemy_state_after_damage(enemy: Node) -> void:
 	var h: int = int(enemy.get("hp")) if enemy.get("hp") != null else 0
 	var d: bool = GameConstants.variant_to_bool(enemy.get("is_dead"))
 	var mx: int = int(enemy.get("max_hp")) if enemy.get("max_hp") != null else maxi(h, 1)
-	rpc_sync_enemy_after_damage.rpc(str(enemy.get_path()), maxi(0, h), mx, d)
+	var enemy_key := str(enemy.get_meta(&"_net_enemy_key", ""))
+	rpc_sync_enemy_after_damage.rpc(str(enemy.get_path()), maxi(0, h), mx, d, enemy_key)
 
 
 @rpc("authority", "call_remote", "reliable")
-func rpc_sync_enemy_after_damage(path_str: String, hp_val: int, max_hp_val: int, dead: bool) -> void:
-	var n := _resolve_node_by_path_for_damage(path_str)
+func rpc_sync_enemy_after_damage(path_str: String, hp_val: int, max_hp_val: int, dead: bool, enemy_key: String = "") -> void:
+	var n := _resolve_enemy_for_sync(path_str, enemy_key)
 	if n == null or not is_instance_valid(n):
 		return
 	if n.get("hp") != null:
@@ -634,18 +691,22 @@ func rpc_sync_enemy_after_damage(path_str: String, hp_val: int, max_hp_val: int,
 	if bar and bar.has_method("update_hp"):
 		bar.call("update_hp", hp_val, max_hp_val)
 	if dead:
-		if n.get("is_dead") != null:
-			n.set("is_dead", true)
-		# Боссов не удаляем здесь: на хосте должна отработать полная death() (люк, дроп). Клиент только скрывает копию.
-		if n.is_in_group("boss"):
-			n.visible = false
-			n.process_mode = Node.PROCESS_MODE_DISABLED
-			if n is CollisionObject2D:
-				(n as CollisionObject2D).set_collision_layer_value(1, false)
-				(n as CollisionObject2D).set_collision_mask_value(1, false)
-		else:
-			if is_instance_valid(n):
-				n.queue_free()
+		_apply_synced_enemy_death(n)
+
+
+func _apply_synced_enemy_death(n: Node) -> void:
+	if n.get("is_dead") != null:
+		n.set("is_dead", true)
+	# Боссов не удаляем здесь: на хосте должна отработать полная death() (люк, дроп). Клиент только скрывает копию.
+	if n.is_in_group("boss"):
+		n.visible = false
+		n.process_mode = Node.PROCESS_MODE_DISABLED
+		if n is CollisionObject2D:
+			(n as CollisionObject2D).set_collision_layer_value(1, false)
+			(n as CollisionObject2D).set_collision_mask_value(1, false)
+	else:
+		if is_instance_valid(n):
+			n.queue_free()
 
 
 ## Клиенты: тот же артефакт под люком, что заспавнил хост (сцена не синхронится сама по сети).

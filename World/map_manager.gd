@@ -55,8 +55,8 @@ var _obstacle_detail_spawn_override: int = -1
 var _enemy_net_sync_accum: float = 0.0
 ## На сервере: peer_id -> последняя клетка комнаты (для sync врагов, когда игроки в разных комнатах).
 var _coop_peer_last_room_grid: Dictionary = {}
-## Реже RPC + меньше нагрузка на сеть; клиент всё ещё получает ~7 апдейтов/с в «живой» зоне.
-const ENEMY_NET_SYNC_INTERVAL: float = 0.10
+## Один batch RPC ~6 раз/сек только для комнат с игроками: меньше фризов в коопе.
+const ENEMY_NET_SYNC_INTERVAL: float = 0.16
 const _ENEMY_NET_SYNC_NEIGHBORS: Array[Vector2i] = [
 	Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)
 ]
@@ -690,7 +690,10 @@ func _spawn_enemies_after_physics():
 			
 		var enemy_count = 0
 		
-		if room_type==RoomType.NORMAL: enemy_count = randi_range(2, 5)
+		if room_type==RoomType.NORMAL:
+			enemy_count = randi_range(2, 5)
+			if NetworkManager.is_game_online():
+				enemy_count = ceili(float(enemy_count) * 1.5)
 		
 		if room_type==RoomType.BOSS: 
 			_spawn_boss(space_state, room_node)
@@ -1079,6 +1082,24 @@ func change_current_room(new_x, new_y):
 				save_dungeon_state()
 				print("Автосейв: зашли в важную комнату (ID: ", new_pos, ")")
 				break
+
+
+func get_current_room_node() -> Node2D:
+	for room_data in spawned_rooms:
+		if room_data["grid_pos"] == current_room_grid_pos:
+			return room_data["node"] as Node2D
+	return null
+
+
+func is_world_position_in_current_room(world_pos: Vector2, margin: float = 0.0) -> bool:
+	var room_node := get_current_room_node()
+	if room_node == null or not is_instance_valid(room_node):
+		return true
+	var local_pos := room_node.to_local(world_pos)
+	return local_pos.x >= margin \
+		and local_pos.y >= margin \
+		and local_pos.x <= float(GameConstants.MAP_MANAGER_ROOM_SIZE_X) - margin \
+		and local_pos.y <= float(GameConstants.MAP_MANAGER_ROOM_SIZE_Y) - margin
 
 # =====================================================================
 # ВОЗВРАТ ИГРОКА В БЕЗОПАСНУЮ КОМНАТУ
@@ -1492,29 +1513,33 @@ func _room_in_enemy_net_sync_for_server(room_grid: Vector2i) -> bool:
 			rg = _coop_peer_last_room_grid[rid] as Vector2i
 		if room_grid == rg:
 			return true
-		for d in _ENEMY_NET_SYNC_NEIGHBORS:
-			if room_grid == rg + d:
-				return true
 	return false
 
 
-func _enemy_net_visual_snapshot(ch: Node) -> Array[String]:
+func _enemy_net_visual_snapshot(ch: Node) -> Dictionary:
 	var spr := ""
+	var spr_frame := 0
 	var ap := ""
+	var ap_pos := 0.0
 	var spr_node := ch.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 	if spr_node != null and spr_node.sprite_frames != null:
 		spr = str(spr_node.animation)
+		spr_frame = spr_node.frame
 	var ap_node := ch.get_node_or_null("AnimationPlayer") as AnimationPlayer
 	if ap_node != null and ap_node.is_playing():
 		ap = str(ap_node.current_animation)
-	var out: Array[String] = []
-	out.append(spr)
-	out.append(ap)
-	return out
+		ap_pos = ap_node.current_animation_position
+	return {
+		"spr": spr,
+		"spr_frame": spr_frame,
+		"ap": ap,
+		"ap_pos": ap_pos,
+	}
 
 
 func _physics_process_host_sync_enemies() -> void:
 	# Только CharacterBody2D под Enemys — без get_nodes_in_group по всему дереву.
+	var batch: Array = []
 	for room_data in spawned_rooms:
 		var room_grid: Vector2i = room_data["grid_pos"]
 		if not _room_in_enemy_net_sync_for_server(room_grid):
@@ -1534,25 +1559,42 @@ func _physics_process_host_sync_enemies() -> void:
 			var pos := ch.global_position
 			var vel := ch.velocity
 			var vis := _enemy_net_visual_snapshot(ch)
-			var spr := ""
-			var ap := ""
-			if vis.size() > 0:
-				spr = vis[0]
-			if vis.size() > 1:
-				ap = vis[1]
+			var spr := str(vis.get("spr", ""))
+			var spr_frame := int(vis.get("spr_frame", 0))
+			var ap := str(vis.get("ap", ""))
+			var ap_pos := float(vis.get("ap_pos", 0.0))
+			var hp_val: int = int(ch.get("hp")) if ch.get("hp") != null else 0
+			var max_hp_val: int = int(ch.get("max_hp")) if ch.get("max_hp") != null else maxi(hp_val, 1)
+			var dead := GameConstants.variant_to_bool(ch.get("is_dead"))
 			if ch.has_meta(&"_net_sync_last_pos"):
 				var last_p: Vector2 = ch.get_meta(&"_net_sync_last_pos")
 				var last_v: Vector2 = ch.get_meta(&"_net_sync_last_vel")
 				var last_spr: String = str(ch.get_meta(&"_net_sync_last_spr", ""))
 				var last_ap: String = str(ch.get_meta(&"_net_sync_last_ap", ""))
-				if pos.distance_squared_to(last_p) < _NET_SYNC_POS_EPS2 and vel.distance_squared_to(last_v) < _NET_SYNC_VEL_EPS2 and spr == last_spr and ap == last_ap:
+				var last_hp: int = int(ch.get_meta(&"_net_sync_last_hp", hp_val))
+				if pos.distance_squared_to(last_p) < _NET_SYNC_POS_EPS2 and vel.distance_squared_to(last_v) < _NET_SYNC_VEL_EPS2 and spr == last_spr and ap == last_ap and hp_val == last_hp:
 					continue
 			ch.set_meta(&"_net_sync_last_pos", pos)
 			ch.set_meta(&"_net_sync_last_vel", vel)
 			ch.set_meta(&"_net_sync_last_spr", spr)
 			ch.set_meta(&"_net_sync_last_ap", ap)
+			ch.set_meta(&"_net_sync_last_hp", hp_val)
 			var enemy_key := str(ch.get_meta(&"_net_enemy_key", ""))
-			NetworkManager.rpc_sync_enemy_transform.rpc(str(ch.get_path()), pos, vel, spr, ap, enemy_key)
+			batch.append({
+				"path": str(ch.get_path()),
+				"key": enemy_key,
+				"pos": pos,
+				"vel": vel,
+				"spr": spr,
+				"spr_frame": spr_frame,
+				"ap": ap,
+				"ap_pos": ap_pos,
+				"hp": maxi(0, hp_val),
+				"max_hp": max_hp_val,
+				"dead": dead,
+			})
+	if not batch.is_empty():
+		NetworkManager.rpc_sync_enemy_batch.rpc(batch)
 
 
 func _physics_process(delta: float) -> void:
