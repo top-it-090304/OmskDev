@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=4 uid="uid://o2jwqsrn1vyr"]
+
+[ext_resource type="TileSet" uid="uid://cb20mgnea32ub" path="res://scene/room_variants/forest/forest_room.tres" id="2_p6m8l"]
+
+[node name="TopWall" type="Node2D"]
+
+[node name="TileMapLayer2" type="TileMapLayer" parent="."]
+tile_map_data = PackedByteArray("AAAZAAMAAAA9AA4AAAAZAAQAAAA9AA8AAAAaAAMAAAA+AA4AAAAaAAQAAAA+AA8AAAAbAAMAAAA/AA4AAAAbAAQAAAA/AA8AAAAcAAMAAABAAA4AAAAcAAQAAABAAA8AAAA=")
+tile_set = ExtResource("2_p6m8l")

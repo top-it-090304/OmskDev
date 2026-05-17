@@ -16,10 +16,10 @@ wall_right = null
 [node name="CollisionShape2D" parent="room_shape" index="0"]
 position = Vector2(200, 136)
 
-[node name="DoorTop" parent="." index="4"]
+[node name="DoorTop" parent="." index="5"]
 z_index = 0
 
-[node name="DoorBottom" parent="." index="5"]
+[node name="DoorBottom" parent="." index="6"]
 z_index = 0
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="DoorBottom" index="0"]
@@ -27,10 +27,10 @@ position = Vector2(0, -4)
 shape = SubResource("RectangleShape2D_8a7m1")
 disabled = true
 
-[node name="DoorLeft" parent="." index="6"]
+[node name="DoorLeft" parent="." index="7"]
 z_index = 0
 
-[node name="DoorRight" parent="." index="7"]
+[node name="DoorRight" parent="." index="8"]
 z_index = 0
 
 [node name="untuchable" type="TileMapLayer" parent="." index="9"]
