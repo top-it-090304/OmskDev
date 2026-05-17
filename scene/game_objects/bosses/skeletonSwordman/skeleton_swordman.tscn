@@ -7,7 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://bu1d3dqfv283u" path="res://assets/hpProgressEnemy.png" id="3_hp_progress"]
 [ext_resource type="Texture2D" uid="uid://bpp6r05soux8l" path="res://sprites/bosses/SkeletonSwordman/Right/Png/AncientSkeletonRightAttack03.png" id="4_51uay"]
 [ext_resource type="Script" uid="uid://d0rsjn1v4kmxq" path="res://scene/game_objects/enemy/goblin_axe/attack_timer.gd" id="4_attack_timer"]
-[ext_resource type="Script" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="5_hp_script"]
+[ext_resource type="Script" uid="uid://osq5kv0630j2" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="5_hp_script"]
 [ext_resource type="Texture2D" uid="uid://jkshm3c1mthu" path="res://sprites/bosses/SkeletonSwordman/Up/Png/AncientSkeletonUpAttack03.png" id="5_iicbv"]
 [ext_resource type="Texture2D" uid="uid://dblfq8h16p6a3" path="res://sprites/bosses/SkeletonSwordman/Down/Png/AncientSkeletonDownAttack01.png" id="6_4maor"]
 [ext_resource type="Texture2D" uid="uid://kc8o2cc7tp24" path="res://sprites/bosses/SkeletonSwordman/Left/Png/AncientSkeletonLeftAttack01.png" id="7_gn7bk"]
