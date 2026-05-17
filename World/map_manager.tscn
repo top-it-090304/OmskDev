@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://n6dhykg53x0b"]
+[gd_scene load_steps=12 format=3 uid="uid://n6dhykg53x0b"]
 
 [ext_resource type="Script" uid="uid://c71xmlpvgo7v2" path="res://World/map_manager.gd" id="1_l755g"]
 [ext_resource type="PackedScene" uid="uid://dkch1f7o4dp5j" path="res://scene/room_variants/BaseRoom[0]/corridorH.tscn" id="2_hkb3w"]
@@ -9,10 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://800whowwu1y0" path="res://scene/room_variants/BaseRoom[0]/treasure_room_0.tscn" id="5_4r2i8"]
 [ext_resource type="PackedScene" uid="uid://d2lntm3kbh3t6" path="res://scene/game_objects/enemy/magican/magican.tscn" id="5_ati1j"]
 [ext_resource type="PackedScene" uid="uid://c6le7tcy4xmwk" path="res://scene/game_objects/enemy/manStick/man_stick.tscn" id="5_xsmnk"]
-[ext_resource type="PackedScene" path="res://scene/game_objects/enemy/skeleton_grunt/enemy(skeleton_grunt).tscn" id="6_sklg"]
-[ext_resource type="PackedScene" uid="uid://dvni48vx1r4cj" path="res://scene/game_objects/bosses/goblin/beastGoblin.tscn" id="10_4r2i8"]
-[ext_resource type="PackedScene" uid="uid://bky7ny1a51sc" path="res://scene/game_objects/bosses/skeletonSwordman/skeleton_swordman.tscn" id="10_sword"]
-[ext_resource type="PackedScene" path="res://scene/game_objects/bosses/govlinRaider/goblinRider.tscn" id="10_raider"]
+[ext_resource type="PackedScene" uid="uid://dbn00w8g6oo78" path="res://scene/game_objects/bosses/govlinRaider/goblinRider.tscn" id="10_raider"]
 [ext_resource type="PackedScene" uid="uid://mes1twfxfifa" path="res://scene/game_objects/player/player.tscn" id="11_ubomv"]
 
 [node name="MapManager" type="Node2D"]
