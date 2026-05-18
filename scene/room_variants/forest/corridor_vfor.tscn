@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=4 uid="uid://cgkv2ftfjkeo6"]
+[gd_scene load_steps=2 format=4]
 
 [ext_resource type="TileSet" uid="uid://cb20mgnea32ub" path="res://scene/room_variants/forest/forest_room.tres" id="1_lxphy"]
 

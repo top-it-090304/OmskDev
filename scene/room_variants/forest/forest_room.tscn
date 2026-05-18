@@ -9,7 +9,7 @@
 [ext_resource type="TileSet" uid="uid://cb20mgnea32ub" path="res://scene/room_variants/forest/forest_room.tres" id="8_ilgp8"]
 [ext_resource type="Script" uid="uid://cr6mv2r4o37d7" path="res://scene/level/enemys.gd" id="8_trsc3"]
 [ext_resource type="Script" uid="uid://jmqbjpx8nui8" path="res://scene/room_variants/BaseRoom[0]/door.gd" id="9_txtie"]
-[ext_resource type="Texture2D" uid="uid://chuevxrh0l4xg" path="res://void.png" id="10_64dvf"]
+[ext_resource type="Texture2D" path="res://void.png" id="10_64dvf"]
 [ext_resource type="Texture2D" uid="uid://s2fieg18geln" path="res://assets/калиткаап.png" id="10_er7d5"]
 [ext_resource type="Texture2D" uid="uid://b7cfrn22b4ri1" path="res://assets/остальные калитки.png" id="11_64dvf"]
 

@@ -448,16 +448,27 @@ func _spawn_artefact_near_hatch() -> void:
 		_spawn_artefact_fallback()
 		return
 	var spawn_pos: Vector2 = (hatch as Node2D).global_position + Vector2(0, 48)
-	var ps: PackedScene = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
+	var ps := _pick_boss_artefact_scene()
+	if ps == null:
+		return
 	NetworkManager.server_spawn_boss_loot_for_coop(ps.resource_path, parent_n, spawn_pos)
 
 
 func _spawn_artefact_fallback() -> void:
 	var root := get_tree().current_scene
 	var parent_n := root as Node2D
-	var ps: PackedScene = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
+	var ps := _pick_boss_artefact_scene()
+	if ps == null:
+		return
 	if parent_n != null:
 		NetworkManager.server_spawn_boss_loot_for_coop(ps.resource_path, parent_n, global_position)
+
+
+func _pick_boss_artefact_scene() -> PackedScene:
+	var scenes := GameConstants.get_random_boss_artefact_scenes(1)
+	if scenes.is_empty():
+		return null
+	return scenes[0]
 
 
 func _open_hatch_via_map_manager() -> void:

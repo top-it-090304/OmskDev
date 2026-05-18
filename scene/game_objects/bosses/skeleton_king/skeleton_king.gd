@@ -670,19 +670,25 @@ func _spawn_loot_near_hatch():
 		return
 	var spawn_pos: Vector2 = (hatch as Node2D).global_position + Vector2(0, 48)
 	if player_took_damage:
-		var ps: PackedScene = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
+		var ps := _pick_boss_artefact_scene()
+		if ps == null:
+			return
 		NetworkManager.server_spawn_boss_loot_for_coop(ps.resource_path, parent_n, spawn_pos)
 	else:
-		var ps1: PackedScene = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
-		var ps2: PackedScene = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
-		NetworkManager.server_spawn_boss_loot_for_coop(ps1.resource_path, parent_n, spawn_pos + Vector2(-20, 0))
-		NetworkManager.server_spawn_boss_loot_for_coop(ps2.resource_path, parent_n, spawn_pos + Vector2(20, 0))
+		var scenes := GameConstants.get_random_boss_artefact_scenes(2)
+		if scenes.is_empty():
+			return
+		NetworkManager.server_spawn_boss_loot_for_coop(scenes[0].resource_path, parent_n, spawn_pos + Vector2(-20, 0))
+		if scenes.size() > 1:
+			NetworkManager.server_spawn_boss_loot_for_coop(scenes[1].resource_path, parent_n, spawn_pos + Vector2(20, 0))
 
 func _spawn_loot_fallback():
 	var scene_root := get_tree().current_scene
 	var parent_n := scene_root as Node2D
 	if player_took_damage:
-		var ps: PackedScene = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
+		var ps := _pick_boss_artefact_scene()
+		if ps == null:
+			return
 		if parent_n != null:
 			NetworkManager.server_spawn_boss_loot_for_coop(ps.resource_path, parent_n, global_position)
 		else:
@@ -690,23 +696,33 @@ func _spawn_loot_fallback():
 			artefact.global_position = global_position
 			scene_root.add_child(artefact)
 	else:
-		var ps1: PackedScene = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
-		var ps2: PackedScene = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
+		var scenes := GameConstants.get_random_boss_artefact_scenes(2)
+		if scenes.is_empty():
+			return
 		if parent_n != null:
-			NetworkManager.server_spawn_boss_loot_for_coop(ps1.resource_path, parent_n, global_position + Vector2(-20, 0))
-			NetworkManager.server_spawn_boss_loot_for_coop(ps2.resource_path, parent_n, global_position + Vector2(20, 0))
+			NetworkManager.server_spawn_boss_loot_for_coop(scenes[0].resource_path, parent_n, global_position + Vector2(-20, 0))
+			if scenes.size() > 1:
+				NetworkManager.server_spawn_boss_loot_for_coop(scenes[1].resource_path, parent_n, global_position + Vector2(20, 0))
 		else:
-			var artefact1: Node2D = ps1.instantiate() as Node2D
-			var artefact2: Node2D = ps2.instantiate() as Node2D
+			var artefact1: Node2D = scenes[0].instantiate() as Node2D
 			artefact1.global_position = global_position + Vector2(-20, 0)
-			artefact2.global_position = global_position + Vector2(20, 0)
 			scene_root.add_child(artefact1)
-			scene_root.add_child(artefact2)
+			if scenes.size() > 1:
+				var artefact2: Node2D = scenes[1].instantiate() as Node2D
+				artefact2.global_position = global_position + Vector2(20, 0)
+				scene_root.add_child(artefact2)
 
 func _open_hatch_via_map_manager():
 	var map_manager := _find_map_manager()
 	if map_manager and map_manager.has_method("open_boss_hatch"):
 		map_manager.open_boss_hatch()
+
+
+func _pick_boss_artefact_scene() -> PackedScene:
+	var scenes := GameConstants.get_random_boss_artefact_scenes(1)
+	if scenes.is_empty():
+		return null
+	return scenes[0]
 
 
 func _find_map_manager() -> Node:

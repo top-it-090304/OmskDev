@@ -21,6 +21,7 @@ var _bite_cd := 0.6
 var _wave_cd := 1.2
 var _throw_cd := 1.8
 var _bite_instance: Area2D = null
+var _bite_point_position := Vector2.ZERO
 
 @onready var anim: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 @onready var animP: AnimationPlayer = get_node_or_null("AnimationPlayer") as AnimationPlayer
@@ -108,7 +109,7 @@ func _physics_process(delta: float) -> void:
 
 
 func attack_bite() -> void:
-	await _run_attack("attack_byte_" + _dir_string(), "attack_byte_down", Callable(self, "activate_bite"))
+	await _run_attack("attack_byte_" + _dir_string(), "attack_byte_down", Callable(self, "activate_bite"), 28.0, true)
 
 
 func attack_wave() -> void:
@@ -119,13 +120,22 @@ func attack_throw() -> void:
 	await _run_attack("attack_throw_" + _dir_string(), "attack_throw_down", Callable(self, "throw_rock"))
 
 
-func _run_attack(anim_name: String, fallback: String, fallback_call: Callable) -> void:
+func _run_attack(
+	anim_name: String,
+	fallback: String,
+	fallback_call: Callable,
+	warning_radius: float = 95.0,
+	warning_at_bite_point: bool = false
+) -> void:
 	if is_dead or is_attacking or not is_instance_valid(player):
 		return
 	is_attacking = true
 	can_anim = false
 	_face_player()
-	_show_attack_warning(Color(1.0, 0.55, 0.2, 0.55), 95.0, 0.28)
+	var warning_pos := global_position
+	if warning_at_bite_point:
+		warning_pos = _get_bite_point()
+	_show_attack_warning_at(warning_pos, Color(1.0, 0.55, 0.2, 0.55), warning_radius, 0.28)
 	var has_anim_player_attack := animP != null and animP.has_animation(anim_name)
 	if has_anim_player_attack:
 		animP.play(anim_name)
@@ -141,18 +151,7 @@ func _run_attack(anim_name: String, fallback: String, fallback_call: Callable) -
 func spawn_bite_swing() -> void:
 	if is_dead or not is_instance_valid(player):
 		return
-	if is_instance_valid(_bite_instance):
-		_bite_instance.queue_free()
-	_bite_instance = GameConstants.ENEMY_GOBLIN_AXE_SMITE.instantiate() as Area2D
-	get_tree().current_scene.add_child(_bite_instance)
-	_bite_instance.visible = false
-	_bite_instance.monitoring = false
-	_bite_instance.scale = Vector2(2.5, 2.5)
-	var dir := _direction_to_player()
-	if "direction" in _bite_instance:
-		_bite_instance.direction = dir
-	_bite_instance.rotation = dir.angle()
-	_bite_instance.global_position = global_position + dir * 35.0
+	_bite_point_position = _get_bite_point()
 
 
 func spawn_bite_smite() -> void:
@@ -160,11 +159,13 @@ func spawn_bite_smite() -> void:
 
 
 func activate_bite() -> void:
-	if not is_instance_valid(_bite_instance):
-		spawn_bite_swing()
-	if is_instance_valid(_bite_instance) and not is_dead:
-		_bite_instance.visible = true
-		_bite_instance.monitoring = true
+	if is_dead:
+		return
+	if _bite_point_position == Vector2.ZERO:
+		_bite_point_position = _get_bite_point()
+	_show_bite_point_visual(_bite_point_position)
+	_apply_bite_damage_at(_bite_point_position)
+	_bite_point_position = Vector2.ZERO
 	AudioManager.play_sfx("босс_атака_укус")
 
 
@@ -194,9 +195,9 @@ func throw_rock() -> void:
 	var rock := ROCK_PROJECTILE_SCENE.instantiate()
 	rock.direction = dir
 	rock.damage = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_GOBLIN_RAIDER_ROCK_DAMAGE)
-	rock.global_position = global_position + dir * 34.0
 	rock.rotation = dir.angle()
 	get_tree().current_scene.add_child(rock)
+	rock.global_position = global_position + dir * 48.0
 	AudioManager.play_sfx("враг_полет_стрелы")
 	var mp := get_tree().get_multiplayer()
 	if mp.has_multiplayer_peer() and mp.is_server():
@@ -250,6 +251,7 @@ func death() -> void:
 	_give_exp_to_player()
 	if randf() <= 0.35:
 		_spawn_loot()
+	_spawn_artefact_near_hatch()
 	_open_hatch_via_map_manager()
 	queue_free()
 
@@ -281,6 +283,41 @@ func _direction_to_player() -> Vector2:
 	return dir.normalized()
 
 
+func _get_bite_point() -> Vector2:
+	return global_position + _direction_to_player() * 35.0
+
+
+func _apply_bite_damage_at(pos: Vector2) -> void:
+	var space := get_world_2d().direct_space_state
+	if space == null:
+		return
+	var shape := CircleShape2D.new()
+	shape.radius = 28.0
+	var params := PhysicsShapeQueryParameters2D.new()
+	params.shape = shape
+	params.transform = Transform2D(0.0, pos)
+	params.collide_with_bodies = true
+	params.collide_with_areas = true
+	params.collision_mask = 2
+	var damaged_players: Array[Node] = []
+	for hit in space.intersect_shape(params, 8):
+		var collider: Variant = hit.get("collider")
+		if collider == null:
+			continue
+		var hit_node := collider as Node
+		var target := hit_node
+		if hit_node is Area2D and hit_node.get_parent() != null:
+			target = hit_node.get_parent()
+		if target == null or not target.is_in_group("player") or damaged_players.has(target):
+			continue
+		if not PlayerManager.is_player_nearest_hosting_target(global_position, target):
+			continue
+		var dmg := GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_GOBLIN_RAIDER_BITE_DAMAGE)
+		NetworkManager.server_apply_damage_to_player_from_enemy(target, dmg)
+		NetworkManager.server_apply_knockback_to_player_from_enemy(target, global_position, 650.0)
+		damaged_players.append(target)
+
+
 func _all_attacks_on_cooldown() -> bool:
 	return _bite_cd > 0.0 and _wave_cd > 0.0 and _throw_cd > 0.0
 
@@ -298,6 +335,10 @@ func _play_idle_animation() -> void:
 
 
 func _show_attack_warning(color: Color, radius: float, duration: float) -> void:
+	_show_attack_warning_at(global_position, color, radius, duration)
+
+
+func _show_attack_warning_at(pos: Vector2, color: Color, radius: float, duration: float) -> void:
 	var warning := Polygon2D.new()
 	var points := PackedVector2Array()
 	for i in range(32):
@@ -306,11 +347,27 @@ func _show_attack_warning(color: Color, radius: float, duration: float) -> void:
 	warning.polygon = points
 	warning.color = color
 	warning.z_index = z_index + 4
-	warning.global_position = global_position
+	warning.global_position = pos
 	get_tree().current_scene.add_child(warning)
 	var tween := warning.create_tween()
 	tween.tween_property(warning, "color:a", 0.0, duration)
 	tween.tween_callback(warning.queue_free)
+
+
+func _show_bite_point_visual(pos: Vector2) -> void:
+	var bite := Polygon2D.new()
+	var points := PackedVector2Array()
+	for i in range(18):
+		var angle := TAU * float(i) / 18.0
+		points.append(Vector2(cos(angle), sin(angle)) * 28.0)
+	bite.polygon = points
+	bite.color = Color(1.0, 0.35, 0.1, 0.65)
+	bite.z_index = z_index + 5
+	bite.global_position = pos
+	get_tree().current_scene.add_child(bite)
+	var tween := bite.create_tween()
+	tween.tween_property(bite, "color:a", 0.0, 0.16)
+	tween.tween_callback(bite.queue_free)
 
 
 func _play_anim(anim_name: String, fallback: String) -> void:
@@ -357,6 +414,36 @@ func _spawn_loot() -> void:
 	var potion := GameConstants.HEALTH_POTION.instantiate()
 	potion.global_position = global_position
 	get_tree().current_scene.add_child(potion)
+
+
+func _spawn_artefact_near_hatch() -> void:
+	var map_manager := _find_map_manager()
+	if not map_manager:
+		_spawn_artefact_fallback()
+		return
+	var hatch = map_manager.boss_hatch
+	if not hatch or not is_instance_valid(hatch):
+		_spawn_artefact_fallback()
+		return
+	var parent_n := hatch.get_parent() as Node2D
+	if parent_n == null:
+		_spawn_artefact_fallback()
+		return
+	var scenes := GameConstants.get_random_boss_artefact_scenes(1)
+	if scenes.is_empty():
+		return
+	var spawn_pos: Vector2 = (hatch as Node2D).global_position + Vector2(0, 48)
+	NetworkManager.server_spawn_boss_loot_for_coop(scenes[0].resource_path, parent_n, spawn_pos)
+
+
+func _spawn_artefact_fallback() -> void:
+	var root := get_tree().current_scene
+	var parent_n := root as Node2D
+	var scenes := GameConstants.get_random_boss_artefact_scenes(1)
+	if scenes.is_empty():
+		return
+	if parent_n != null:
+		NetworkManager.server_spawn_boss_loot_for_coop(scenes[0].resource_path, parent_n, global_position)
 
 
 func _open_hatch_via_map_manager() -> void:

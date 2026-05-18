@@ -49,8 +49,10 @@ const HEALTH_POTION = preload("res://scene/pick_up/Heal potion/heal_potion.tscn"
 
 # --- ХАРАКТЕРИСТИКИ ИГРОКА ---
 var PLAYER_MAX_SPEED = 200
-var PLAYER_MAX_HEALTH = 300
-var PLAYER_ATTACK_DAMAGE = 25
+var PLAYER_MAX_HEALTH = 450
+var PLAYER_ATTACK_DAMAGE = 40
+var PLAYER2_MAX_HEALTH = 200
+var PLAYER2_ATTACK_DAMAGE = 15
 var PLAYER_ARMOR = 0
 var PLAYER_DODGE_CHANCE = 0.0
 var PLAYER_CRIT_CHANCE = 0.0
@@ -76,6 +78,14 @@ var PLAYER_DAMAGE_PER_LEVEL = 2
 # Настройки всплывающих чисел (добавлено для совместимости с кодом игрока)
 var SHOW_DAMAGE_NUMBERS: bool = true
 var SHOW_HEAL_NUMBERS: bool = true
+
+func get_player2_max_health() -> int:
+	return maxi(1, PLAYER2_MAX_HEALTH)
+
+
+func get_player2_attack_damage() -> int:
+	return maxi(1, PLAYER2_ATTACK_DAMAGE)
+
 
 # --- ВРАГИ: БАЛАНС ---
 
@@ -188,8 +198,8 @@ var ENEMY_GOBLIN_RAIDER_THROW_COOLDOWN: float = 2.8
 var ENEMY_SKELETON_SWORDMAN_HP = int(ENEMY_BEASTGOBLIN_HP * 1.5)
 var ENEMY_SKELETON_SWORDMAN_MAX_SPEED = 135
 var ENEMY_SKELETON_SWORDMAN_DAMAGE = 28
-var ENEMY_SKELETON_SWORDMAN_STRONG_DAMAGE = 55
-var ENEMY_SKELETON_SWORDMAN_WAVE_DAMAGE = 35
+var ENEMY_SKELETON_SWORDMAN_STRONG_DAMAGE = 30
+var ENEMY_SKELETON_SWORDMAN_WAVE_DAMAGE = 30
 var ENEMY_SKELETON_SWORDMAN_TAKE_DAMAGE = 10
 var ENEMY_SKELETON_SWORDMAN_EXP_REWARD = 275
 
@@ -198,6 +208,32 @@ const DEFAULT_FLOOR_SCENE_PATH := "res://World/layer.tscn"
 const ACT2_FLOOR_SCENE_PATH := "res://World/layer_act2.tscn"
 const LAYER3_FLOOR_SCENE_PATH := "res://World/layer3.tscn"
 const LAYER4_FLOOR_SCENE_PATH := "res://World/layer4.tscn"
+
+const BOSS_ARTEFACT_SCENE_PATHS_BY_FLOOR := {
+	1: [
+		"res://scene/pick_up/artefacts/small_cactus.tscn",
+		"res://scene/pick_up/artefacts/lime_juice.tscn",
+		"res://scene/pick_up/artefacts/ramen_bowl.tscn",
+	],
+	2: [
+		"res://scene/pick_up/artefacts/pill.tscn",
+		"res://scene/pick_up/artefacts/pill_can.tscn",
+		"res://scene/pick_up/artefacts/juice_box.tscn",
+	],
+	3: [
+		"res://scene/pick_up/artefacts/fairy_bottle.tscn",
+		"res://scene/pick_up/artefacts/flashlight.tscn",
+		"res://scene/pick_up/artefacts/top_hat.tscn",
+	],
+	4: [
+		"res://scene/pick_up/artefacts/snow_ball.tscn",
+		"res://scene/pick_up/artefacts/disco_ball.tscn",
+		"res://scene/pick_up/artefacts/bongo.tscn",
+	],
+}
+
+const BOSS_ARTEFACT_RECENT_LIMIT := 5
+var _recent_boss_artefact_paths: Array[String] = []
 
 var _current_floor_internal: int = 1
 var CURRENT_FLOOR: int:
@@ -232,6 +268,57 @@ func get_scene_path_for_floor(floor_index: int) -> String:
 
 func get_current_floor_scene_path() -> String:
 	return get_scene_path_for_floor(CURRENT_FLOOR)
+
+
+func get_boss_artefact_scene_paths_for_floor(floor_index: int) -> Array[String]:
+	var pool_key := floor_index if floor_index <= 4 else 4
+	var raw_pool: Array = BOSS_ARTEFACT_SCENE_PATHS_BY_FLOOR.get(pool_key, BOSS_ARTEFACT_SCENE_PATHS_BY_FLOOR[4])
+	var result: Array[String] = []
+	for path: String in raw_pool:
+		result.append(path)
+	return result
+
+
+func get_all_boss_artefact_scene_paths() -> Array[String]:
+	var result: Array[String] = []
+	for floor_key in BOSS_ARTEFACT_SCENE_PATHS_BY_FLOOR.keys():
+		var raw_pool: Array = BOSS_ARTEFACT_SCENE_PATHS_BY_FLOOR[floor_key]
+		for path: String in raw_pool:
+			if not result.has(path):
+				result.append(path)
+	return result
+
+
+func get_random_boss_artefact_scenes(count: int = 1) -> Array[PackedScene]:
+	var paths := get_all_boss_artefact_scene_paths()
+	var non_recent_paths: Array[String] = []
+	for path in paths:
+		if not _recent_boss_artefact_paths.has(path):
+			non_recent_paths.append(path)
+	if non_recent_paths.size() >= maxi(1, count):
+		paths = non_recent_paths
+	paths.shuffle()
+	var result: Array[PackedScene] = []
+	for _i in range(maxi(1, count)):
+		if paths.is_empty():
+			break
+		var idx := 0
+		if paths.size() > 1:
+			idx = randi() % paths.size()
+		var path := paths[idx]
+		var scene := load(paths[idx]) as PackedScene
+		paths.remove_at(idx)
+		if scene != null:
+			result.append(scene)
+			_remember_boss_artefact_path(path)
+	return result
+
+
+func _remember_boss_artefact_path(path: String) -> void:
+	_recent_boss_artefact_paths.erase(path)
+	_recent_boss_artefact_paths.append(path)
+	while _recent_boss_artefact_paths.size() > BOSS_ARTEFACT_RECENT_LIMIT:
+		_recent_boss_artefact_paths.remove_at(0)
 
 # --- СИСТЕМНЫЕ ПЕРЕМЕННЫЕ (Авто-перезагрузка конфига) ---
 var _reload_timer_sec := 0.0

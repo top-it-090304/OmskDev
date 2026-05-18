@@ -9,9 +9,9 @@
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/clock.tscn" id="7_qpvvc"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/coffee_mug.tscn" id="8_shab0"]
 [ext_resource type="PackedScene" uid="uid://d1478ke7qpkxf" path="res://scene/room_variants/forest/forest_room.tscn" id="8_ylsjx"]
-[ext_resource type="PackedScene" uid="uid://do6p1b0f13olh" path="res://scene/room_variants/forest/corridor_for.tscn" id="9_3hlwg"]
+[ext_resource type="PackedScene" path="res://scene/room_variants/forest/corridor_for.tscn" id="9_3hlwg"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/crown.tscn" id="9_f2vw5"]
-[ext_resource type="PackedScene" uid="uid://cgkv2ftfjkeo6" path="res://scene/room_variants/forest/corridor_vfor.tscn" id="10_0el4m"]
+[ext_resource type="PackedScene" path="res://scene/room_variants/forest/corridor_vfor.tscn" id="10_0el4m"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/diamond.tscn" id="10_ylsjx"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/golden_cup.tscn" id="11_3hlwg"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/injector.tscn" id="12_0el4m"]
@@ -100,4 +100,4 @@ treasure_room_variations = Array[PackedScene]([ExtResource("8_ylsjx")])
 layer = NodePath("..")
 corridor_h_scene = ExtResource("9_3hlwg")
 corridor_v_scene = ExtResource("10_0el4m")
-treasure_items = Array[PackedScene]([ExtResource("5_v7fgi"), ExtResource("6_ikq8h"), ExtResource("7_qpvvc"), ExtResource("8_shab0"), ExtResource("9_f2vw5"), ExtResource("10_ylsjx"), ExtResource("11_3hlwg"), ExtResource("12_0el4m"), ExtResource("13_cueid"), ExtResource("14_36tnp"), ExtResource("15_rhie0"), ExtResource("16_art01")])
+treasure_items = Array[PackedScene]([ExtResource("5_v7fgi"), ExtResource("6_ikq8h"), ExtResource("8_shab0"), ExtResource("16_art01")])

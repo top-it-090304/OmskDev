@@ -6,7 +6,7 @@ var lifetime: float = 5.0
 var shooter: Node = null
 
 @export var max_distance: float = 216.0
-@export var min_scale_ratio: float = 0.05
+@export var min_scale_ratio: float = 0.4
 @export var explosion_radius: float = 46.0
 @export var explosion_damage_multiplier: float = 1.0
 
@@ -34,7 +34,10 @@ func _process(delta: float) -> void:
 			return
 		global_position = next_position
 		_distance_traveled += frame_distance
-		_update_distance_scale()
+		var current_scale_ratio := _update_distance_scale()
+		if current_scale_ratio <= min_scale_ratio:
+			queue_free()
+			return
 		if _distance_traveled >= max_distance:
 			queue_free()
 
@@ -78,10 +81,11 @@ func _explode_on_sweep_hit(from_pos: Vector2, to_pos: Vector2) -> bool:
 	return false
 
 
-func _update_distance_scale() -> void:
+func _update_distance_scale() -> float:
 	var progress := clampf(_distance_traveled / max_distance, 0.0, 1.0)
 	var scale_ratio := maxf(min_scale_ratio, 1.0 - progress)
 	scale = _base_scale * scale_ratio
+	return scale_ratio
 
 func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):

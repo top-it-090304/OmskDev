@@ -6,7 +6,6 @@ extends CharacterBody2D
 @export var fireball_scene: PackedScene = preload("res://scene/abilities/fireball.tscn")
 @export_range(0.1, 5.0, 0.05) var attack_speed_multiplier: float = 1
 @export_range(0.1, 3.0, 0.05) var attack_cooldown: float = 0.5
-@export_range(1.0, 5.0, 0.1) var max_health_divisor: float = 2.25
 
 @onready var attack_joystick = $MobileController/VirtualJoystick2
 @onready var anim = $AnimatedSprite2D
@@ -424,7 +423,7 @@ func _animation_calls_method(anim_name: String, method_name: String) -> bool:
 
 ## Как у Knight: урон + крит для файрбола.
 func roll_attack_damage() -> Dictionary:
-	var dmg = GameConstants.PLAYER_ATTACK_DAMAGE
+	var dmg = GameConstants.get_player2_attack_damage()
 	var is_crit = randf() < GameConstants.PLAYER_CRIT_CHANCE
 	if is_crit:
 		dmg = int(dmg * GameConstants.PLAYER_CRIT_MULTIPLIER)
@@ -748,7 +747,7 @@ func _on_can_attack_timeout() -> void:
 
 
 func _get_max_health() -> int:
-	return maxi(1, int(ceil(float(GameConstants.PLAYER_MAX_HEALTH) / max_health_divisor)))
+	return GameConstants.get_player2_max_health()
 
 # =========================================================
 # READY
@@ -861,13 +860,9 @@ func _on_hitbox_attack_body_entered(body: Node2D) -> void:
 		return
 
 	if body.is_in_group("enemys"):
-		var dmg = GameConstants.PLAYER_ATTACK_DAMAGE
-		var is_crit = false
-		
-		# Крит
-		if randf() < GameConstants.PLAYER_CRIT_CHANCE:
-			dmg = int(dmg * GameConstants.PLAYER_CRIT_MULTIPLIER)
-			is_crit = true
+		var roll := roll_attack_damage()
+		var dmg: int = roll.get("damage", GameConstants.get_player2_attack_damage())
+		var is_crit: bool = roll.get("is_crit", false)
 
 		NetworkManager.apply_melee_damage_to_enemy_from_player(body, dmg)
 		

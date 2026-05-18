@@ -181,7 +181,7 @@ func _deferred_coop_change_floor_scene() -> void:
 	_change_to_floor_scene(GameConstants.get_current_floor_scene_path())
 
 
-## Этажи 1–2 используют один .tscn — change_scene_to_file на тот же путь может не перезагрузить дерево.
+## Если следующий этаж использует тот же .tscn, change_scene_to_file может не перезагрузить дерево.
 func _change_to_floor_scene(path: String) -> void:
 	var cs := get_tree().current_scene
 	if cs != null and cs.scene_file_path == path:

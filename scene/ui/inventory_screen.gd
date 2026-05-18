@@ -23,6 +23,7 @@ var _stats_popup: Control
 
 func _ready() -> void:
 	add_to_group("inventory_screen")
+	layer = 100
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build_ui()
 	hide_inventory()
@@ -163,6 +164,9 @@ func _show_stats_popup() -> void:
 
 	_stats_popup = Control.new()
 	_stats_popup.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_stats_popup.mouse_filter = Control.MOUSE_FILTER_STOP
+	_stats_popup.z_index = 1000
+	_stats_popup.z_as_relative = false
 	add_child(_stats_popup)
 
 	var bg = ColorRect.new()

@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=24 format=3]
 
 [ext_resource type="Script" uid="uid://c71xmlpvgo7v2" path="res://World/map_manager.gd" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://c823kc80seg18" path="res://scene/room_variants/BaseRoom[0]/start_room_0.tscn" id="2_start"]
@@ -20,6 +20,10 @@
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/old_book.tscn" id="18_art_book"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/red_potion.tscn" id="19_art_potion"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/bottle.tscn" id="20_art_bottle"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/electronic_key.tscn" id="21_art_key"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/letter.tscn" id="22_art_letter"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/golden_ball.tscn" id="23_art_ball"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/waffle.tscn" id="24_art_waffle"]
 
 [node name="MapManager4" type="Node2D"]
 script = ExtResource("1_script")
@@ -29,5 +33,5 @@ boss_room_variations = Array[PackedScene]([ExtResource("4_boss")])
 treasure_room_variations = Array[PackedScene]([ExtResource("5_treasure")])
 corridor_h_scene = ExtResource("6_corridor_h")
 corridor_v_scene = ExtResource("7_corridor_v")
-treasure_items = Array[PackedScene]([ExtResource("9_art_boots"), ExtResource("10_art_shroom"), ExtResource("11_art_clock"), ExtResource("12_art_coffee"), ExtResource("13_art_crown"), ExtResource("14_art_diamond"), ExtResource("15_art_cup"), ExtResource("16_art_injector"), ExtResource("17_art_shield"), ExtResource("18_art_book"), ExtResource("19_art_potion"), ExtResource("20_art_bottle")])
+treasure_items = Array[PackedScene]([ExtResource("21_art_key"), ExtResource("22_art_letter"), ExtResource("23_art_ball"), ExtResource("24_art_waffle")])
 player_scene = ExtResource("8_player")

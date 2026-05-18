@@ -26,9 +26,11 @@ var last_spawned_boss_scene_path: String = ""
 # Базовые значения для сброса
 const BASE_VALUES = {
 	"PLAYER_MAX_SPEED": 200,
-	"PLAYER_MAX_HEALTH": 400,
+	"PLAYER_MAX_HEALTH": 450,
 	"PLAYER_ENEMY_CONTACT_DAMAGE": 10,
-	"PLAYER_ATTACK_DAMAGE": 25,
+	"PLAYER_ATTACK_DAMAGE": 40,
+	"PLAYER2_MAX_HEALTH": 200,
+	"PLAYER2_ATTACK_DAMAGE": 15,
 	"PLAYER_ARMOR": 0,
 	"PLAYER_DODGE_CHANCE": 0.0,
 	"PLAYER_CRIT_CHANCE": 0.0,
@@ -62,6 +64,8 @@ func save_game() -> bool:
 			"max_health": GameConstants.PLAYER_MAX_HEALTH,
 			"enemy_contact_damage": GameConstants.PLAYER_ENEMY_CONTACT_DAMAGE,
 			"attack_damage": GameConstants.PLAYER_ATTACK_DAMAGE,
+			"player2_max_health": GameConstants.PLAYER2_MAX_HEALTH,
+			"player2_attack_damage": GameConstants.PLAYER2_ATTACK_DAMAGE,
 			"armor": GameConstants.PLAYER_ARMOR,
 			"dodge_chance": GameConstants.PLAYER_DODGE_CHANCE,
 			"crit_chance": GameConstants.PLAYER_CRIT_CHANCE,
@@ -175,6 +179,8 @@ func load_game() -> bool:
 		GameConstants.PLAYER_MAX_HEALTH = stats.get("max_health", BASE_VALUES["PLAYER_MAX_HEALTH"])
 		GameConstants.PLAYER_ENEMY_CONTACT_DAMAGE = stats.get("enemy_contact_damage", BASE_VALUES["PLAYER_ENEMY_CONTACT_DAMAGE"])
 		GameConstants.PLAYER_ATTACK_DAMAGE = stats.get("attack_damage", BASE_VALUES["PLAYER_ATTACK_DAMAGE"])
+		GameConstants.PLAYER2_MAX_HEALTH = stats.get("player2_max_health", BASE_VALUES["PLAYER2_MAX_HEALTH"])
+		GameConstants.PLAYER2_ATTACK_DAMAGE = stats.get("player2_attack_damage", BASE_VALUES["PLAYER2_ATTACK_DAMAGE"])
 		GameConstants.PLAYER_ARMOR = stats.get("armor", BASE_VALUES["PLAYER_ARMOR"])
 		GameConstants.PLAYER_DODGE_CHANCE = stats.get("dodge_chance", BASE_VALUES["PLAYER_DODGE_CHANCE"])
 		GameConstants.PLAYER_CRIT_CHANCE = stats.get("crit_chance", BASE_VALUES["PLAYER_CRIT_CHANCE"])
@@ -222,8 +228,6 @@ func load_game() -> bool:
 			saved_player_position = Vector2(float(pp.get("x", 0.0)), float(pp.get("y", 0.0)))
 			if saved_player_position != Vector2.ZERO:
 				should_restore_player = true
-				if saved_player_health <= 0:
-					saved_player_health = GameConstants.PLAYER_MAX_HEALTH
 
 	# Загружаем собранные артефакты (очищаем перед загрузкой во избежание дублей)
 	collected_artefacts.clear()
@@ -314,7 +318,9 @@ func restore_player_state():
 	if not player:
 		return
 
-	# Восстанавливаем здоровье (в сейве не допускаем 0 — см. load_game / save_game)
+	# Восстанавливаем именно сохранённое здоровье. Позиция/этаж не должны давать полный отхил.
+	if saved_player_health <= 0:
+		return
 	var h: int = maxi(1, saved_player_health)
 	if h > GameConstants.PLAYER_MAX_HEALTH:
 		h = GameConstants.PLAYER_MAX_HEALTH

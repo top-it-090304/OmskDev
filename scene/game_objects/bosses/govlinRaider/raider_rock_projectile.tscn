@@ -7,7 +7,9 @@
 radius = 8.0
 
 [node name="RaiderRockProjectile" type="Area2D"]
-z_index = 4
+top_level = true
+z_index = 40
+z_as_relative = false
 collision_layer = 0
 collision_mask = 3
 script = ExtResource("1_script")
@@ -16,13 +18,19 @@ script = ExtResource("1_script")
 shape = SubResource("CircleShape2D_rock_projectile")
 
 [node name="RockVisual" parent="." instance=ExtResource("2_rock")]
-z_index = 5
-modulate = Color(0.55, 0.55, 0.55, 1)
-scale = Vector2(0.32, 0.32)
+z_index = 1
+modulate = Color(1, 1, 1, 1)
+scale = Vector2(0.75, 0.75)
+
+[node name="ShadowVisual" type="Polygon2D" parent="."]
+z_index = 0
+position = Vector2(2, 3)
+color = Color(0, 0, 0, 0.38)
+polygon = PackedVector2Array(-12, -6, -3, -10, 8, -7, 13, 1, 6, 10, -7, 9, -13, 2)
 
 [node name="FallbackVisual" type="Polygon2D" parent="."]
-z_index = 6
-color = Color(0.48, 0.48, 0.48, 1)
-polygon = PackedVector2Array(-7, -4, -2, -8, 5, -6, 8, 0, 4, 7, -4, 6, -8, 1)
+z_index = 2
+color = Color(0.58, 0.46, 0.34, 1)
+polygon = PackedVector2Array(-12, -7, -4, -13, 8, -10, 14, 0, 7, 12, -8, 10, -14, 2)
 
 [connection signal="body_entered" from="." to="." method="_on_body_entered"]

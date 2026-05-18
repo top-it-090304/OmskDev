@@ -1341,7 +1341,7 @@ tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0.6),
+"times": PackedFloat32Array(0.866667),
 "transitions": PackedFloat32Array(1),
 "values": [{
 "args": [],
@@ -1381,7 +1381,7 @@ tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0.6),
+"times": PackedFloat32Array(0.866667),
 "transitions": PackedFloat32Array(1),
 "values": [{
 "args": [],
@@ -1421,7 +1421,7 @@ tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0.6),
+"times": PackedFloat32Array(0.866667),
 "transitions": PackedFloat32Array(1),
 "values": [{
 "args": [],
@@ -1461,7 +1461,7 @@ tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0.6),
+"times": PackedFloat32Array(0.866667),
 "transitions": PackedFloat32Array(1),
 "values": [{
 "args": [],
@@ -1501,7 +1501,7 @@ tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0.866667),
+"times": PackedFloat32Array(0.8),
 "transitions": PackedFloat32Array(1),
 "values": [{
 "args": [],
@@ -1541,7 +1541,7 @@ tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0.866667),
+"times": PackedFloat32Array(0.8),
 "transitions": PackedFloat32Array(1),
 "values": [{
 "args": [],
@@ -1581,7 +1581,7 @@ tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0.866667),
+"times": PackedFloat32Array(0.8),
 "transitions": PackedFloat32Array(1),
 "values": [{
 "args": [],
@@ -1621,7 +1621,7 @@ tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0.866667),
+"times": PackedFloat32Array(0.8),
 "transitions": PackedFloat32Array(1),
 "values": [{
 "args": [],
@@ -2032,7 +2032,7 @@ script = ExtResource("1_raider_script")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -2)
 sprite_frames = SubResource("SpriteFrames_6ks8m")
-animation = &"attack_wave_up"
+animation = &"attack_wave_right"
 autoplay = "idle_down"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
