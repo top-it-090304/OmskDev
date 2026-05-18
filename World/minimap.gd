@@ -8,7 +8,7 @@ extends Control
 @export var minimap_window_size: Vector2 = Vector2(80, 80) 
 
 var room_cells = []
-var show_full_map = false
+var show_full_map = true
 var cell_step = 0.0
 var grid_total_size = Vector2.ZERO
 
@@ -154,10 +154,7 @@ func update_minimap_visuals():
 				continue
 				
 			if show_full_map:
-				if map_manager.visited_rooms.has(pos) or pos == map_manager.current_room_grid_pos:
-					cell.color = get_room_color(room_type, pos)
-				else:
-					cell.color = Color.DIM_GRAY
+				cell.color = get_room_color(room_type, pos)
 			else:
 				if pos == map_manager.current_room_grid_pos:
 					match get_room_color(room_type, pos):
