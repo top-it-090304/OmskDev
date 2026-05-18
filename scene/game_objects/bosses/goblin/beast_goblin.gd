@@ -243,6 +243,8 @@ func activate_bite():
 	AudioManager.play_sfx("босс_атака_укус")
 
 func shoot():
+	if NetworkManager.enemy_mp_is_network_client():
+		return
 	if is_dead or not is_instance_valid(player): return
 	var proj = GameConstants.GOBLIN_SLINGER_PROJECTILE.instantiate()
 	var dir = (PlayerManager.get_player_world_pos_for_hosting_ai(player) - global_position).normalized()
@@ -260,6 +262,8 @@ func shoot():
 		)
 
 func summon_projectiles():
+	if NetworkManager.enemy_mp_is_network_client():
+		return
 	if is_dead: return
 	for i in range(8):
 		var angle = (TAU / 8.0) * i

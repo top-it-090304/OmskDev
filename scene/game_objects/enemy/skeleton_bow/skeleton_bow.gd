@@ -126,6 +126,8 @@ func take_damage(amount: int):
 	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.1)
 
 func shoot():
+	if NetworkManager.enemy_mp_is_network_client():
+		return
 	if not player or not is_instance_valid(player) or is_dead: return
 	var arrow_instance = GameConstants.SKELETON_BOW_ARROW.instantiate()
 	arrow_instance.global_position = global_position

@@ -128,6 +128,8 @@ func attack():
 		attack_timer.start()
 
 func shoot_poison() -> void:
+	if NetworkManager.enemy_mp_is_network_client():
+		return
 	if not player or not is_instance_valid(player) or is_dead:
 		return
 	var projectile_instance = GameConstants.GOBLIN_SLINGER_PROJECTILE.instantiate()

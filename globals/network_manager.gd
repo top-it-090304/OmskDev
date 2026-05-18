@@ -448,16 +448,33 @@ func enemy_client_interpolate_if_needed(enemy: CharacterBody2D, delta: float) ->
 		return false
 	if not is_instance_valid(enemy):
 		return true
+	if not _enemy_in_local_client_sync_region(enemy):
+		enemy.velocity = Vector2.ZERO
+		return true
 	if not enemy.get_meta(_META_NET_ENEMY_VALID, false):
 		enemy.velocity = Vector2.ZERO
 		return true
 	var tgt: Vector2 = enemy.get_meta(_META_NET_ENEMY_POS, enemy.global_position)
 	var vel: Vector2 = enemy.get_meta(_META_NET_ENEMY_VEL, Vector2.ZERO)
 	# Только позиция с хоста: move_and_slide на клиенте упирался в стены и «ломал» синхрон.
-	enemy.global_position = enemy.global_position.lerp(tgt, minf(1.0, 32.0 * delta))
+	var dist_sq := enemy.global_position.distance_squared_to(tgt)
+	if dist_sq > 40000.0:
+		enemy.global_position = tgt
+	else:
+		enemy.global_position = enemy.global_position.lerp(tgt, minf(1.0, 48.0 * delta))
 	enemy.velocity = vel
 	_apply_net_enemy_visual_from_meta(enemy)
 	return true
+
+
+func _enemy_in_local_client_sync_region(enemy: Node) -> bool:
+	var mm := get_tree().get_first_node_in_group("map_manager")
+	if mm == null or not mm.has_method("room_in_local_enemy_net_sync_region"):
+		return true
+	var room_grid := Vector2i(-9999, -9999)
+	if enemy.has_meta(&"_spawn_room"):
+		room_grid = enemy.get_meta(&"_spawn_room")
+	return mm.room_in_local_enemy_net_sync_region(room_grid)
 
 
 func _apply_net_enemy_visual_from_meta(ch: Node) -> void:
@@ -467,6 +484,11 @@ func _apply_net_enemy_visual_from_meta(ch: Node) -> void:
 	var spr_frame: int = int(ch.get_meta(_META_NET_ENEMY_SPR_FRAME, -1))
 	var ap: String = str(ch.get_meta(_META_NET_ENEMY_AP, ""))
 	var ap_pos: float = float(ch.get_meta(_META_NET_ENEMY_AP_POS, -1.0))
+	const _META_VIS_SIG := &"net_enemy_visual_sig"
+	var sig := "%s|%d|%s|%.2f" % [spr, spr_frame, ap, ap_pos]
+	if str(ch.get_meta(_META_VIS_SIG, "")) == sig:
+		return
+	ch.set_meta(_META_VIS_SIG, sig)
 	var spr_node := ch.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 	if spr_node != null and spr_node.sprite_frames != null and spr != "":
 		if spr_node.sprite_frames.has_animation(spr) and spr_node.animation != spr:
@@ -780,14 +802,18 @@ func rpc_report_room_enter_to_server(grid_x: int, grid_y: int, entering_peer_id:
 ## Общий прогресс/статы GameConstants после левелапа (одна «экономика» на всех в коопе).
 @rpc("authority", "call_local", "reliable")
 func rpc_replicate_player_stats(state: Dictionary) -> void:
-	GameConstants.apply_coop_start_state(state)
+	GameConstants.apply_coop_shared_state(state)
 
 
 @rpc("any_peer", "call_remote", "reliable")
 func rpc_submit_progress_after_level_up(state: Dictionary) -> void:
 	if not is_server():
 		return
-	rpc_replicate_player_stats.rpc(state)
+	var target_level: int = int(state.get("PLAYER_LEVEL", GameConstants.PLAYER_LEVEL))
+	var target_exp: int = int(state.get("PLAYER_EXPERIENCE", GameConstants.PLAYER_EXPERIENCE))
+	GameConstants.catch_up_coop_levels_to(target_level)
+	GameConstants.PLAYER_EXPERIENCE = target_exp
+	rpc_replicate_player_stats.rpc(GameConstants.capture_coop_shared_state())
 
 
 ## Люк босса: сначала локально открываем на машине, где умер босс; затем синхронизируем остальных.

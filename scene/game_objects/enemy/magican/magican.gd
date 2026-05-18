@@ -102,6 +102,8 @@ func attack() -> void:
 
 
 func send_wave() -> void:
+	if NetworkManager.enemy_mp_is_network_client():
+		return
 	if is_dead or not is_instance_valid(player):
 		return
 	var dir := (PlayerManager.get_player_world_pos_for_hosting_ai(player) - global_position).normalized()
@@ -109,6 +111,7 @@ func send_wave() -> void:
 		return
 	var wave := WAVE_SCENE.instantiate()
 	wave.direction = dir
+	wave.speed = GameConstants.ENEMY_MAGICAN_WAVE_SPEED
 	wave.damage = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_MAGICAN_WAVE_DAMAGE)
 	wave.global_position = global_position + dir * 34.0
 	get_tree().current_scene.add_child(wave)

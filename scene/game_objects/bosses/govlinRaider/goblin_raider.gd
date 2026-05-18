@@ -174,6 +174,8 @@ func send_wave() -> void:
 
 
 func shoot_wave() -> void:
+	if NetworkManager.enemy_mp_is_network_client():
+		return
 	if is_dead or not is_instance_valid(player):
 		return
 	var dir := _direction_to_player()
@@ -189,6 +191,8 @@ func shoot_wave() -> void:
 
 
 func throw_rock() -> void:
+	if NetworkManager.enemy_mp_is_network_client():
+		return
 	if is_dead or not is_instance_valid(player):
 		return
 	var dir := _direction_to_player()

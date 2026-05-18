@@ -72,6 +72,10 @@ func _on_area_2d_area_entered(area: Area2D) -> void:
 func pickup(_player: Node) -> void:
 	if is_picked_up:
 		return
+	# В коопе на хосте есть все игроки: чужой персонаж не должен триггерить подбор.
+	if _player != null and _player.has_method("is_multiplayer_authority"):
+		if not _player.is_multiplayer_authority():
+			return
 	var tree := _main_scene_tree()
 	if tree == null:
 		return

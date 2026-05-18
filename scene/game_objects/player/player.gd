@@ -48,9 +48,6 @@ var can_attack = true
 var is_dead = false
 
 var last_known_max_health = 0
-var _debug_boost_active := false
-var _debug_prev_max_speed := 0.0
-var _debug_prev_attack_speed := 0.0
 
 # =========================================================
 # СЕТЬ
@@ -210,19 +207,6 @@ func _process(delta: float) -> void:
 
 	if not is_local_player:
 		return
-
-	# DEBUG BOOST
-	if Input.is_action_just_pressed("ui_focus_next"):
-		_debug_prev_max_speed = GameConstants.PLAYER_MAX_SPEED
-		_debug_prev_attack_speed = GameConstants.PLAYER_ATTACK_SPEED
-		_debug_boost_active = true
-		GameConstants.PLAYER_MAX_SPEED = 500
-		GameConstants.PLAYER_ATTACK_SPEED = 5.0
-
-	if Input.is_action_just_released("ui_focus_next") and _debug_boost_active:
-		GameConstants.PLAYER_MAX_SPEED = _debug_prev_max_speed
-		GameConstants.PLAYER_ATTACK_SPEED = _debug_prev_attack_speed
-		_debug_boost_active = false
 
 	# =====================================================
 	# ЯД
@@ -423,8 +407,15 @@ func apply_knockback(source_position: Vector2, force: float):
 	velocity = knockback_dir * force
 
 
+func _is_cheat_god_mode() -> bool:
+	return CheatPanel.is_god_mode_active()
+
+
 func take_damage(amount: int):
 	if is_dead:
+		return
+
+	if _is_cheat_god_mode():
 		return
 
 	if NetworkManager.is_game_online() and NetworkManager.coop_run_finished:
@@ -819,7 +810,7 @@ func level_up_player() -> void:
 	)
 
 	if NetworkManager.is_game_online():
-		var snap := GameConstants.capture_coop_start_state()
+		var snap := GameConstants.capture_coop_shared_state()
 		var mp := get_tree().get_multiplayer()
 		if mp.is_server():
 			NetworkManager.rpc_replicate_player_stats.rpc(snap)

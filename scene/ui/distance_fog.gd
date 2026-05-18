@@ -9,9 +9,6 @@ var _shader_material: ShaderMaterial
 
 
 func _ready() -> void:
-	visible = false
-	set_process(false)
-	return
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_preset(Control.PRESET_TOP_LEFT)
 	_fit_to_viewport()

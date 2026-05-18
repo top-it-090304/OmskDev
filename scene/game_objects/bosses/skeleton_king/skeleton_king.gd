@@ -261,6 +261,8 @@ func _cleanup_minions() -> void:
 	active_minions = active_minions.filter(func(m): return is_instance_valid(m) and not m.is_dead if "is_dead" in m else is_instance_valid(m))
 
 func summon_minions() -> void:
+	if NetworkManager.enemy_mp_is_network_client():
+		return
 	AudioManager.play_sfx("босс_суммон")
 	
 	# Проверяем, можно ли призвать миньонов
@@ -417,6 +419,8 @@ func _launch_arrow_at_player(arrow: Node2D) -> void:
 
 # ============ АТАКА 03: Ультимативная способность (Bone Spear Rush) ============
 func start_charge_attack() -> void:
+	if NetworkManager.enemy_mp_is_network_client():
+		return
 	is_charging = true
 	can_walk = false
 
@@ -476,6 +480,8 @@ func start_charge_attack() -> void:
 	is_charging = false
 
 func spawn_charge_hitbox() -> void:
+	if NetworkManager.enemy_mp_is_network_client():
+		return
 	# Ударная волна в точке приземления
 	var hitbox = Area2D.new()
 	hitbox.z_index = 2

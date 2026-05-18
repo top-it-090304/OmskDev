@@ -217,6 +217,8 @@ func _apply_melee_damage(damage: int, knockback: float) -> void:
 
 
 func _spawn_wave_to_player(damage: int) -> void:
+	if NetworkManager.enemy_mp_is_network_client():
+		return
 	if not is_instance_valid(player):
 		return
 	var dir := (PlayerManager.get_player_world_pos_for_hosting_ai(player) - global_position).normalized()
@@ -224,6 +226,8 @@ func _spawn_wave_to_player(damage: int) -> void:
 
 
 func _spawn_waves_8() -> void:
+	if NetworkManager.enemy_mp_is_network_client():
+		return
 	var damage := GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_SWORDMAN_WAVE_DAMAGE)
 	for i in range(8):
 		var angle := TAU * float(i) / 8.0
@@ -244,6 +248,8 @@ func _spawn_wave(dir: Vector2, damage: int) -> void:
 
 
 func _spawn_minions(count: int) -> void:
+	if NetworkManager.enemy_mp_is_network_client():
+		return
 	_cleanup_minions()
 	var can_spawn := MAX_MINIONS - active_minions.size()
 	if can_spawn <= 0:

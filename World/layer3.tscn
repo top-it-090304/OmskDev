@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://bsylu0v58c0ak"]
+[gd_scene load_steps=13 format=3 uid="uid://bsylu0v58c0ak"]
 
 [ext_resource type="PackedScene" path="res://World/map_manager3.tscn" id="1_map"]
 [ext_resource type="PackedScene" uid="uid://ec471alip6hl" path="res://scene/game_objects/player/exp_bar.tscn" id="2_exp"]
@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" uid="uid://ot1bjrnddml7" path="res://scene/game_objects/enemy/skeleton_bow/skeleton_bow.tscn" id="9_g4073"]
 [ext_resource type="PackedScene" uid="uid://ofcl7u6j834h" path="res://scene/game_objects/enemy/skeleton_grunt/skeleton_grunt.tscn" id="10_0j3bq"]
 [ext_resource type="PackedScene" uid="uid://cqu11x06knfef" path="res://scene/game_objects/bosses/skeleton_king/skeleton_king.tscn" id="11_komed"]
+[ext_resource type="PackedScene" uid="uid://ciwfitf4vtq7a" path="res://scene/ui/cheat_panel.tscn" id="12_cheat"]
 
 [node name="Layer3" type="Node"]
 
@@ -24,6 +25,8 @@ script = ExtResource("8_fog")
 
 [node name="UI" type="CanvasLayer" parent="."]
 layer = 2
+
+[node name="CheatPanel" parent="UI" instance=ExtResource("12_cheat")]
 
 [node name="InventoryScreen" type="CanvasLayer" parent="UI"]
 layer = 2

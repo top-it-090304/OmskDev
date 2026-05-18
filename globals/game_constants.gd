@@ -131,6 +131,7 @@ var ENEMY_GOBLIN_AXE_SMITE_OFFSET: float = 20.0
 var ENEMY_MAGICAN_HP = 55
 var ENEMY_MAGICAN_MAX_SPEED = 95
 var ENEMY_MAGICAN_WAVE_DAMAGE = 24
+var ENEMY_MAGICAN_WAVE_SPEED: float = 210.0
 var ENEMY_MAGICAN_EXP_REWARD = 24
 var ENEMY_MAGICAN_TARGET_DISTANCE: float = 170.0
 var ENEMY_MAGICAN_ATTACK_RANGE: float = 260.0
@@ -476,6 +477,65 @@ func _apply_stats_section_from_cfg(cfg: ConfigFile, section: String) -> void:
 				set(ks, variant_to_bool(raw))
 			_:
 				pass
+
+
+## Общий прогресс коопа (без бонусов артефактов — они только у подобравшего).
+const COOP_SHARED_STATE_KEYS: Array[String] = [
+	"PLAYER_LEVEL",
+	"PLAYER_EXPERIENCE",
+	"PLAYER_BASE_EXP_TO_LEVEL",
+	"PLAYER_EXP_MULTIPLIER",
+	"PLAYER_EXP_MULTIPLIER_BONUS",
+	"PLAYER_MAX_HEALTH",
+	"PLAYER_MAX_SPEED",
+	"PLAYER_ATTACK_DAMAGE",
+	"ENEMIES_KILLED",
+	"ROOMS_CLEARED",
+	"CURRENT_FLOOR",
+]
+
+
+func capture_coop_shared_state() -> Dictionary:
+	var d := {}
+	for key in COOP_SHARED_STATE_KEYS:
+		if _is_script_var_property(key):
+			d[key] = get(key)
+	return d
+
+
+func apply_coop_shared_state(state: Dictionary) -> void:
+	if state.is_empty():
+		return
+	for key in COOP_SHARED_STATE_KEYS:
+		if not state.has(key):
+			continue
+		if not _is_script_var_property(key):
+			continue
+		var incoming: Variant = state[key]
+		var cur: Variant = get(key)
+		if cur is int:
+			set(key, int(incoming))
+		elif cur is float:
+			set(key, float(incoming))
+		elif cur is bool:
+			set(key, variant_to_bool(incoming))
+		elif cur is String:
+			set(key, String(incoming))
+	constants_changed.emit()
+
+
+## Подтянуть общий уровень на хосте после левелапа клиента (без копирования его статов от артефактов).
+func catch_up_coop_levels_to(target_level: int) -> void:
+	var goal := maxi(1, target_level)
+	while PLAYER_LEVEL < goal:
+		_apply_coop_shared_level_up_grant()
+		PLAYER_LEVEL += 1
+
+
+func _apply_coop_shared_level_up_grant() -> void:
+	PLAYER_MAX_HEALTH = mini(PLAYER_MAX_HEALTH + PLAYER_HEALTH_PER_LEVEL, 9999)
+	PLAYER_MAX_SPEED = mini(PLAYER_MAX_SPEED + PLAYER_SPEED_PER_LEVEL, 600)
+	PLAYER_ATTACK_DAMAGE = mini(PLAYER_ATTACK_DAMAGE + PLAYER_DAMAGE_PER_LEVEL, 999)
 
 
 ## Снимок прогресса/статов хоста при старте коопа — гости получают те же числа, что и в одиночной игре.
