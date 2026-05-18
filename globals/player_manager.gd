@@ -165,7 +165,7 @@ func detector_has_living_player(detector: Area2D) -> bool:
 
 
 func _on_node_added(node: Node) -> void:
-	if node.name == "Layer" and node.get_parent() == get_tree().root:
+	if str(node.name).begins_with("Layer") and node.get_parent() == get_tree().root:
 		# current_scene при node_added может ещё быть старой (уже в очереди на free) сценой —
 		# add_child в неё даёт "Trying to assign invalid previously freed instance".
 		call_deferred("_deferred_boot_players_on_layer", node)
@@ -184,16 +184,44 @@ func _on_game_scene_ready(game_root: Node) -> void:
 		var ex: Variant = players[pid]
 		if not is_instance_valid(ex):
 			players.erase(pid)
+			continue
+		if ex is Node and not game_root.is_ancestor_of(ex):
+			players.erase(pid)
 	if NetworkManager.connection_state == NetworkManager.ConnectionState.DISCONNECTED:
 		NetworkManager.reset_coop_run_state()
 	if NetworkManager.connection_state != NetworkManager.ConnectionState.DISCONNECTED:
-		_spawn_player(NetworkManager.my_id, game_root)
-
-	for id in pending_peers:
-		if id != NetworkManager.my_id:
+		for id in _get_active_network_spawn_ids():
 			_spawn_player(id, game_root)
 
 	pending_peers.clear()
+
+
+func _get_active_network_spawn_ids() -> Array[int]:
+	var ids: Array[int] = []
+	var mp := get_tree().get_multiplayer()
+	if mp.has_multiplayer_peer():
+		if mp.is_server():
+			ids.append(NetworkManager.SERVER_ID)
+			for peer_id in mp.get_peers():
+				_add_unique_peer_id(ids, int(peer_id))
+		else:
+			ids.append(NetworkManager.SERVER_ID)
+			_add_unique_peer_id(ids, int(mp.get_unique_id()))
+			for peer_id in mp.get_peers():
+				_add_unique_peer_id(ids, int(peer_id))
+	else:
+		_add_unique_peer_id(ids, NetworkManager.my_id)
+	for peer_id in pending_peers:
+		_add_unique_peer_id(ids, int(peer_id))
+	ids.sort()
+	return ids
+
+
+func _add_unique_peer_id(ids: Array[int], peer_id: int) -> void:
+	if peer_id <= 0:
+		return
+	if not ids.has(peer_id):
+		ids.append(peer_id)
 
 
 func spawn_peer(peer_id: int) -> void:
