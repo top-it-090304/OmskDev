@@ -103,16 +103,11 @@ func rpc_set_position(pos: Vector2, dir: int) -> void:
 	if can_anim and not is_dead and dist2 > 1225.0:
 		play_idle_animation()
 
-@rpc("authority", "call_local")
-func rpc_take_damage(amount: int) -> void:
-	if not is_local_player and not is_dead:
-		take_damage(amount)
-
-
 @rpc("any_peer", "call_remote", "reliable")
-func rpc_take_damage_from_server(amount: int) -> void:
-	if is_multiplayer_authority():
-		take_damage(amount)
+func rpc_take_damage_from_server(resolved_amount: int) -> void:
+	if not is_multiplayer_authority():
+		return
+	apply_damage_direct(resolved_amount, true)
 
 
 @rpc("any_peer", "call_remote", "reliable")
@@ -526,37 +521,46 @@ func _is_cheat_god_mode() -> bool:
 	return CheatPanel.is_god_mode_active()
 
 
-func take_damage(amount: int):
-	if is_dead:
+func take_damage(amount: int) -> void:
+	if NetworkManager.is_game_online() and not is_multiplayer_authority():
 		return
+	apply_damage_direct(amount)
 
-	if _is_cheat_god_mode():
-		return
 
+func resolve_incoming_damage(amount: int) -> int:
+	if is_dead or _is_cheat_god_mode():
+		return 0
 	if NetworkManager.is_game_online() and NetworkManager.coop_run_finished:
-		return
-
-	# Уклонение
+		return 0
 	if randf() < GameConstants.PLAYER_DODGE_CHANCE:
 		_show_popup("dodge")
-		return
-
-	var final_amount = max(
-		1,
-		amount - GameConstants.PLAYER_ARMOR
-	)
-
+		return 0
+	var final_amount := maxi(1, amount - GameConstants.PLAYER_ARMOR)
 	if not can_take_damage and health_int > final_amount:
-		return
+		return 0
+	return final_amount
+
+
+func apply_damage_direct(amount: int, authoritative: bool = false) -> void:
+	var final_amount: int
+	if authoritative:
+		if amount <= 0:
+			return
+		final_amount = amount
+	else:
+		final_amount = resolve_incoming_damage(amount)
+		if final_amount <= 0:
+			return
 
 	can_take_damage = false
 
 	health_int -= final_amount
 
-	health_changed.emit(
-		health_int,
-		_get_max_health()
-	)
+	if is_local_player or NetworkManager.is_game_offline():
+		health_changed.emit(
+			health_int,
+			_get_max_health()
+		)
 
 	if health_int <= 0:
 		die()
@@ -726,7 +730,9 @@ func _on_hitbox_body_entered(body: Node2D) -> void:
 		return
 
 	if body.is_in_group("enemys"):
-		take_damage(GameConstants.PLAYER_ENEMY_CONTACT_DAMAGE)
+		NetworkManager.server_apply_damage_to_player_from_enemy(
+			self, GameConstants.PLAYER_ENEMY_CONTACT_DAMAGE
+		)
 
 
 func _on_can_take_damage_timeout() -> void:

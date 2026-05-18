@@ -30,6 +30,7 @@ const ARTEFACT_POPUP = preload("res://scene/ui/artefact_popup.tscn")
 
 var is_picked_up: bool = false
 var stat_changes: Array = []
+var _overlap_pickup_check_accum: float = 0.0
 
 
 ## В коопе клиент создаёт временный экземпляр без add_child — у него get_tree() == null.
@@ -51,6 +52,17 @@ func _ready():
 
 	# Добавляем свечение
 	add_glow_effect()
+	call_deferred("_try_pickup_overlapping_players")
+
+
+func _physics_process(delta: float) -> void:
+	if is_picked_up:
+		return
+	_overlap_pickup_check_accum += delta
+	if _overlap_pickup_check_accum < 0.1:
+		return
+	_overlap_pickup_check_accum = 0.0
+	_try_pickup_overlapping_players()
 
 func add_glow_effect():
 	if has_node("Sprite2D"):
@@ -65,26 +77,71 @@ func _on_area_2d_area_entered(area: Area2D) -> void:
 	if is_picked_up:
 		return
 
-	if area.get_parent().is_in_group("player"):
-		var player = area.get_parent()
+	var player := _player_from_overlap(area)
+	if player != null:
 		pickup(player)
+
+
+func _try_pickup_overlapping_players() -> void:
+	if is_picked_up or not has_node("Area2D"):
+		return
+	var pickup_area := get_node("Area2D") as Area2D
+	for area in pickup_area.get_overlapping_areas():
+		var player := _player_from_overlap(area)
+		if player != null:
+			pickup(player)
+			return
+	for body in pickup_area.get_overlapping_bodies():
+		var player := _player_from_overlap(body)
+		if player != null:
+			pickup(player)
+			return
+
+
+func _player_from_overlap(overlap: Node) -> Node:
+	if overlap == null:
+		return null
+	if overlap.is_in_group("player"):
+		return overlap
+	var parent := overlap.get_parent()
+	if parent != null and parent.is_in_group("player"):
+		return parent
+	return null
+
+
+func _can_this_machine_pickup_for_player(player: Node) -> bool:
+	if player == null:
+		return false
+	var tree := _main_scene_tree()
+	if tree == null:
+		return false
+	var mp := tree.get_multiplayer()
+	if not mp.has_multiplayer_peer():
+		return true
+	var local_flag: Variant = player.get("is_local_player")
+	if local_flag is bool:
+		return bool(local_flag)
+	if player.has_method("is_multiplayer_authority"):
+		return player.is_multiplayer_authority()
+	return true
+
 
 func pickup(_player: Node) -> void:
 	if is_picked_up:
 		return
-	# В коопе на хосте есть все игроки: чужой персонаж не должен триггерить подбор.
-	if _player != null and _player.has_method("is_multiplayer_authority"):
-		if not _player.is_multiplayer_authority():
-			return
 	var tree := _main_scene_tree()
 	if tree == null:
 		return
 	var mp := tree.get_multiplayer()
 	if mp.has_multiplayer_peer():
+		# В коопе на хосте есть все игроки: чужой персонаж не должен триггерить подбор.
+		if not _can_this_machine_pickup_for_player(_player):
+			return
 		var rid := _get_treasure_room_grid()
+		var artefact_id := str(get_meta(&"_net_world_artefact_id", ""))
 		if mp.is_server():
 			server_run_pickup_effects(false)
-			NetworkManager.rpc_client_mirror_artefact_pickup.rpc(scene_file_path, rid.x, rid.y, mp.get_unique_id())
+			NetworkManager.rpc_client_mirror_artefact_pickup.rpc(scene_file_path, rid.x, rid.y, mp.get_unique_id(), artefact_id)
 		else:
 			is_picked_up = true
 			visible = false
@@ -96,7 +153,8 @@ func pickup(_player: Node) -> void:
 				scene_file_path,
 				rid.x,
 				rid.y,
-				mp.get_unique_id()
+				mp.get_unique_id(),
+				artefact_id
 			)
 		return
 	server_run_pickup_effects(false)
@@ -116,6 +174,8 @@ func server_consume_world_only_for_remote_client_pickup() -> void:
 	if is_picked_up:
 		return
 	is_picked_up = true
+	if not scene_file_path.is_empty():
+		GameConstants.remember_artefact_scene_path(scene_file_path)
 	mark_room_as_collected()
 	queue_free()
 
@@ -125,6 +185,9 @@ func server_run_pickup_effects(quiet: bool) -> void:
 	if is_picked_up:
 		return
 	is_picked_up = true
+	var picked_path := scene_file_path
+	if not picked_path.is_empty():
+		GameConstants.remember_artefact_scene_path(picked_path)
 	stat_changes.clear()
 	apply_effects()
 	if not quiet and artefact_particles:

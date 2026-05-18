@@ -295,10 +295,14 @@ func get_all_boss_artefact_scene_paths() -> Array[String]:
 
 
 func get_random_boss_artefact_scenes(count: int = 1) -> Array[PackedScene]:
-	return get_unique_artefact_scenes_from_paths(get_all_boss_artefact_scene_paths(), count, true)
+	var paths := get_boss_artefact_scene_paths_for_floor(CURRENT_FLOOR)
+	if paths.is_empty():
+		paths = get_all_boss_artefact_scene_paths()
+	# Боссовый дроп не резервируем при спавне — только при подборе (см. artefact_pickup).
+	return get_unique_artefact_scenes_from_paths(paths, count, true, false)
 
 
-func get_unique_artefact_scenes_from_paths(paths: Array, count: int = 1, allow_reuse_when_exhausted: bool = true) -> Array[PackedScene]:
+func get_unique_artefact_scenes_from_paths(paths: Array, count: int = 1, allow_reuse_when_exhausted: bool = true, mark_used_immediately: bool = true) -> Array[PackedScene]:
 	var candidates: Array[String] = []
 	for raw_path in paths:
 		var path := str(raw_path)
@@ -324,7 +328,8 @@ func get_unique_artefact_scenes_from_paths(paths: Array, count: int = 1, allow_r
 		candidates.remove_at(idx)
 		if scene != null:
 			result.append(scene)
-			remember_artefact_scene_path(path)
+			if mark_used_immediately:
+				remember_artefact_scene_path(path)
 	return result
 
 

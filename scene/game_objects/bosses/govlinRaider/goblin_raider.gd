@@ -251,11 +251,11 @@ func death() -> void:
 	if animP != null:
 		animP.stop()
 	_play_anim("death_" + _dir_string(), "death_down")
+	_spawn_artefact_near_hatch()
 	await _await_enemy_death_sprite(anim, anim.animation)
 	_give_exp_to_player()
 	if randf() <= 0.35:
 		_spawn_loot()
-	_spawn_artefact_near_hatch()
 	_open_hatch_via_map_manager()
 	queue_free()
 

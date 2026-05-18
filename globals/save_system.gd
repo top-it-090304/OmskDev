@@ -96,7 +96,10 @@ func save_game() -> bool:
 	}
 
 	# Сохраняем текущее здоровье и позицию игрока
-	var player = get_tree().get_first_node_in_group("player")
+	var tree := get_tree()
+	var player := tree.get_first_node_in_group("local_player")
+	if player == null:
+		player = tree.get_first_node_in_group("player")
 	if player and "health_int" in player:
 		saved_player_health = int(player.health_int)
 		saved_player_position = player.global_position
@@ -314,7 +317,10 @@ func restore_player_state():
 
 	await get_tree().create_timer(0.1).timeout
 
-	var player = get_tree().get_first_node_in_group("player")
+	var tree := get_tree()
+	var player := tree.get_first_node_in_group("local_player")
+	if player == null:
+		player = tree.get_first_node_in_group("player")
 	if not player:
 		return
 
@@ -326,7 +332,11 @@ func restore_player_state():
 		h = GameConstants.PLAYER_MAX_HEALTH
 	if "health_int" in player:
 		player.health_int = h
-		player.health_changed.emit(h, GameConstants.PLAYER_MAX_HEALTH)
+		var max_h: int = GameConstants.PLAYER_MAX_HEALTH
+		if player.has_method("_get_max_health"):
+			max_h = int(player.call("_get_max_health"))
+		if player.get("is_local_player") != false or NetworkManager.is_game_offline():
+			player.health_changed.emit(h, max_h)
 		print("Восстановлено здоровье игрока: ", h)
 
 	if "is_dead" in player:

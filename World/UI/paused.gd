@@ -2,14 +2,18 @@ extends Control
 @export var scene_to_open: PackedScene  # Перетащите сцену в инспекторе
 @export var target_scene = "res://World/UI/menu.tscn"
 
-func _ready():
+func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	get_tree().paused = true
+	if NetworkManager.is_game_offline():
+		get_tree().paused = true
 
 func _on_texture_button_pressed() -> void:
 	# Продолжить игру
-	get_tree().paused = false
-	queue_free()
+	if NetworkManager.is_game_online():
+		NetworkManager.close_coop_pause()
+	else:
+		get_tree().paused = false
+		queue_free()
 
 func _on_texture_button_2_pressed() -> void:
 	# Настройки
@@ -46,7 +50,7 @@ func _on_texture_button_3_pressed() -> void:
 	if player and "global_position" in player:
 		SaveSystem.saved_player_position = player.global_position
 
-	get_tree().paused = false
-	AudioManager.stop_music()
-	NetworkManager.disconnect_game()
-	get_tree().change_scene_to_file(target_scene)
+	if NetworkManager.is_game_online() and NetworkManager.is_server():
+		NetworkManager.host_leave_session_to_menu()
+	else:
+		NetworkManager.return_to_main_menu()

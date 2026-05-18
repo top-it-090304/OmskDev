@@ -15,7 +15,12 @@ const MAX_CLIENT_PEERS: int = 7
 var lobby_display_code: String = ""
 
 const CONNECTION_TIMEOUT := 10.0
+const MAIN_MENU_SCENE := "res://World/UI/menu.tscn"
+const PAUSED_SCENE := preload("res://World/UI/paused.tscn")
 var connection_timer: Timer = null
+var _returning_to_menu: bool = false
+var coop_pause_active: bool = false
+var _coop_pause_menu: Node = null
 
 signal connected_to_server
 signal disconnected_from_server
@@ -40,6 +45,7 @@ func _ready() -> void:
 	add_child(connection_timer)
 
 func host_game(port: int = 4242) -> void:
+	_returning_to_menu = false
 	var peer := ENetMultiplayerPeer.new()
 	if peer.create_server(port, MAX_CLIENT_PEERS) != OK:
 		return
@@ -51,6 +57,7 @@ func host_game(port: int = 4242) -> void:
 	emit_signal("connected_to_server")
 
 func join_game(address: String, port: int = 4242) -> void:
+	_returning_to_menu = false
 	var peer := ENetMultiplayerPeer.new()
 	if peer.create_client(address, port) != OK:
 		emit_signal("connection_failed")
@@ -62,6 +69,7 @@ func join_game(address: String, port: int = 4242) -> void:
 	_apply_network_rpc_authority()
 
 func disconnect_game() -> void:
+	_force_close_coop_pause()
 	get_tree().get_multiplayer().multiplayer_peer = null
 	connection_state = ConnectionState.DISCONNECTED
 	my_id = 0
@@ -69,6 +77,112 @@ func disconnect_game() -> void:
 	reset_coop_run_state()
 	if not connection_timer.is_stopped():
 		connection_timer.stop()
+
+
+## Хост завершил сессию — уведомить гостей и выйти в главное меню.
+func host_leave_session_to_menu() -> void:
+	if is_game_online() and is_server():
+		var peers := get_tree().get_multiplayer().get_peers()
+		if not peers.is_empty():
+			rpc_notify_session_ended.rpc()
+	return_to_main_menu()
+
+
+## Главное меню: снять паузу, отключиться, сменить сцену.
+func return_to_main_menu() -> void:
+	if _returning_to_menu:
+		return
+	_returning_to_menu = true
+	_force_close_coop_pause()
+	var tree := get_tree()
+	AudioManager.stop_music()
+	disconnect_game()
+	if tree != null:
+		tree.call_deferred("change_scene_to_file", MAIN_MENU_SCENE)
+
+
+@rpc("authority", "call_remote", "reliable")
+func rpc_notify_session_ended() -> void:
+	return_to_main_menu()
+
+
+## Кооп: пауза у всех, если один открыл меню паузы.
+func open_coop_pause() -> void:
+	if not is_game_online():
+		_apply_coop_pause_local(true)
+		return
+	if coop_pause_active:
+		return
+	if is_server():
+		rpc_sync_coop_pause.rpc(true)
+	else:
+		rpc_request_coop_pause.rpc_id(SERVER_ID)
+
+
+func close_coop_pause() -> void:
+	if not is_game_online():
+		_apply_coop_pause_local(false)
+		return
+	if not coop_pause_active:
+		return
+	if is_server():
+		rpc_sync_coop_pause.rpc(false)
+	else:
+		rpc_request_coop_unpause.rpc_id(SERVER_ID)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func rpc_request_coop_pause() -> void:
+	if not is_server():
+		return
+	rpc_sync_coop_pause.rpc(true)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func rpc_request_coop_unpause() -> void:
+	if not is_server():
+		return
+	rpc_sync_coop_pause.rpc(false)
+
+
+@rpc("authority", "call_local", "reliable")
+func rpc_sync_coop_pause(active: bool) -> void:
+	_apply_coop_pause_local(active)
+
+
+func _apply_coop_pause_local(active: bool) -> void:
+	coop_pause_active = active
+	var tree := get_tree()
+	if tree != null:
+		tree.paused = active
+	if active:
+		_open_pause_menu_local()
+	else:
+		_close_pause_menu_local()
+
+
+func _open_pause_menu_local() -> void:
+	if _coop_pause_menu != null and is_instance_valid(_coop_pause_menu):
+		return
+	var local_p := get_tree().get_first_node_in_group("local_player")
+	if local_p == null:
+		return
+	_coop_pause_menu = PAUSED_SCENE.instantiate()
+	local_p.add_child(_coop_pause_menu)
+
+
+func _close_pause_menu_local() -> void:
+	if _coop_pause_menu != null and is_instance_valid(_coop_pause_menu):
+		_coop_pause_menu.queue_free()
+	_coop_pause_menu = null
+
+
+func _force_close_coop_pause() -> void:
+	coop_pause_active = false
+	var tree := get_tree()
+	if tree != null:
+		tree.paused = false
+	_close_pause_menu_local()
 
 
 ## RPC с mode "authority" может вызывать только peer с authority этой ноды — для автозагрузки всегда 1 (сервер)
@@ -233,10 +347,24 @@ func _on_connection_timeout() -> void:
 		emit_signal("connection_failed")
 
 func _on_disconnected() -> void:
+	var was_online_client := connection_state == ConnectionState.CONNECTED
 	connection_state = ConnectionState.DISCONNECTED
 	my_id = 0
+	lobby_display_code = ""
 	reset_coop_run_state()
+	if not connection_timer.is_stopped():
+		connection_timer.stop()
 	emit_signal("disconnected_from_server")
+	# Хост вышел / оборвалось соединение — гостя из данжа отправляем в меню.
+	if was_online_client and not _returning_to_menu and _is_in_dungeon_session():
+		call_deferred("return_to_main_menu")
+
+
+func _is_in_dungeon_session() -> bool:
+	var tree := get_tree()
+	if tree == null:
+		return false
+	return tree.get_first_node_in_group("map_manager") != null
 
 func _on_connection_failed() -> void:
 	connection_state = ConnectionState.DISCONNECTED
@@ -282,7 +410,24 @@ func _resolve_node_by_path_for_damage(path_str: String) -> Node:
 	return null
 
 
-func _find_artefact_in_room(room: Vector2i, preferred_scene_path: String = "") -> Node:
+func _find_artefact_by_network_id(artefact_id: String) -> Node:
+	if artefact_id.is_empty():
+		return null
+	var tree := get_tree()
+	if tree == null:
+		return null
+	for n in tree.get_nodes_in_group("artefact"):
+		if not is_instance_valid(n) or not n.has_method("server_run_pickup_effects"):
+			continue
+		if str(n.get_meta(&"_net_world_artefact_id", "")) == artefact_id:
+			return n
+	return null
+
+
+func _find_artefact_in_room(room: Vector2i, preferred_scene_path: String = "", artefact_id: String = "") -> Node:
+	var by_id := _find_artefact_by_network_id(artefact_id)
+	if by_id != null:
+		return by_id
 	var mm := get_tree().get_first_node_in_group("map_manager")
 	if mm == null:
 		return null
@@ -302,13 +447,13 @@ func _find_artefact_in_room(room: Vector2i, preferred_scene_path: String = "") -
 
 
 @rpc("any_peer", "call_remote", "reliable")
-func rpc_request_artefact_pickup_from_client(resource_path: String, room_x: int, room_y: int, picker_peer_id: int) -> void:
+func rpc_request_artefact_pickup_from_client(resource_path: String, room_x: int, room_y: int, picker_peer_id: int, artefact_id: String = "") -> void:
 	if not is_server():
 		return
 	if int(multiplayer.get_remote_sender_id()) != int(picker_peer_id):
 		return
 	var room := Vector2i(room_x, room_y)
-	var node := _find_artefact_in_room(room, resource_path)
+	var node := _find_artefact_in_room(room, resource_path, artefact_id)
 	if node == null:
 		return
 	var actual_path := str(node.scene_file_path)
@@ -317,16 +462,17 @@ func rpc_request_artefact_pickup_from_client(resource_path: String, room_x: int,
 	else:
 		if is_instance_valid(node):
 			node.queue_free()
-	rpc_client_mirror_artefact_pickup.rpc(actual_path, room_x, room_y, picker_peer_id)
+	rpc_client_mirror_artefact_pickup.rpc(actual_path, room_x, room_y, picker_peer_id, artefact_id)
 
 
 @rpc("authority", "call_remote", "reliable")
-func rpc_client_mirror_artefact_pickup(resource_path: String, room_x: int, room_y: int, picker_peer_id: int) -> void:
+func rpc_client_mirror_artefact_pickup(resource_path: String, room_x: int, room_y: int, picker_peer_id: int, artefact_id: String = "") -> void:
 	if is_server():
 		return
 	var room := Vector2i(room_x, room_y)
-	SaveSystem.mark_treasure_collected(room)
-	var n := _find_artefact_in_room(room, resource_path)
+	if room.x >= 0 and room.y >= 0:
+		SaveSystem.mark_treasure_collected(room)
+	var n := _find_artefact_in_room(room, resource_path, artefact_id)
 	if n != null and is_instance_valid(n):
 		n.queue_free()
 	var my_pid: int = int(multiplayer.get_unique_id())
@@ -435,12 +581,25 @@ const _META_NET_ENEMY_SPR := &"net_enemy_sync_spr"
 const _META_NET_ENEMY_SPR_FRAME := &"net_enemy_sync_spr_frame"
 const _META_NET_ENEMY_AP := &"net_enemy_sync_ap"
 const _META_NET_ENEMY_AP_POS := &"net_enemy_sync_ap_pos"
+const _META_NET_ENEMY_RECEIVED_MS := &"net_enemy_sync_received_ms"
 
 
 func enemy_mp_is_network_client() -> bool:
 	if is_game_offline():
 		return false
 	return not get_tree().get_multiplayer().is_server()
+
+
+func get_enemy_sync_max_hp(enemy: Node, fallback_hp: int = 1) -> int:
+	if enemy == null or not is_instance_valid(enemy):
+		return maxi(fallback_hp, 1)
+	var explicit_max = enemy.get("max_hp")
+	if explicit_max != null:
+		return maxi(int(explicit_max), 1)
+	var bar := enemy.get_node_or_null("TextureProgressBar") as TextureProgressBar
+	if bar != null and bar.max_value > 0.0:
+		return maxi(int(round(bar.max_value)), 1)
+	return maxi(fallback_hp, 1)
 
 
 func enemy_client_interpolate_if_needed(enemy: CharacterBody2D, delta: float) -> bool:
@@ -456,12 +615,15 @@ func enemy_client_interpolate_if_needed(enemy: CharacterBody2D, delta: float) ->
 		return true
 	var tgt: Vector2 = enemy.get_meta(_META_NET_ENEMY_POS, enemy.global_position)
 	var vel: Vector2 = enemy.get_meta(_META_NET_ENEMY_VEL, Vector2.ZERO)
+	var received_ms := int(enemy.get_meta(_META_NET_ENEMY_RECEIVED_MS, Time.get_ticks_msec()))
+	var age_sec := clampf(float(Time.get_ticks_msec() - received_ms) / 1000.0, 0.0, 0.12)
+	var predicted_tgt := tgt + vel * age_sec
 	# Только позиция с хоста: move_and_slide на клиенте упирался в стены и «ломал» синхрон.
-	var dist_sq := enemy.global_position.distance_squared_to(tgt)
+	var dist_sq := enemy.global_position.distance_squared_to(predicted_tgt)
 	if dist_sq > 40000.0:
-		enemy.global_position = tgt
+		enemy.global_position = predicted_tgt
 	else:
-		enemy.global_position = enemy.global_position.lerp(tgt, minf(1.0, 48.0 * delta))
+		enemy.global_position = enemy.global_position.lerp(predicted_tgt, minf(1.0, 72.0 * delta))
 	enemy.velocity = vel
 	_apply_net_enemy_visual_from_meta(enemy)
 	return true
@@ -471,9 +633,9 @@ func _enemy_in_local_client_sync_region(enemy: Node) -> bool:
 	var mm := get_tree().get_first_node_in_group("map_manager")
 	if mm == null or not mm.has_method("room_in_local_enemy_net_sync_region"):
 		return true
-	var room_grid := Vector2i(-9999, -9999)
-	if enemy.has_meta(&"_spawn_room"):
-		room_grid = enemy.get_meta(&"_spawn_room")
+	if not enemy.has_meta(&"_spawn_room"):
+		return true
+	var room_grid: Vector2i = enemy.get_meta(&"_spawn_room")
 	return mm.room_in_local_enemy_net_sync_region(room_grid)
 
 
@@ -554,6 +716,7 @@ func _apply_enemy_sync_state(
 	ch.set_meta(_META_NET_ENEMY_SPR_FRAME, spr_frame)
 	ch.set_meta(_META_NET_ENEMY_AP, ap_anim)
 	ch.set_meta(_META_NET_ENEMY_AP_POS, ap_pos)
+	ch.set_meta(_META_NET_ENEMY_RECEIVED_MS, Time.get_ticks_msec())
 	if hp_val >= 0:
 		if ch.get("hp") != null:
 			ch.set("hp", hp_val)
@@ -577,24 +740,94 @@ func _resolve_enemy_for_sync(path_str: String, enemy_key: String = "") -> Node:
 func server_apply_damage_to_player_from_enemy(player: Node, amount: int) -> void:
 	if not is_instance_valid(player) or not player.is_in_group("player"):
 		return
-	if not player.has_method("take_damage"):
+	if not player.has_method("apply_damage_direct") and not player.has_method("take_damage"):
 		return
 	if is_game_offline():
-		player.call("take_damage", amount)
+		if player.has_method("apply_damage_direct"):
+			player.call("apply_damage_direct", amount)
+		else:
+			player.call("take_damage", amount)
+		return
+	var mp := get_tree().get_multiplayer()
+	if mp.is_server():
+		_online_server_apply_damage_to_player(player, amount)
+	elif player.is_multiplayer_authority():
+		rpc_request_player_damage_from_enemy.rpc_id(SERVER_ID, amount)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func rpc_request_player_damage_from_enemy(amount: int) -> void:
+	if not is_server():
+		return
+	var sender := int(multiplayer.get_remote_sender_id())
+	if sender <= 0:
+		return
+	var player := PlayerManager.get_player_by_peer_id(sender)
+	if player == null or not is_instance_valid(player):
 		return
 	_online_server_apply_damage_to_player(player, amount)
 
 
-## Онлайн: только хост решает урон; у пира с authority == unique_id — локально (call_remote себя не трогает).
+## Онлайн: хост применяет урон на своей симуляции и уведомляет владельца персонажа.
 func _online_server_apply_damage_to_player(player: Node, amount: int) -> void:
 	var mp := get_tree().get_multiplayer()
 	if not mp.is_server():
 		return
-	var auth := player.get_multiplayer_authority()
-	if auth == mp.get_unique_id():
+	var resolved := amount
+	if player.has_method("resolve_incoming_damage"):
+		resolved = int(player.call("resolve_incoming_damage", amount))
+	elif player.has_method("take_damage"):
 		player.call("take_damage", amount)
-	elif player.has_method("rpc_take_damage_from_server"):
-		player.rpc_take_damage_from_server.rpc_id(auth, amount)
+		return
+	if resolved <= 0:
+		return
+	if player.has_method("apply_damage_direct"):
+		player.call("apply_damage_direct", resolved, true)
+	else:
+		player.call("take_damage", resolved)
+		return
+	var auth := int(player.get_multiplayer_authority())
+	if auth != int(mp.get_unique_id()):
+		if player.has_method("rpc_take_damage_from_server"):
+			player.rpc_take_damage_from_server.rpc_id(auth, resolved)
+	elif not mp.get_peers().is_empty():
+		_sync_player_health_to_clients(player)
+
+
+func get_player_sync_max_hp(player: Node, fallback_hp: int = 1) -> int:
+	if player == null or not is_instance_valid(player):
+		return maxi(fallback_hp, 1)
+	if player.has_method("_get_max_health"):
+		return maxi(int(player.call("_get_max_health")), 1)
+	var explicit_max = player.get("max_hp")
+	if explicit_max != null:
+		return maxi(int(explicit_max), 1)
+	if player.get("last_known_max_health") != null:
+		return maxi(int(player.last_known_max_health), 1)
+	return maxi(fallback_hp, 1)
+
+
+func _sync_player_health_to_clients(player: Node) -> void:
+	if not is_instance_valid(player) or player.get("health_int") == null:
+		return
+	var mp := get_tree().get_multiplayer()
+	if mp.get_peers().is_empty():
+		return
+	var hp := maxi(0, int(player.health_int))
+	var max_hp := get_player_sync_max_hp(player, hp)
+	rpc_apply_player_health.rpc(int(player.get_multiplayer_authority()), hp, max_hp)
+
+
+@rpc("authority", "call_remote", "reliable")
+func rpc_apply_player_health(peer_id: int, hp: int, max_hp: int) -> void:
+	if is_server():
+		return
+	var player := PlayerManager.get_player_by_peer_id(peer_id)
+	if player == null or not is_instance_valid(player):
+		return
+	if player.get("health_int") == null:
+		return
+	player.set("health_int", hp)
 
 
 func server_apply_poison_to_player_from_enemy(player: Node, duration: float, damage_per_tick: int, tick_rate: float) -> void:
@@ -702,7 +935,7 @@ func _replicate_enemy_state_after_damage(enemy: Node) -> void:
 		return
 	var h: int = int(enemy.get("hp")) if enemy.get("hp") != null else 0
 	var d: bool = GameConstants.variant_to_bool(enemy.get("is_dead"))
-	var mx: int = int(enemy.get("max_hp")) if enemy.get("max_hp") != null else maxi(h, 1)
+	var mx: int = get_enemy_sync_max_hp(enemy, h)
 	var enemy_key := str(enemy.get_meta(&"_net_enemy_key", ""))
 	rpc_sync_enemy_after_damage.rpc(str(enemy.get_path()), maxi(0, h), mx, d, enemy_key)
 
@@ -738,7 +971,7 @@ func _apply_synced_enemy_death(n: Node) -> void:
 
 ## Клиенты: тот же артефакт под люком, что заспавнил хост (сцена не синхронится сама по сети).
 @rpc("authority", "call_remote", "reliable")
-func rpc_spawn_boss_loot_at(scene_res_path: String, parent_node_path: String, global_pos: Vector2) -> void:
+func rpc_spawn_boss_loot_at(scene_res_path: String, parent_node_path: String, global_pos: Vector2, artefact_id: String = "", room_x: int = -1, room_y: int = -1) -> void:
 	var parent := get_tree().root.get_node_or_null(NodePath(parent_node_path)) as Node2D
 	if parent == null or not is_instance_valid(parent):
 		return
@@ -747,24 +980,45 @@ func rpc_spawn_boss_loot_at(scene_res_path: String, parent_node_path: String, gl
 		return
 	var item := ps.instantiate() as Node2D
 	item.z_index = 2
+	item.global_position = global_pos
+	_stamp_spawned_artefact(item, artefact_id, Vector2i(room_x, room_y))
 	parent.add_child(item)
 	item.add_to_group("artefact")
-	item.global_position = global_pos
-	GameConstants.remember_artefact_scene_path(scene_res_path)
+
+
+func _room_grid_from_artefact_parent(parent: Node2D) -> Vector2i:
+	if parent == null:
+		return Vector2i(-1, -1)
+	var gx = parent.get("grid_x")
+	var gy = parent.get("grid_y")
+	if gx == null or gy == null:
+		return Vector2i(-1, -1)
+	return Vector2i(int(gx), int(gy))
+
+
+func _stamp_spawned_artefact(item: Node, artefact_id: String, room: Vector2i) -> void:
+	if item == null:
+		return
+	if not artefact_id.is_empty():
+		item.set_meta(&"_net_world_artefact_id", artefact_id)
+	if room.x >= 0 and room.y >= 0:
+		item.set_meta("_treasure_room_grid", room)
 
 
 func server_spawn_boss_loot_for_coop(scene_res_path: String, parent: Node2D, global_pos: Vector2) -> void:
 	var inst := (load(scene_res_path) as PackedScene).instantiate() as Node2D
+	var room := _room_grid_from_artefact_parent(parent)
+	var artefact_id := "%s|%d|%d|%.1f|%.1f" % [scene_res_path, room.x, room.y, global_pos.x, global_pos.y]
 	inst.z_index = 2
+	inst.global_position = global_pos
+	_stamp_spawned_artefact(inst, artefact_id, room)
 	parent.add_child(inst)
 	inst.add_to_group("artefact")
-	inst.global_position = global_pos
-	GameConstants.remember_artefact_scene_path(scene_res_path)
 	if is_game_offline():
 		return
 	var mp := get_tree().get_multiplayer()
 	if mp.is_server() and mp.get_peers().size() > 0:
-		rpc_spawn_boss_loot_at.rpc(scene_res_path, str(parent.get_path()), global_pos)
+		rpc_spawn_boss_loot_at.rpc(scene_res_path, str(parent.get_path()), global_pos, artefact_id, room.x, room.y)
 
 
 @rpc("any_peer", "call_remote", "reliable")

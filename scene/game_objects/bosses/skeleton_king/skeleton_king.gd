@@ -646,9 +646,9 @@ func death():
 		shaker = get_tree().root.find_child("CameraShaker", true, false)
 	if shaker and shaker.has_method("add_trauma"):
 		shaker.add_trauma(0.8)
+	_spawn_loot_near_hatch()
 	await _await_boss_death_animation(d_anim)
 	_give_exp_to_player()
-	_spawn_loot_near_hatch()
 	_open_hatch_via_map_manager()
 	queue_free()
 

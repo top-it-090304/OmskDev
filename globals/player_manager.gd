@@ -70,6 +70,14 @@ func _ready() -> void:
 	get_tree().node_added.connect(_on_node_added)
 
 
+func get_player_by_peer_id(peer_id: int) -> Node:
+	if players.has(peer_id):
+		var inst: Variant = players[peer_id]
+		if is_instance_valid(inst):
+			return inst as Node
+	return null
+
+
 ## В коопе в группе «player» несколько нод; награда за убийство должна идти персонажу этой машины, не «первому попавшемуся».
 func get_player_for_local_rewards() -> Node:
 	var tree := get_tree()

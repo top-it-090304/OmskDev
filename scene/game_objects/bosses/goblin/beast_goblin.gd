@@ -400,10 +400,10 @@ func death():
 	animP.stop()
 	if is_instance_valid(smite_instance): smite_instance.queue_free()
 	var d_anim = "death_" + _get_dir_string()
+	_spawn_artefact_near_hatch()
 	await _await_boss_death_animation(d_anim)
 	_give_exp_to_player()
 	if randf() <= 0.75: _spawn_loot()
-	_spawn_artefact_near_hatch()
 	_open_hatch_via_map_manager()
 	queue_free()
 
