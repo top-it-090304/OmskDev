@@ -1,8 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://ciwfitf4vtq7a"]
-
-[ext_resource type="Script" path="res://scene/ui/cheat_panel.gd" id="1_cheat"]
-
-[node name="CheatPanel" type="CanvasLayer" groups=["cheat_panel"]]
-layer = 120
-process_mode = 3
-script = ExtResource("1_cheat")

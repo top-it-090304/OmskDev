@@ -517,10 +517,6 @@ func apply_knockback(source_position: Vector2, force: float):
 	velocity = knockback_dir * force
 
 
-func _is_cheat_god_mode() -> bool:
-	return CheatPanel.is_god_mode_active()
-
-
 func take_damage(amount: int) -> void:
 	if NetworkManager.is_game_online() and not is_multiplayer_authority():
 		return
@@ -528,7 +524,7 @@ func take_damage(amount: int) -> void:
 
 
 func resolve_incoming_damage(amount: int) -> int:
-	if is_dead or _is_cheat_god_mode():
+	if is_dead:
 		return 0
 	if NetworkManager.is_game_online() and NetworkManager.coop_run_finished:
 		return 0
