@@ -726,14 +726,18 @@ func rpc_spawn_boss_loot_at(scene_res_path: String, parent_node_path: String, gl
 	var item := ps.instantiate() as Node2D
 	item.z_index = 2
 	parent.add_child(item)
+	item.add_to_group("artefact")
 	item.global_position = global_pos
+	GameConstants.remember_artefact_scene_path(scene_res_path)
 
 
 func server_spawn_boss_loot_for_coop(scene_res_path: String, parent: Node2D, global_pos: Vector2) -> void:
 	var inst := (load(scene_res_path) as PackedScene).instantiate() as Node2D
 	inst.z_index = 2
 	parent.add_child(inst)
+	inst.add_to_group("artefact")
 	inst.global_position = global_pos
+	GameConstants.remember_artefact_scene_path(scene_res_path)
 	if is_game_offline():
 		return
 	var mp := get_tree().get_multiplayer()

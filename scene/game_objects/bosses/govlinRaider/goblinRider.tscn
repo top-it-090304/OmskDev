@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://7f7ha0au2vwj" path="res://sprites/bosses/goblinFly/Down/Png/GoblinRiderAttack01.png" id="1_j3wqw"]
 [ext_resource type="Script" uid="uid://b4ni608qfgqvo" path="res://scene/game_objects/bosses/govlinRaider/goblin_raider.gd" id="1_raider_script"]
 [ext_resource type="Texture2D" uid="uid://bsnxbatc40kcg" path="res://sprites/bosses/goblinFly/Down/Png/GoblinRiderIdle.png" id="1_xv738"]
-[ext_resource type="Script" uid="uid://osq5kv0630j2" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="2_hp_script"]
+[ext_resource type="Script" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="2_hp_script"]
 [ext_resource type="Texture2D" uid="uid://cj31nrd3iw1ng" path="res://sprites/bosses/goblinFly/Left/Png/GoblinRiderLeftAttack01.png" id="2_lapew"]
 [ext_resource type="Texture2D" uid="uid://8o1hatxsh21y" path="res://assets/hpUnderEnemy.png" id="3_hp_under"]
 [ext_resource type="Texture2D" uid="uid://owmnu031gjih" path="res://sprites/bosses/goblinFly/Right/Png/GoblinRiderRightAttack01.png" id="3_wum27"]

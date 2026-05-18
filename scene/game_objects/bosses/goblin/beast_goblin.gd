@@ -436,6 +436,7 @@ func _spawn_artefact_fallback() -> void:
 	else:
 		var inst: Node2D = ps.instantiate() as Node2D
 		inst.global_position = global_position
+		inst.add_to_group("artefact")
 		scene_root.add_child(inst)
 
 

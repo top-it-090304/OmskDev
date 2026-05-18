@@ -28,6 +28,13 @@ const FLOOR2_SKELETON_SWORDMAN := preload("res://scene/game_objects/bosses/skele
 const FLOOR3_SKELETON_GRUNT := preload("res://scene/game_objects/enemy/skeleton_grunt/enemy(skeleton_grunt).tscn")
 const FLOOR3_SKELETON_BOW := preload("res://scene/game_objects/enemy/skeleton_bow/skeleton_bow.tscn")
 const FLOOR3_SKELETON_KING := preload("res://scene/game_objects/bosses/skeleton_king/skeleton_king.tscn")
+const DEFAULT_TREASURE_ITEM_PATHS: Array[String] = [
+	"res://scene/pick_up/artefacts/artefact(boots_of_travel).tscn",
+	"res://scene/pick_up/artefacts/blue_shroom.tscn",
+	"res://scene/pick_up/artefacts/bottle.tscn",
+	"res://scene/pick_up/artefacts/coffee_mug.tscn",
+	"res://scene/pick_up/artefacts/red_potion.tscn",
+]
 var boss_hatch: Area2D = null
 # Гибкий массив препятствий
 @export var obstacle_data: Array[Dictionary] = [
@@ -74,6 +81,7 @@ const _NET_SYNC_POS_EPS2: float = 36.0
 const _NET_SYNC_VEL_EPS2: float = 64.0
 const ENEMY_STATE_KEY := "enemy_spawns"
 const TREASURE_STATE_KEY := "treasure_spawns"
+const USED_ARTEFACT_STATE_KEY := "used_artefact_scene_paths"
 
 
 func _ready() -> void:
@@ -139,6 +147,7 @@ func _boot_dungeon_async() -> void:
 		await load_dungeon_state()
 	else:
 		print("=== ГЕНЕРАЦИЯ НОВОГО ДАНЖЕНА ===")
+		GameConstants.clear_used_artefact_scene_paths()
 		generation_seed = randi()
 		seed(generation_seed)
 		print("Seed генерации: ", generation_seed)
@@ -284,6 +293,8 @@ func _spawn_treasure_in_room(room_data: Dictionary, item_scene: PackedScene) -> 
 	var room_node: Node = room_data["node"]
 	var item_instance = item_scene.instantiate()
 	room_node.add_child(item_instance)
+	item_instance.add_to_group("artefact")
+	GameConstants.remember_artefact_scene_path(str(item_scene.resource_path))
 	item_instance.set_meta("_treasure_room_grid", room_pos)
 	var local_center := Vector2(
 		GameConstants.MAP_MANAGER_ROOM_SIZE_X / 2.0,
@@ -298,18 +309,31 @@ func _spawn_treasure_in_room(room_data: Dictionary, item_scene: PackedScene) -> 
 	pedestal.z_index = -1
 
 
+func _build_treasure_item_paths() -> Array[String]:
+	var paths: Array[String] = []
+	for item_scene in treasure_items:
+		if item_scene == null:
+			continue
+		var path := str((item_scene as PackedScene).resource_path)
+		if not path.is_empty() and not paths.has(path):
+			paths.append(path)
+	if not paths.is_empty():
+		return paths
+	for scene_path in DEFAULT_TREASURE_ITEM_PATHS:
+		if not paths.has(scene_path):
+			paths.append(scene_path)
+	return paths
+
+
 func _spawn_treasure_items() -> void:
-	if treasure_items.is_empty():
+	var item_paths := _build_treasure_item_paths()
+	if item_paths.is_empty():
 		return
-	var rng := RandomNumberGenerator.new()
-	rng.seed = _treasure_rng_seed()
-	var pile: Array = treasure_items.duplicate()
-	_shuffle_packed_scenes(pile, rng)
 	for room_data in _sorted_treasure_rooms():
-		if pile.is_empty():
+		var scenes := GameConstants.get_unique_artefact_scenes_from_paths(item_paths, 1, true)
+		if scenes.is_empty():
 			break
-		var item_scene: PackedScene = pile.pop_back()
-		_spawn_treasure_in_room(room_data, item_scene)
+		_spawn_treasure_in_room(room_data, scenes[0])
 
 
 func _collect_treasure_spawn_state() -> Array:
@@ -1193,7 +1217,7 @@ func _show_room_contents(room_node: Node2D, contents_visible: bool):
 	
 	# Скрываем/показываем артефакты
 	for child in room_node.get_children():
-		if child.is_in_group("artefact"):
+		if child.is_in_group("artefact") or child.has_method("server_run_pickup_effects"):
 			child.visible = contents_visible
 		# Также скрываем подставки под артефакты
 		if child.name == "ArtefactPedestal" or "pedestal" in child.name.to_lower():
@@ -1248,7 +1272,8 @@ func save_dungeon_state():
 		"collected_treasure_rooms": [],
 		"boss_hatch_opened": SaveSystem.is_boss_hatch_opened(),
 		TREASURE_STATE_KEY: [],
-		ENEMY_STATE_KEY: []
+		ENEMY_STATE_KEY: [],
+		USED_ARTEFACT_STATE_KEY: []
 	}
 
 	# Сохраняем посещенные комнаты
@@ -1271,6 +1296,7 @@ func save_dungeon_state():
 	dungeon_data["collected_treasure_rooms"] = SaveSystem.collected_treasure_rooms
 	dungeon_data[TREASURE_STATE_KEY] = _collect_treasure_spawn_state()
 	dungeon_data[ENEMY_STATE_KEY] = _collect_enemy_spawn_state()
+	dungeon_data[USED_ARTEFACT_STATE_KEY] = GameConstants.get_used_artefact_scene_paths()
 
 	SaveSystem.save_dungeon_data(dungeon_data)
 	print("Состояние данжена сохранено (seed: ", generation_seed, ")")
@@ -1405,6 +1431,15 @@ func load_dungeon_state():
 	generation_seed = dungeon_data.get("generation_seed", 0)
 	seed(generation_seed)
 	print("Загружен seed: ", generation_seed)
+
+	if dungeon_data.has(USED_ARTEFACT_STATE_KEY) and dungeon_data[USED_ARTEFACT_STATE_KEY] is Array:
+		GameConstants.set_used_artefact_scene_paths(dungeon_data[USED_ARTEFACT_STATE_KEY])
+	else:
+		GameConstants.clear_used_artefact_scene_paths()
+		if dungeon_data.has(TREASURE_STATE_KEY) and dungeon_data[TREASURE_STATE_KEY] is Array:
+			for raw in dungeon_data[TREASURE_STATE_KEY]:
+				if raw is Dictionary:
+					GameConstants.remember_artefact_scene_path(str((raw as Dictionary).get("scene", "")))
 
 	_obstacle_detail_spawn_override = GameConstants.clamp_obstacle_detail_level(
 		dungeon_data.get("obstacle_detail", GameConstants.OBSTACLE_DETAIL_LEVEL)

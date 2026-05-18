@@ -694,6 +694,7 @@ func _spawn_loot_fallback():
 		else:
 			var artefact: Node2D = ps.instantiate() as Node2D
 			artefact.global_position = global_position
+			artefact.add_to_group("artefact")
 			scene_root.add_child(artefact)
 	else:
 		var scenes := GameConstants.get_random_boss_artefact_scenes(2)
@@ -706,10 +707,12 @@ func _spawn_loot_fallback():
 		else:
 			var artefact1: Node2D = scenes[0].instantiate() as Node2D
 			artefact1.global_position = global_position + Vector2(-20, 0)
+			artefact1.add_to_group("artefact")
 			scene_root.add_child(artefact1)
 			if scenes.size() > 1:
 				var artefact2: Node2D = scenes[1].instantiate() as Node2D
 				artefact2.global_position = global_position + Vector2(20, 0)
+				artefact2.add_to_group("artefact")
 				scene_root.add_child(artefact2)
 
 func _open_hatch_via_map_manager():

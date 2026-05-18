@@ -185,6 +185,9 @@ var ENEMY_GOBLIN_RAIDER_MAX_SPEED = 210
 var ENEMY_GOBLIN_RAIDER_BITE_DAMAGE = 35
 var ENEMY_GOBLIN_RAIDER_WAVE_DAMAGE = 32
 var ENEMY_GOBLIN_RAIDER_ROCK_DAMAGE = 28
+var ENEMY_GOBLIN_RAIDER_ROCK_SPLASH_DAMAGE_MIN = 8
+var ENEMY_GOBLIN_RAIDER_ROCK_SPLASH_DAMAGE_MAX = 18
+var ENEMY_GOBLIN_RAIDER_ROCK_SPLASH_RADIUS: float = 58.0
 var ENEMY_GOBLIN_RAIDER_EXP_REWARD = 240
 var ENEMY_GOBLIN_RAIDER_TARGET_DISTANCE: float = 165.0
 var ENEMY_GOBLIN_RAIDER_BITE_RANGE: float = 70.0
@@ -234,6 +237,7 @@ const BOSS_ARTEFACT_SCENE_PATHS_BY_FLOOR := {
 
 const BOSS_ARTEFACT_RECENT_LIMIT := 5
 var _recent_boss_artefact_paths: Array[String] = []
+var _used_artefact_scene_paths: Array[String] = []
 
 var _current_floor_internal: int = 1
 var CURRENT_FLOOR: int:
@@ -290,35 +294,70 @@ func get_all_boss_artefact_scene_paths() -> Array[String]:
 
 
 func get_random_boss_artefact_scenes(count: int = 1) -> Array[PackedScene]:
-	var paths := get_all_boss_artefact_scene_paths()
-	var non_recent_paths: Array[String] = []
-	for path in paths:
-		if not _recent_boss_artefact_paths.has(path):
-			non_recent_paths.append(path)
-	if non_recent_paths.size() >= maxi(1, count):
-		paths = non_recent_paths
-	paths.shuffle()
+	return get_unique_artefact_scenes_from_paths(get_all_boss_artefact_scene_paths(), count, true)
+
+
+func get_unique_artefact_scenes_from_paths(paths: Array, count: int = 1, allow_reuse_when_exhausted: bool = true) -> Array[PackedScene]:
+	var candidates: Array[String] = []
+	for raw_path in paths:
+		var path := str(raw_path)
+		if path.is_empty() or candidates.has(path) or _used_artefact_scene_paths.has(path):
+			continue
+		candidates.append(path)
+	if candidates.size() < maxi(1, count) and allow_reuse_when_exhausted:
+		candidates.clear()
+		for raw_path in paths:
+			var path := str(raw_path)
+			if not path.is_empty() and not candidates.has(path):
+				candidates.append(path)
+	candidates.shuffle()
 	var result: Array[PackedScene] = []
 	for _i in range(maxi(1, count)):
-		if paths.is_empty():
+		if candidates.is_empty():
 			break
 		var idx := 0
-		if paths.size() > 1:
-			idx = randi() % paths.size()
-		var path := paths[idx]
-		var scene := load(paths[idx]) as PackedScene
-		paths.remove_at(idx)
+		if candidates.size() > 1:
+			idx = randi() % candidates.size()
+		var path := candidates[idx]
+		var scene := load(path) as PackedScene
+		candidates.remove_at(idx)
 		if scene != null:
 			result.append(scene)
-			_remember_boss_artefact_path(path)
+			remember_artefact_scene_path(path)
 	return result
 
 
-func _remember_boss_artefact_path(path: String) -> void:
+func remember_artefact_scene_path(path: String) -> void:
+	if path.is_empty():
+		return
+	if not _used_artefact_scene_paths.has(path):
+		_used_artefact_scene_paths.append(path)
 	_recent_boss_artefact_paths.erase(path)
 	_recent_boss_artefact_paths.append(path)
 	while _recent_boss_artefact_paths.size() > BOSS_ARTEFACT_RECENT_LIMIT:
 		_recent_boss_artefact_paths.remove_at(0)
+
+
+func is_artefact_scene_path_used(path: String) -> bool:
+	return _used_artefact_scene_paths.has(path)
+
+
+func clear_used_artefact_scene_paths() -> void:
+	_used_artefact_scene_paths.clear()
+	_recent_boss_artefact_paths.clear()
+
+
+func set_used_artefact_scene_paths(paths: Array) -> void:
+	clear_used_artefact_scene_paths()
+	for raw_path in paths:
+		remember_artefact_scene_path(str(raw_path))
+
+
+func get_used_artefact_scene_paths() -> Array[String]:
+	var result: Array[String] = []
+	for path in _used_artefact_scene_paths:
+		result.append(path)
+	return result
 
 # --- СИСТЕМНЫЕ ПЕРЕМЕННЫЕ (Авто-перезагрузка конфига) ---
 var _reload_timer_sec := 0.0

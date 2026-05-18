@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" path="res://sprites/Rocks/rock_1.tscn" id="2_rock"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_rock_projectile"]
-radius = 8.0
+radius = 6.0
 
 [node name="RaiderRockProjectile" type="Area2D"]
 top_level = true
@@ -20,7 +20,7 @@ shape = SubResource("CircleShape2D_rock_projectile")
 [node name="RockVisual" parent="." instance=ExtResource("2_rock")]
 z_index = 1
 modulate = Color(1, 1, 1, 1)
-scale = Vector2(0.75, 0.75)
+scale = Vector2(0.45, 0.45)
 
 [node name="ShadowVisual" type="Polygon2D" parent="."]
 z_index = 0
