@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=4 uid="uid://dibq8ttqo7sow"]
+
+[ext_resource type="TileSet" uid="uid://vkan6vodwdc6" path="res://scene/room_variants/sand_rooms/sandroom_2.tres" id="1_oatry"]
+
+[node name="TopWall" type="Node2D"]
+
+[node name="TileMapLayer2" type="TileMapLayer" parent="."]
+tile_map_data = PackedByteArray("AAAZAAEAAAAzAAUAAAAZAAIAAAAxAAIAAAAZAAMAAAA0AAUAAAAZAAQAAAAxAAIAAAAaAAEAAAAxAAQAAAAaAAIAAAAzAAUAAAAaAAMAAAA0AAIAAAAaAAQAAAA1AAQAAAAbAAEAAAAzAAMAAAAbAAIAAAA0AAIAAAAbAAMAAAAwAAUAAAAbAAQAAAAxAAMAAAAcAAEAAAAzAAUAAAAcAAIAAAAwAAQAAAAcAAMAAAAxAAMAAAAcAAQAAAA1AAMAAAAZAAAAAAAdAAEAAAAaAAAAAAAeAAEAAAAbAAAAAAAfAAEAAAAcAAAAAAAgAAEAAAA=")
+tile_set = ExtResource("1_oatry")

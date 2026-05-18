@@ -1,10 +1,10 @@
 [gd_scene load_steps=38 format=4 uid="uid://ccsqj37mkmb8d"]
 
 [ext_resource type="Script" uid="uid://d35yfp8vn3tmp" path="res://scene/room_variants/BaseRoom[0]/base_room_0.gd" id="1_hhcom"]
-[ext_resource type="PackedScene" uid="uid://be4lwk2g4qfqc" path="res://sprites/Rocks/top_wall.tscn" id="2_vgf17"]
-[ext_resource type="PackedScene" uid="uid://c2ctulieyuv06" path="res://sprites/Rocks/left_wall.tscn" id="3_eqxdp"]
-[ext_resource type="PackedScene" uid="uid://beah3kj0mi8ae" path="res://sprites/Rocks/down_wall.tscn" id="4_10qwf"]
-[ext_resource type="PackedScene" uid="uid://cpx8icdl30v1" path="res://sprites/Rocks/right_wall.tscn" id="5_xsoba"]
+[ext_resource type="PackedScene" uid="uid://dibq8ttqo7sow" path="res://scene/room_variants/sand_rooms/top_wall.tscn" id="2_hhcom"]
+[ext_resource type="PackedScene" uid="uid://bjhuy7ybyym8o" path="res://scene/room_variants/sand_rooms/left_wall.tscn" id="3_vgf17"]
+[ext_resource type="PackedScene" uid="uid://b733bb2qaupd8" path="res://scene/room_variants/sand_rooms/down_wall.tscn" id="4_eqxdp"]
+[ext_resource type="PackedScene" uid="uid://bhfd1mk0yn4or" path="res://scene/room_variants/sand_rooms/right_wall.tscn" id="5_10qwf"]
 [ext_resource type="Script" uid="uid://bfmesc6rve018" path="res://scene/level/room_shape.gd" id="7_v1cyo"]
 [ext_resource type="Script" uid="uid://cr6mv2r4o37d7" path="res://scene/level/enemys.gd" id="8_iwps6"]
 [ext_resource type="Script" uid="uid://jmqbjpx8nui8" path="res://scene/room_variants/BaseRoom[0]/door.gd" id="9_m2lqu"]
@@ -193,10 +193,10 @@ animations = [{
 
 [node name="sandroom2" type="Node2D"]
 script = ExtResource("1_hhcom")
-wall_top = ExtResource("2_vgf17")
-wall_left = ExtResource("3_eqxdp")
-wall_down = ExtResource("4_10qwf")
-wall_right = ExtResource("5_xsoba")
+wall_top = ExtResource("2_hhcom")
+wall_left = ExtResource("3_vgf17")
+wall_down = ExtResource("4_eqxdp")
+wall_right = ExtResource("5_10qwf")
 
 [node name="untoach" type="TileMapLayer" parent="."]
 z_index = 4

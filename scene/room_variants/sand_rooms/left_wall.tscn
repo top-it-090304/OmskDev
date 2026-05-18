@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://bjhuy7ybyym8o"]
+
+[ext_resource type="TileSet" uid="uid://vkan6vodwdc6" path="res://scene/room_variants/sand_rooms/sandroom_2.tres" id="2_fuyiv"]
+
+[node name="LeftWall" type="Node2D"]
+
+[node name="TileMapLayer2" type="TileMapLayer" parent="."]
+tile_map_data = PackedByteArray(0, 0, 0, 0, 21, 0, 0, 0, 39, 0, 20, 0, 0, 0, 0, 0, 22, 0, 0, 0, 39, 0, 21, 0, 0, 0, 0, 0, 23, 0, 0, 0, 39, 0, 22, 0, 0, 0, 0, 0, 24, 0, 0, 0, 39, 0, 23, 0, 0, 0)
+tile_set = ExtResource("2_fuyiv")
