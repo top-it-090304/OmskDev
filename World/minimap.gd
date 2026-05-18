@@ -155,31 +155,57 @@ func update_minimap_visuals():
 				
 			if show_full_map:
 				if map_manager.visited_rooms.has(pos) or pos == map_manager.current_room_grid_pos:
-					cell.color = get_room_color(room_type, pos)
+					cell.color = get_room_color(room_type)
+				elif map_manager.seen_rooms.has(pos):
+					cell.color = get_seen_room_color(room_type)
 				else:
 					cell.color = Color.DIM_GRAY
 			else:
 				if pos == map_manager.current_room_grid_pos:
-					match get_room_color(room_type, pos):
-						Color.DARK_GRAY: cell.color = Color.ANTIQUE_WHITE
-						Color.LIGHT_GREEN: cell.color = Color.LAWN_GREEN
-						Color.INDIAN_RED: cell.color = Color.ORANGE_RED
-						Color.YELLOW+Color.ANTIQUE_WHITE/1.5: cell.color = Color.YELLOW
-						_: cell.color = Color.ANTIQUE_WHITE
+					cell.color = get_current_room_color(room_type)
 				elif map_manager.visited_rooms.has(pos):
-					cell.color = get_room_color(room_type, pos)
+					cell.color = get_room_color(room_type)
 				elif map_manager.seen_rooms.has(pos):
-					cell.color = Color.DIM_GRAY
+					cell.color = get_seen_room_color(room_type)
 				else:
 					cell.color = Color.TRANSPARENT
 
-func get_room_color(type, _pos):
+func get_room_color(type: int) -> Color:
 	match type:
 		map_manager.RoomType.START: return Color.LIGHT_GREEN
 		map_manager.RoomType.BOSS: return Color.INDIAN_RED
-		map_manager.RoomType.TREASURE: return Color.YELLOW+Color.ANTIQUE_WHITE/1.5
+		map_manager.RoomType.TREASURE: return Color(0.95, 0.78, 0.18, 1.0)
 		map_manager.RoomType.NORMAL: return Color.DARK_GRAY
 		_: return Color.CORAL
+
+
+func get_seen_room_color(type: int) -> Color:
+	match type:
+		map_manager.RoomType.START:
+			return Color(0.28, 0.5, 0.28, 1.0)
+		map_manager.RoomType.BOSS:
+			return Color(0.55, 0.22, 0.2, 1.0)
+		map_manager.RoomType.TREASURE:
+			# Артефактная/сокровищница до входа: серый корпус + жёлтый оттенок.
+			return Color(0.62, 0.56, 0.32, 1.0)
+		map_manager.RoomType.NORMAL:
+			return Color(0.34, 0.34, 0.34, 1.0)
+		_:
+			return Color(0.35, 0.3, 0.26, 1.0)
+
+
+func get_current_room_color(type: int) -> Color:
+	match type:
+		map_manager.RoomType.START:
+			return Color.LAWN_GREEN
+		map_manager.RoomType.BOSS:
+			return Color.ORANGE_RED
+		map_manager.RoomType.TREASURE:
+			return Color.YELLOW
+		map_manager.RoomType.NORMAL:
+			return Color.ANTIQUE_WHITE
+		_:
+			return Color.ANTIQUE_WHITE
 
 func _input(event):
 	if event.is_action_pressed("toggle_map"):

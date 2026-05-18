@@ -1206,10 +1206,29 @@ func update_visibility():
 					room_node.modulate = Color(0, 0, 0, 1)
 					room_node.visible = true
 					_show_room_contents(room_node, false)
+			elif room_pos in seen_rooms:
+				room_node.modulate = _get_seen_room_modulate(int(room_data["type"]))
+				room_node.visible = true
+				_show_room_contents(room_node, false)
 			else:
 				room_node.modulate = Color(0, 0, 0, 1)
 				room_node.visible = true
 				_show_room_contents(room_node, false)
+
+
+func _get_seen_room_modulate(room_type: int) -> Color:
+	match room_type:
+		RoomType.START:
+			return Color(0.42, 0.68, 0.42, 1.0)
+		RoomType.BOSS:
+			return Color(0.6, 0.22, 0.2, 1.0)
+		RoomType.TREASURE:
+			# Серо-жёлтая подсветка: видно, что это особая/артефактная комната, но без раскрытия содержимого.
+			return Color(0.66, 0.58, 0.32, 1.0)
+		RoomType.NORMAL:
+			return Color(0.38, 0.38, 0.38, 1.0)
+		_:
+			return Color(0.28, 0.28, 0.28, 1.0)
 
 func _show_room_contents(room_node: Node2D, contents_visible: bool):
 	# Скрываем/показываем врагов. ВНИМАНИЕ: не выключаем process_mode — клиенту в коопе нужен
