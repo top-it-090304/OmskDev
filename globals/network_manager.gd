@@ -45,36 +45,62 @@ func _ready() -> void:
 	connection_timer.timeout.connect(_on_connection_timeout)
 	add_child(connection_timer)
 
-func host_game(port: int = 4242) -> void:
+func host_game(port: int = 4242) -> bool:
+	_prepare_new_online_session()
 	_returning_to_menu = false
 	_destroying_online_session = false
 	var peer := ENetMultiplayerPeer.new()
 	if peer.create_server(port, MAX_CLIENT_PEERS) != OK:
-		return
+		disconnect_game(false)
+		emit_signal("connection_failed")
+		return false
 	get_tree().get_multiplayer().multiplayer_peer = peer
 	connection_state = ConnectionState.HOSTING
 	my_id = SERVER_ID
 	reset_coop_run_state()
 	_apply_network_rpc_authority()
 	emit_signal("connected_to_server")
+	return true
 
-func join_game(address: String, port: int = 4242) -> void:
+func join_game(address: String, port: int = 4242) -> bool:
+	_prepare_new_online_session()
 	_returning_to_menu = false
 	_destroying_online_session = false
 	var peer := ENetMultiplayerPeer.new()
 	if peer.create_client(address, port) != OK:
 		emit_signal("connection_failed")
-		return
+		return false
 	get_tree().get_multiplayer().multiplayer_peer = peer
 	connection_state = ConnectionState.CONNECTING
 	reset_coop_run_state()
 	connection_timer.start()
 	_apply_network_rpc_authority()
+	return true
 
-func disconnect_game() -> void:
-	var was_active := connection_state != ConnectionState.DISCONNECTED or get_tree().get_multiplayer().has_multiplayer_peer()
+
+func _prepare_new_online_session() -> void:
 	_force_close_coop_pause()
-	get_tree().get_multiplayer().multiplayer_peer = null
+	if get_tree().get_multiplayer().has_multiplayer_peer() or connection_state != ConnectionState.DISCONNECTED:
+		disconnect_game(false)
+	else:
+		_clear_online_runtime_state()
+	lobby_display_code = ""
+	reset_coop_run_state()
+	SaveSystem.delete_dungeon_state()
+
+
+func _clear_online_runtime_state() -> void:
+	if PlayerManager != null and PlayerManager.has_method("reset_multiplayer_runtime_state"):
+		PlayerManager.reset_multiplayer_runtime_state()
+
+func disconnect_game(emit_disconnected_signal: bool = true) -> void:
+	var mp := get_tree().get_multiplayer()
+	var was_active := connection_state != ConnectionState.DISCONNECTED or mp.has_multiplayer_peer()
+	_force_close_coop_pause()
+	var old_peer := mp.multiplayer_peer
+	if old_peer is ENetMultiplayerPeer:
+		(old_peer as ENetMultiplayerPeer).close()
+	mp.multiplayer_peer = null
 	connection_state = ConnectionState.DISCONNECTED
 	my_id = 0
 	lobby_display_code = ""
@@ -82,7 +108,8 @@ func disconnect_game() -> void:
 	reset_coop_run_state()
 	if not connection_timer.is_stopped():
 		connection_timer.stop()
-	if was_active:
+	_clear_online_runtime_state()
+	if was_active and emit_disconnected_signal:
 		emit_signal("disconnected_from_server")
 
 
@@ -111,7 +138,7 @@ func return_to_main_menu() -> void:
 	_force_close_coop_pause()
 	var tree := get_tree()
 	AudioManager.stop_music()
-	disconnect_game()
+	disconnect_game(false)
 	if tree != null:
 		tree.call_deferred("change_scene_to_file", MAIN_MENU_SCENE)
 

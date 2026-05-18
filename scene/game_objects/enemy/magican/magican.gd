@@ -16,6 +16,7 @@ var can_anim := true
 var is_attacking := false
 var player_in_range := false
 var _attack_cd := 1.0
+var _attack_wave_sent := false
 
 @onready var anim: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 @onready var animP: AnimationPlayer = get_node_or_null("AnimationPlayer") as AnimationPlayer
@@ -88,11 +89,15 @@ func attack() -> void:
 		return
 	is_attacking = true
 	can_anim = false
+	_attack_wave_sent = false
 	_face_player()
 	var anim_name := "attack_" + _dir_string()
 	if animP != null and animP.has_animation(anim_name):
 		animP.play(anim_name)
-		await _wait_anim_player_or_timeout(1.4)
+		await _await_seconds_safe(1.85)
+		if not _attack_wave_sent:
+			send_wave()
+		await _wait_anim_player_or_timeout(0.4)
 	else:
 		_play_anim(anim_name, "attack_down")
 		await get_tree().create_timer(0.45).timeout
@@ -106,6 +111,7 @@ func send_wave() -> void:
 		return
 	if is_dead or not is_instance_valid(player):
 		return
+	_attack_wave_sent = true
 	var dir := (PlayerManager.get_player_world_pos_for_hosting_ai(player) - global_position).normalized()
 	if dir.length_squared() <= 0.0:
 		return

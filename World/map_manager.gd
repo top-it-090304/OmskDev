@@ -747,7 +747,8 @@ func _spawn_enemies_after_physics():
 		if room_type==RoomType.NORMAL:
 			enemy_count = randi_range(2, 5)
 			if NetworkManager.is_game_online():
-				enemy_count = ceili(float(enemy_count) * 1.5)
+				var online_multiplier := 1.25 if GameConstants.CURRENT_FLOOR == 2 else 1.5
+				enemy_count = ceili(float(enemy_count) * online_multiplier)
 		
 		if room_type==RoomType.BOSS: 
 			_spawn_boss(space_state, room_node)
@@ -876,15 +877,41 @@ func _spawn_single_enemy_online_deterministic(room_node: Node2D, slot_idx: int) 
 	var enemy := selected_enemy_scene.instantiate()
 	_set_spawned_enemy_identity(enemy, slot_idx)
 	_assign_enemy_net_identity(enemy, room_node, slot_idx)
-	var margin := 80.0
-	var rx: float = float(GameConstants.MAP_MANAGER_ROOM_SIZE_X) - 2.0 * margin
-	var ry: float = float(GameConstants.MAP_MANAGER_ROOM_SIZE_Y) - 2.0 * margin
-	var u := rng.randf()
-	var v := rng.randf()
-	var local_point := Vector2(margin + u * rx, margin + v * ry)
-	var global_point := room_node.to_global(local_point)
+	var global_point := _find_valid_enemy_spawn_global(room_node, rng)
 	area_enemys.add_child(enemy)
 	enemy.global_position = global_point
+
+
+func _find_valid_enemy_spawn_global(room_node: Node2D, rng: RandomNumberGenerator) -> Vector2:
+	var space_state := get_world_2d().direct_space_state
+	var margin := 92.0
+	var rx: float = maxf(1.0, float(GameConstants.MAP_MANAGER_ROOM_SIZE_X) - 2.0 * margin)
+	var ry: float = maxf(1.0, float(GameConstants.MAP_MANAGER_ROOM_SIZE_Y) - 2.0 * margin)
+	for _attempt in range(40):
+		var local_point := Vector2(
+			margin + rng.randf() * rx,
+			margin + rng.randf() * ry
+		)
+		var global_point := room_node.to_global(local_point)
+		if _is_enemy_spawn_point_free(space_state, global_point):
+			return global_point
+	var fallback_local := Vector2(
+		GameConstants.MAP_MANAGER_ROOM_SIZE_X * 0.5,
+		GameConstants.MAP_MANAGER_ROOM_SIZE_Y * 0.5
+	)
+	return room_node.to_global(fallback_local)
+
+
+func _is_enemy_spawn_point_free(space_state: PhysicsDirectSpaceState2D, global_point: Vector2) -> bool:
+	var shape := CircleShape2D.new()
+	shape.radius = 18.0
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = shape
+	query.transform = Transform2D(0.0, global_point)
+	query.collide_with_bodies = true
+	query.collide_with_areas = false
+	query.collision_mask = 1
+	return space_state.intersect_shape(query, 1).is_empty()
 
 
 func _spawn_single_enemy(space_state, room_node, slot_idx: int = 0) -> void:

@@ -2,7 +2,9 @@ extends Control
 
 # Для отладки: выводим ваш код в консоль при хосте
 func _on_host_pressed() -> void:
-	NetworkManager.host_game()
+	if not NetworkManager.host_game():
+		push_warning("Не удалось создать онлайн-комнату")
+		return
 	
 	# Пытаемся получить локальный IP для генерации кода
 	var ip = IP.get_local_addresses()

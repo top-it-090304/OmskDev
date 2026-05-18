@@ -48,6 +48,17 @@ func clear_peer_characters() -> void:
 	peer_characters.clear()
 
 
+func reset_multiplayer_runtime_state() -> void:
+	for id in players.keys().duplicate():
+		_despawn_player(int(id))
+	players.clear()
+	pending_peers.clear()
+	clear_peer_characters()
+	network_spawn_finalize_done = false
+	_alive_players_cache.clear()
+	_player_cache_accum = 0.0
+
+
 func build_peer_characters_for_peers(peer_ids: Array) -> Dictionary:
 	var out: Dictionary = {}
 	for v in peer_ids:
@@ -626,12 +637,7 @@ func _on_network_player_disconnected(player_id: int) -> void:
 
 
 func _on_disconnected() -> void:
-	for id in players.keys().duplicate():
-		_despawn_player(id)
-	players.clear()
-	pending_peers.clear()
-	clear_peer_characters()
-	network_spawn_finalize_done = false
+	reset_multiplayer_runtime_state()
 
 
 func find_safe_spawn_near_global(center: Vector2) -> Vector2:

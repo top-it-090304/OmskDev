@@ -13,7 +13,6 @@ var _syncing_code_input := false
 
 
 func _ready() -> void:
-	_apply_mobile_layout()
 	error_label.text = ""
 	code_input.virtual_keyboard_enabled = false
 	_ignore_button_label_mouse($Panel/VBoxContainer/PasteButton)
@@ -25,26 +24,14 @@ func _ready() -> void:
 	if not back_button.pressed.is_connected(_on_back_pressed):
 		back_button.pressed.connect(_on_back_pressed)
 	_create_code_keyboard()
+	_apply_mobile_layout()
 	call_deferred("_focus_code_input")
-
-
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_RESIZED:
-		_apply_mobile_layout()
 
 
 func _apply_mobile_layout() -> void:
 	if panel == null or panel_box == null:
 		return
 	var compact := get_viewport_rect().size.y <= 320.0
-	panel.anchor_left = 0.08 if compact else 0.25
-	panel.anchor_top = 0.03 if compact else 0.05
-	panel.anchor_right = 0.92 if compact else 0.75
-	panel.anchor_bottom = 0.58 if compact else 0.6
-	panel.offset_left = 0
-	panel.offset_top = 0
-	panel.offset_right = 0
-	panel.offset_bottom = 0
 	panel_box.add_theme_constant_override("separation", 2 if compact else 4)
 	_set_font_size($Panel/VBoxContainer/Title, 11 if compact else 14)
 	_set_font_size(code_input, 11 if compact else 13)
@@ -59,7 +46,7 @@ func _apply_mobile_layout() -> void:
 		if label:
 			_set_font_size(label, 10 if compact else 14)
 			label.clip_text = true
-	_set_button_text($Panel/VBoxContainer/PasteButton, "Вставить" if compact else "📋 Вставить")
+	_set_button_text($Panel/VBoxContainer/PasteButton, "Вставить")
 	_set_button_text($Panel/VBoxContainer/ConnectButton, "Войти" if compact else "Подключиться")
 	_set_button_text($Panel/VBoxContainer/BackButton, "Назад")
 	code_input.custom_minimum_size = Vector2(172, 22) if compact else Vector2(125, 24)
