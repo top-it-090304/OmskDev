@@ -8,6 +8,9 @@ signal done_pressed
 @export var key_font: Font
 @export var key_font_size := 13
 @export var button_min_size := Vector2(42, 22)
+@export var action_button_min_size := Vector2(84, 24)
+@export var row_separation := 3
+@export var button_separation := 3
 
 const KEY_ROWS: Array[Array] = [
 	["1", "2", "3", "4", "5", "6", "7", "8"],
@@ -33,7 +36,7 @@ func _build() -> void:
 	add_theme_stylebox_override("panel", panel_style)
 
 	var rows := VBoxContainer.new()
-	rows.add_theme_constant_override("separation", 3)
+	rows.add_theme_constant_override("separation", row_separation)
 	add_child(rows)
 
 	for row_values in KEY_ROWS:
@@ -47,15 +50,15 @@ func _build() -> void:
 	var actions := _make_row()
 	rows.add_child(actions)
 
-	var backspace_button := _make_button("Del", Vector2(72, 22))
+	var backspace_button := _make_button("Del", action_button_min_size)
 	backspace_button.pressed.connect(func() -> void: backspace_pressed.emit())
 	actions.add_child(backspace_button)
 
-	var clear_button := _make_button("Очистить", Vector2(110, 22))
+	var clear_button := _make_button("Очист.", action_button_min_size)
 	clear_button.pressed.connect(func() -> void: clear_pressed.emit())
 	actions.add_child(clear_button)
 
-	var done_button := _make_button("Готово", Vector2(100, 22))
+	var done_button := _make_button("OK", action_button_min_size)
 	done_button.pressed.connect(func() -> void: done_pressed.emit())
 	actions.add_child(done_button)
 
@@ -63,7 +66,7 @@ func _build() -> void:
 func _make_row() -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 3)
+	row.add_theme_constant_override("separation", button_separation)
 	return row
 
 

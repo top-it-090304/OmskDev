@@ -63,6 +63,9 @@ var PLAYER_ENEMY_CONTACT_DAMAGE = 15
 ## Неуязвимость после удара (сек). Слишком мало — смерть от пачки врагов за кадр.
 var PLAYER_DAMAGE_INVINCIBILITY_SEC: float = 0.35
 
+const DEFAULT_PLAYER_MAX_HEALTH := 450
+const DEFAULT_PLAYER2_MAX_HEALTH := 200
+
 # --- СИСТЕМА УРОВНЕЙ ИГРОКА ---
 var PLAYER_LEVEL: int = 1
 var PLAYER_EXPERIENCE: int = 0
@@ -80,7 +83,7 @@ var SHOW_DAMAGE_NUMBERS: bool = true
 var SHOW_HEAL_NUMBERS: bool = true
 
 func get_player2_max_health() -> int:
-	return maxi(1, PLAYER2_MAX_HEALTH)
+	return PLAYER2_MAX_HEALTH if PLAYER2_MAX_HEALTH > 0 else DEFAULT_PLAYER2_MAX_HEALTH
 
 
 func get_player2_attack_damage() -> int:
@@ -438,6 +441,7 @@ func load_from_disk() -> void:
 	ROOMS_CLEARED = int(cfg.get_value("stats", "ROOMS_CLEARED", ROOMS_CLEARED))
 	ENEMIES_KILLED = int(cfg.get_value("stats", "ENEMIES_KILLED", ENEMIES_KILLED))
 	_apply_stats_section_from_cfg(cfg, "stats")
+	_sanitize_player_stats()
 	constants_changed.emit()
 
 
@@ -482,6 +486,15 @@ func _apply_stats_section_from_cfg(cfg: ConfigFile, section: String) -> void:
 				set(ks, variant_to_bool(raw))
 			_:
 				pass
+
+
+func _sanitize_player_stats() -> void:
+	if PLAYER_MAX_HEALTH <= 0:
+		PLAYER_MAX_HEALTH = DEFAULT_PLAYER_MAX_HEALTH
+	if PLAYER2_MAX_HEALTH <= 0:
+		PLAYER2_MAX_HEALTH = DEFAULT_PLAYER2_MAX_HEALTH
+	PLAYER_ATTACK_DAMAGE = maxi(1, PLAYER_ATTACK_DAMAGE)
+	PLAYER2_ATTACK_DAMAGE = maxi(1, PLAYER2_ATTACK_DAMAGE)
 
 
 ## Общий прогресс коопа (без бонусов артефактов — они только у подобравшего).

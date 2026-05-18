@@ -68,8 +68,7 @@ func _on_disconnected() -> void:
 
 
 func _on_back_pressed() -> void:
-	NetworkManager.disconnect_game()
-	get_tree().change_scene_to_file("res://World/UI/multiplayer_menu.tscn")
+	NetworkManager.destroy_online_session_to_menu()
 
 
 func _set_status(text: String) -> void:

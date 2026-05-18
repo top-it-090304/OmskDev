@@ -72,12 +72,12 @@ var _obstacle_detail_spawn_override: int = -1
 var _enemy_net_sync_accum: float = 0.0
 ## На сервере: peer_id -> последняя клетка комнаты (для sync врагов, когда игроки в разных комнатах).
 var _coop_peer_last_room_grid: Dictionary = {}
-## Один batch RPC ~4 раза/сек только для комнат с игроками: меньше фризов в коопе.
-const ENEMY_NET_SYNC_INTERVAL: float = 0.25
+## Частый batch нужен клиенту, иначе враги визуально ползут к устаревшей позиции.
+const ENEMY_NET_SYNC_INTERVAL: float = 0.06
 const _ENEMY_NET_SYNC_NEIGHBORS: Array[Vector2i] = [
 	Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)
 ]
-const _NET_SYNC_POS_EPS2: float = 36.0
+const _NET_SYNC_POS_EPS2: float = 4.0
 const _NET_SYNC_VEL_EPS2: float = 64.0
 const ENEMY_STATE_KEY := "enemy_spawns"
 const TREASURE_STATE_KEY := "treasure_spawns"
@@ -227,6 +227,10 @@ func _notification(what):
 		# Сохраняем всё перед выходом
 		SaveSystem.save_game()
 		save_dungeon_state()
+		if NetworkManager.is_game_online() and NetworkManager.is_server():
+			var peers := get_tree().get_multiplayer().get_peers()
+			if not peers.is_empty():
+				NetworkManager.rpc_notify_session_ended.rpc()
 		print("=== ВЫХОД ИЗ ИГРЫ - СОХРАНЕНО ===")
 		get_tree().quit()
 
@@ -243,6 +247,8 @@ func _spawn_player():
 
 	var Player = PlayerManager.get_selected_player_scene().instantiate()
 	layer.add_child(Player)
+	if Player.has_method("_ensure_alive_spawn_state"):
+		Player.call("_ensure_alive_spawn_state")
 
 	# Ищем стартовую комнату в списке заспавненных
 	for room_data in spawned_rooms:
@@ -1123,11 +1129,12 @@ func change_current_room(new_x, new_y):
 	if NetworkManager.is_game_offline():
 		SaveSystem.save_game()
 		save_dungeon_state()
-	else:
+	elif mp.is_server():
 		for room_data in spawned_rooms:
 			if room_data["grid_pos"] == new_pos and room_data["type"] >= 2:
 				SaveSystem.save_game()
 				save_dungeon_state()
+				NetworkManager.host_publish_dungeon_state()
 				print("Автосейв: зашли в важную комнату (ID: ", new_pos, ")")
 				break
 
@@ -1184,14 +1191,11 @@ func update_visibility():
 	for room_data in spawned_rooms:
 		var room_node = room_data["node"] as Node2D
 		var room_pos = room_data["grid_pos"]
-		
 		if room_node:
-			# Текущая комната всегда видима
 			if room_pos == current_room_grid_pos:
 				room_node.modulate = Color(1, 1, 1, 1)
 				room_node.visible = true
 				_show_room_contents(room_node, true)
-			# Зачищенные комнаты видимы навсегда
 			elif room_pos in visited_rooms:
 				var enemys_node = room_node.find_child("Enemys")
 				if enemys_node and enemys_node.get_child_count() == 0:
@@ -1208,12 +1212,12 @@ func update_visibility():
 				_show_room_contents(room_node, false)
 
 func _show_room_contents(room_node: Node2D, contents_visible: bool):
-	# Скрываем/показываем врагов; в тумане — без симуляции (ИИ, move_and_slide, сканы игроков)
+	# Скрываем/показываем врагов. ВНИМАНИЕ: не выключаем process_mode — клиенту в коопе нужен
+	# physics_process для интерполяции позиций по RPC от хоста, иначе враги «зависают» на клиенте.
 	var enemys_node = room_node.find_child("Enemys")
 	if enemys_node:
 		for enemy in enemys_node.get_children():
 			enemy.visible = contents_visible
-			enemy.process_mode = Node.PROCESS_MODE_INHERIT if contents_visible else Node.PROCESS_MODE_DISABLED
 	
 	# Скрываем/показываем артефакты
 	for child in room_node.get_children():
@@ -1560,6 +1564,10 @@ func _room_in_enemy_net_sync_region(room_grid: Vector2i) -> bool:
 	return false
 
 
+func room_in_local_enemy_net_sync_region(room_grid: Vector2i) -> bool:
+	return _room_in_enemy_net_sync_region(room_grid)
+
+
 ## Сервер: синхронизировать врагов во всех комнатах, где сейчас (или рядом) стоит любой из пиров.
 func _room_in_enemy_net_sync_for_server(room_grid: Vector2i) -> bool:
 	var mp := get_tree().get_multiplayer()
@@ -1575,6 +1583,9 @@ func _room_in_enemy_net_sync_for_server(room_grid: Vector2i) -> bool:
 			rg = _coop_peer_last_room_grid[rid] as Vector2i
 		if room_grid == rg:
 			return true
+		for d in _ENEMY_NET_SYNC_NEIGHBORS:
+			if room_grid == rg + d:
+				return true
 	return false
 
 
@@ -1626,7 +1637,7 @@ func _physics_process_host_sync_enemies() -> void:
 			var ap := str(vis.get("ap", ""))
 			var ap_pos := float(vis.get("ap_pos", 0.0))
 			var hp_val: int = int(ch.get("hp")) if ch.get("hp") != null else 0
-			var max_hp_val: int = int(ch.get("max_hp")) if ch.get("max_hp") != null else maxi(hp_val, 1)
+			var max_hp_val: int = NetworkManager.get_enemy_sync_max_hp(ch, hp_val)
 			var dead := GameConstants.variant_to_bool(ch.get("is_dead"))
 			if ch.has_meta(&"_net_sync_last_pos"):
 				var last_p: Vector2 = ch.get_meta(&"_net_sync_last_pos")

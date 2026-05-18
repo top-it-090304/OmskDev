@@ -178,12 +178,13 @@ func load_game() -> bool:
 	# Загружаем характеристики игрока
 	if "player_stats" in save_data:
 		var stats = save_data["player_stats"]
-		GameConstants.PLAYER_MAX_SPEED = stats.get("max_speed", BASE_VALUES["PLAYER_MAX_SPEED"])
-		GameConstants.PLAYER_MAX_HEALTH = stats.get("max_health", BASE_VALUES["PLAYER_MAX_HEALTH"])
-		GameConstants.PLAYER_ENEMY_CONTACT_DAMAGE = stats.get("enemy_contact_damage", BASE_VALUES["PLAYER_ENEMY_CONTACT_DAMAGE"])
-		GameConstants.PLAYER_ATTACK_DAMAGE = stats.get("attack_damage", BASE_VALUES["PLAYER_ATTACK_DAMAGE"])
-		GameConstants.PLAYER2_MAX_HEALTH = stats.get("player2_max_health", BASE_VALUES["PLAYER2_MAX_HEALTH"])
-		GameConstants.PLAYER2_ATTACK_DAMAGE = stats.get("player2_attack_damage", BASE_VALUES["PLAYER2_ATTACK_DAMAGE"])
+		GameConstants.PLAYER_MAX_SPEED = int(stats.get("max_speed", BASE_VALUES["PLAYER_MAX_SPEED"]))
+		GameConstants.PLAYER_MAX_HEALTH = maxi(1, int(stats.get("max_health", BASE_VALUES["PLAYER_MAX_HEALTH"])))
+		GameConstants.PLAYER_ENEMY_CONTACT_DAMAGE = int(stats.get("enemy_contact_damage", BASE_VALUES["PLAYER_ENEMY_CONTACT_DAMAGE"]))
+		GameConstants.PLAYER_ATTACK_DAMAGE = maxi(1, int(stats.get("attack_damage", BASE_VALUES["PLAYER_ATTACK_DAMAGE"])))
+		var p2_max := int(stats.get("player2_max_health", BASE_VALUES["PLAYER2_MAX_HEALTH"]))
+		GameConstants.PLAYER2_MAX_HEALTH = p2_max if p2_max > 0 else BASE_VALUES["PLAYER2_MAX_HEALTH"]
+		GameConstants.PLAYER2_ATTACK_DAMAGE = maxi(1, int(stats.get("player2_attack_damage", BASE_VALUES["PLAYER2_ATTACK_DAMAGE"])))
 		GameConstants.PLAYER_ARMOR = stats.get("armor", BASE_VALUES["PLAYER_ARMOR"])
 		GameConstants.PLAYER_DODGE_CHANCE = stats.get("dodge_chance", BASE_VALUES["PLAYER_DODGE_CHANCE"])
 		GameConstants.PLAYER_CRIT_CHANCE = stats.get("crit_chance", BASE_VALUES["PLAYER_CRIT_CHANCE"])
@@ -214,9 +215,12 @@ func load_game() -> bool:
 	# Сохраняем данные для восстановления здоровья
 	if "player_current_health" in save_data:
 		var h: int = int(save_data["player_current_health"])
+		var max_h: int = GameConstants.PLAYER_MAX_HEALTH
+		if selected_player == 1:
+			max_h = GameConstants.get_player2_max_health()
 		if h <= 0:
-			h = GameConstants.PLAYER_MAX_HEALTH
-		saved_player_health = h
+			h = max_h
+		saved_player_health = clampi(h, 1, max_h)
 		should_restore_player = true
 
 	# Одиночное продолжение: сброс флага «забег окончен», иначе логика коопа может блокировать урон/движение
@@ -327,14 +331,15 @@ func restore_player_state():
 	# Восстанавливаем именно сохранённое здоровье. Позиция/этаж не должны давать полный отхил.
 	if saved_player_health <= 0:
 		return
+	var max_h: int = GameConstants.PLAYER_MAX_HEALTH
+	if player.has_method("_get_max_health"):
+		max_h = int(player.call("_get_max_health"))
+	max_h = maxi(1, max_h)
 	var h: int = maxi(1, saved_player_health)
-	if h > GameConstants.PLAYER_MAX_HEALTH:
-		h = GameConstants.PLAYER_MAX_HEALTH
+	if h > max_h:
+		h = max_h
 	if "health_int" in player:
 		player.health_int = h
-		var max_h: int = GameConstants.PLAYER_MAX_HEALTH
-		if player.has_method("_get_max_health"):
-			max_h = int(player.call("_get_max_health"))
 		if player.get("is_local_player") != false or NetworkManager.is_game_offline():
 			player.health_changed.emit(h, max_h)
 		print("Восстановлено здоровье игрока: ", h)

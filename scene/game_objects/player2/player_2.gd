@@ -21,7 +21,7 @@ const DEFAULT_GAME_OVER = preload("res://World/UI/game_over.tscn")
 # ОСНОВНЫЕ ПЕРЕМЕННЫЕ
 # =========================================================
 
-var health_int = 0
+var health_int: int = GameConstants.get_player2_max_health()
 var can_take_damage = true
 
 # Отравление
@@ -50,7 +50,7 @@ var can_anim = true
 var can_attack = true
 var is_dead = false
 
-var last_known_max_health = 0
+var last_known_max_health: int = GameConstants.get_player2_max_health()
 var _shot_direction := Vector2.DOWN
 var _last_shot_msec: int = 0
 var _hurt_anim_token: int = 0
@@ -742,6 +742,17 @@ func _on_can_attack_timeout() -> void:
 func _get_max_health() -> int:
 	return GameConstants.get_player2_max_health()
 
+
+func _ensure_alive_spawn_state() -> void:
+	var max_health := _get_max_health()
+	if health_int <= 0:
+		health_int = max_health
+	is_dead = false
+	can_anim = true
+	can_move = true
+	can_attack = true
+	can_take_damage = true
+
 # =========================================================
 # READY
 # =========================================================
@@ -769,6 +780,7 @@ func _ready() -> void:
 		if SaveSystem.should_restore_player
 		else _get_max_health()
 	)
+	_ensure_alive_spawn_state()
 
 	last_known_max_health = _get_max_health()
 

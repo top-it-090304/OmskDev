@@ -11,11 +11,13 @@ const SFX_FOLDERS = {
 	"игрок_атака": "res://music/sfx/игрок1_атака/",
 	"игрок1_атака": "res://music/sfx/игрок1_атака/",
 	"игрок2_атака": "res://music/sfx/игрок2_атака/",
+	"огненный_выстрел": "res://music/sfx/игрок2_атака/",
 	"игрок1_ходьба": "res://music/sfx/игрок1_ходьба/",
 	"игрок_урон": "res://music/sfx/игрок_урон/",
 	"враг_атака_ближний": "res://music/sfx/враг_атака_ближний/",
 	"враг_урон": "res://music/sfx/враг_урон/",
 	"враг_выстрел_стрела": "res://music/sfx/враг_выстрел_стрела/",
+	"враг_полет_стрелы": "res://music/sfx/враг_выстрел_стрела/",
 	"двери_открылись": "res://music/sfx/двери_открылись/",
 	"двери_закрылись": "res://music/sfx/двери_закрылись/",
 	"ульта_игрок2": "res://music/sfx/ульта_игрок2/",
@@ -48,8 +50,12 @@ var _current_music: AudioStream = null
 var _is_combat: bool = false
 
 const MAX_SFX_PER_TYPE = 3  # Максимум одновременно играющих звуков одного типа
+const SETTINGS_PATH := "user://settings.cfg"
+const DEFAULT_SFX_VOLUME := 1.0
+const DEFAULT_MUSIC_VOLUME := 1.0
 
 func _ready() -> void:
+	_ensure_audio_buses()
 	_music_player = AudioStreamPlayer.new()
 	_music_player.bus = "Music"
 	add_child(_music_player)
@@ -65,17 +71,51 @@ func _ready() -> void:
 
 func _load_audio_settings() -> void:
 	var cfg := ConfigFile.new()
-	if cfg.load("user://settings.cfg") == OK:
-		var sfx_vol = float(cfg.get_value("audio", "sfx", 1.0))
-		var music_vol = float(cfg.get_value("audio", "music", 1.0))
-		_apply_bus_volume("SFX", sfx_vol)
-		_apply_bus_volume("Music", music_vol)
+	var sfx_vol := DEFAULT_SFX_VOLUME
+	var music_vol := DEFAULT_MUSIC_VOLUME
+	if cfg.load(SETTINGS_PATH) == OK:
+		sfx_vol = _sanitize_volume(cfg.get_value("audio", "sfx", DEFAULT_SFX_VOLUME), DEFAULT_SFX_VOLUME)
+		music_vol = _sanitize_volume(cfg.get_value("audio", "music", DEFAULT_MUSIC_VOLUME), DEFAULT_MUSIC_VOLUME)
+		if sfx_vol <= 0.0 and music_vol <= 0.0:
+			sfx_vol = DEFAULT_SFX_VOLUME
+			music_vol = DEFAULT_MUSIC_VOLUME
+		cfg.set_value("audio", "sfx", sfx_vol)
+		cfg.set_value("audio", "music", music_vol)
+		cfg.save(SETTINGS_PATH)
+	_apply_bus_volume("SFX", sfx_vol)
+	_apply_bus_volume("Music", music_vol)
+
+
+func _sanitize_volume(raw: Variant, fallback: float) -> float:
+	var value := fallback
+	if raw is int or raw is float:
+		value = float(raw)
+	elif raw is String and raw.is_valid_float():
+		value = float(raw)
+	if is_nan(value) or is_inf(value) or value < 0.0 or value > 1.0:
+		return fallback
+	return value
+
+
+func _ensure_audio_buses() -> void:
+	_ensure_audio_bus("Music")
+	_ensure_audio_bus("SFX")
+
+
+func _ensure_audio_bus(bus_name: String) -> void:
+	if AudioServer.get_bus_index(bus_name) >= 0:
+		return
+	AudioServer.add_bus()
+	var idx := AudioServer.get_bus_count() - 1
+	AudioServer.set_bus_name(idx, bus_name)
+	AudioServer.set_bus_send(idx, "Master")
 
 func _apply_bus_volume(bus_name: String, value: float) -> void:
 	var idx := AudioServer.get_bus_index(bus_name)
 	if idx >= 0:
-		AudioServer.set_bus_volume_db(idx, linear_to_db(value) if value > 0 else -80.0)
-		AudioServer.set_bus_mute(idx, value == 0.0)
+		var normalized := _sanitize_volume(value, 1.0)
+		AudioServer.set_bus_volume_db(idx, linear_to_db(normalized) if normalized > 0.0 else -80.0)
+		AudioServer.set_bus_mute(idx, normalized <= 0.0)
 
 # --- МУЗЫКА ---
 
@@ -212,7 +252,7 @@ func _get_random_from_folder(cache_key: String, folder_path: String) -> AudioStr
 		dir.list_dir_begin()
 		var file_name = dir.get_next()
 		while file_name != "":
-			if not dir.current_is_dir() and (file_name.ends_with(".wav") or file_name.ends_with(".mp3")):
+			if not dir.current_is_dir() and _is_audio_file(file_name):
 				var stream = load(folder_path + file_name)
 				if stream:
 					loaded_files.append(stream)
@@ -224,3 +264,8 @@ func _get_random_from_folder(cache_key: String, folder_path: String) -> AudioStr
 	if loaded_files.is_empty():
 		return null
 	return loaded_files[randi() % loaded_files.size()]
+
+
+func _is_audio_file(file_name: String) -> bool:
+	var lower := file_name.to_lower()
+	return lower.ends_with(".wav") or lower.ends_with(".mp3") or lower.ends_with(".ogg")

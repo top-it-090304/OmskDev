@@ -222,6 +222,8 @@ func _spawn_player(player_id: int, game_root: Node = null) -> void:
 	instance.name = "Player_%d" % player_id
 	instance.set_multiplayer_authority(player_id)
 	world.add_child(instance)
+	if instance.has_method("_ensure_alive_spawn_state"):
+		instance.call("_ensure_alive_spawn_state")
 	
 	if player_id == NetworkManager.my_id:
 		instance.is_local_player = true
@@ -599,7 +601,9 @@ func _on_disconnected() -> void:
 	for id in players.keys().duplicate():
 		_despawn_player(id)
 	players.clear()
+	pending_peers.clear()
 	clear_peer_characters()
+	network_spawn_finalize_done = false
 
 
 func find_safe_spawn_near_global(center: Vector2) -> Vector2:

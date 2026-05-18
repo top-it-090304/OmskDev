@@ -19,6 +19,7 @@ const MAIN_MENU_SCENE := "res://World/UI/menu.tscn"
 const PAUSED_SCENE := preload("res://World/UI/paused.tscn")
 var connection_timer: Timer = null
 var _returning_to_menu: bool = false
+var _destroying_online_session: bool = false
 var coop_pause_active: bool = false
 var _coop_pause_menu: Node = null
 
@@ -46,6 +47,7 @@ func _ready() -> void:
 
 func host_game(port: int = 4242) -> void:
 	_returning_to_menu = false
+	_destroying_online_session = false
 	var peer := ENetMultiplayerPeer.new()
 	if peer.create_server(port, MAX_CLIENT_PEERS) != OK:
 		return
@@ -58,6 +60,7 @@ func host_game(port: int = 4242) -> void:
 
 func join_game(address: String, port: int = 4242) -> void:
 	_returning_to_menu = false
+	_destroying_online_session = false
 	var peer := ENetMultiplayerPeer.new()
 	if peer.create_client(address, port) != OK:
 		emit_signal("connection_failed")
@@ -69,18 +72,30 @@ func join_game(address: String, port: int = 4242) -> void:
 	_apply_network_rpc_authority()
 
 func disconnect_game() -> void:
+	var was_active := connection_state != ConnectionState.DISCONNECTED or get_tree().get_multiplayer().has_multiplayer_peer()
 	_force_close_coop_pause()
 	get_tree().get_multiplayer().multiplayer_peer = null
 	connection_state = ConnectionState.DISCONNECTED
 	my_id = 0
 	lobby_display_code = ""
+	_destroying_online_session = false
 	reset_coop_run_state()
 	if not connection_timer.is_stopped():
 		connection_timer.stop()
+	if was_active:
+		emit_signal("disconnected_from_server")
 
 
 ## Хост завершил сессию — уведомить гостей и выйти в главное меню.
 func host_leave_session_to_menu() -> void:
+	destroy_online_session_to_menu()
+
+
+## Любой выход из онлайна уничтожает комнату целиком. Так новый запуск не наследует старых peer/state.
+func destroy_online_session_to_menu() -> void:
+	if _destroying_online_session:
+		return
+	_destroying_online_session = true
 	if is_game_online() and is_server():
 		var peers := get_tree().get_multiplayer().get_peers()
 		if not peers.is_empty():
@@ -103,6 +118,7 @@ func return_to_main_menu() -> void:
 
 @rpc("authority", "call_remote", "reliable")
 func rpc_notify_session_ended() -> void:
+	_destroying_online_session = true
 	return_to_main_menu()
 
 
@@ -348,15 +364,17 @@ func _on_connection_timeout() -> void:
 
 func _on_disconnected() -> void:
 	var was_online_client := connection_state == ConnectionState.CONNECTED
+	get_tree().get_multiplayer().multiplayer_peer = null
 	connection_state = ConnectionState.DISCONNECTED
 	my_id = 0
 	lobby_display_code = ""
+	_destroying_online_session = false
 	reset_coop_run_state()
 	if not connection_timer.is_stopped():
 		connection_timer.stop()
 	emit_signal("disconnected_from_server")
-	# Хост вышел / оборвалось соединение — гостя из данжа отправляем в меню.
-	if was_online_client and not _returning_to_menu and _is_in_dungeon_session():
+	# Хост вышел / оборвалось соединение — гость всегда выходит из лобби/данжа в меню.
+	if was_online_client and not _returning_to_menu:
 		call_deferred("return_to_main_menu")
 
 
@@ -376,6 +394,14 @@ func _on_peer_connected(id: int) -> void:
 
 func _on_peer_disconnected(id: int) -> void:
 	emit_signal("player_disconnected", id)
+	if is_server() and not _destroying_online_session:
+		call_deferred("_destroy_session_after_peer_left")
+
+
+func _destroy_session_after_peer_left() -> void:
+	if not is_server() or _destroying_online_session:
+		return
+	destroy_online_session_to_menu()
 
 
 # --- Артефакты в коопе (один экземпляр на этаж) ---

@@ -5,12 +5,15 @@ const CodeKeyboard := preload("res://World/UI/code_keyboard.gd")
 @onready var code_input: LineEdit = $Panel/VBoxContainer/CodeInput
 @onready var error_label: Label = $Panel/VBoxContainer/ErrorLabel
 @onready var back_button: TextureButton = $Panel/VBoxContainer/BackButton
+@onready var panel: Panel = $Panel
+@onready var panel_box: VBoxContainer = $Panel/VBoxContainer
 
 var _code_keyboard: Control
 var _syncing_code_input := false
 
 
 func _ready() -> void:
+	_apply_mobile_layout()
 	error_label.text = ""
 	code_input.virtual_keyboard_enabled = false
 	_ignore_button_label_mouse($Panel/VBoxContainer/PasteButton)
@@ -23,6 +26,56 @@ func _ready() -> void:
 		back_button.pressed.connect(_on_back_pressed)
 	_create_code_keyboard()
 	call_deferred("_focus_code_input")
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED:
+		_apply_mobile_layout()
+
+
+func _apply_mobile_layout() -> void:
+	if panel == null or panel_box == null:
+		return
+	var compact := get_viewport_rect().size.y <= 320.0
+	panel.anchor_left = 0.08 if compact else 0.25
+	panel.anchor_top = 0.03 if compact else 0.05
+	panel.anchor_right = 0.92 if compact else 0.75
+	panel.anchor_bottom = 0.58 if compact else 0.6
+	panel.offset_left = 0
+	panel.offset_top = 0
+	panel.offset_right = 0
+	panel.offset_bottom = 0
+	panel_box.add_theme_constant_override("separation", 2 if compact else 4)
+	_set_font_size($Panel/VBoxContainer/Title, 11 if compact else 14)
+	_set_font_size(code_input, 11 if compact else 13)
+	_set_font_size(error_label, 8 if compact else 10)
+	for button in [
+		$Panel/VBoxContainer/PasteButton,
+		$Panel/VBoxContainer/ConnectButton,
+		$Panel/VBoxContainer/BackButton,
+	]:
+		button.custom_minimum_size = Vector2(172, 22) if compact else Vector2(125, 24)
+		var label := button.get_node_or_null("Label") as Label
+		if label:
+			_set_font_size(label, 10 if compact else 14)
+			label.clip_text = true
+	_set_button_text($Panel/VBoxContainer/PasteButton, "Вставить" if compact else "📋 Вставить")
+	_set_button_text($Panel/VBoxContainer/ConnectButton, "Войти" if compact else "Подключиться")
+	_set_button_text($Panel/VBoxContainer/BackButton, "Назад")
+	code_input.custom_minimum_size = Vector2(172, 22) if compact else Vector2(125, 24)
+	if _code_keyboard:
+		_layout_code_keyboard(compact)
+
+
+func _set_font_size(control: Control, size: int) -> void:
+	if control:
+		control.add_theme_font_size_override("font_size", size)
+
+
+func _set_button_text(button: Control, text: String) -> void:
+	var label := button.get_node_or_null("Label") as Label
+	if label:
+		label.text = text
 
 
 func _ignore_button_label_mouse(button: Control) -> void:
@@ -64,22 +117,32 @@ func _create_code_keyboard() -> void:
 	_code_keyboard = CodeKeyboard.new()
 	_code_keyboard.name = "CodeKeyboard"
 	_code_keyboard.visible = false
-	_code_keyboard.anchor_left = 0.04
-	_code_keyboard.anchor_top = 0.62
-	_code_keyboard.anchor_right = 0.96
-	_code_keyboard.anchor_bottom = 0.98
-	_code_keyboard.offset_left = 0
-	_code_keyboard.offset_top = 0
-	_code_keyboard.offset_right = 0
-	_code_keyboard.offset_bottom = 0
 	_code_keyboard.mouse_filter = Control.MOUSE_FILTER_STOP
 	if code_input.has_theme_font("font"):
 		_code_keyboard.key_font = code_input.get_theme_font("font")
+	var compact := get_viewport_rect().size.y <= 320.0
+	_code_keyboard.key_font_size = 10 if compact else 13
+	_code_keyboard.button_min_size = Vector2(34, 19) if compact else Vector2(42, 22)
+	_code_keyboard.action_button_min_size = Vector2(70, 20) if compact else Vector2(84, 24)
+	_code_keyboard.row_separation = 2 if compact else 3
+	_code_keyboard.button_separation = 2 if compact else 3
 	_code_keyboard.key_pressed.connect(_on_code_keyboard_key_pressed)
 	_code_keyboard.backspace_pressed.connect(_on_code_keyboard_backspace_pressed)
 	_code_keyboard.clear_pressed.connect(_on_code_keyboard_clear_pressed)
 	_code_keyboard.done_pressed.connect(_on_code_keyboard_done_pressed)
 	add_child(_code_keyboard)
+	_layout_code_keyboard(compact)
+
+
+func _layout_code_keyboard(compact: bool) -> void:
+	_code_keyboard.anchor_left = 0.03 if compact else 0.04
+	_code_keyboard.anchor_top = 0.62
+	_code_keyboard.anchor_right = 0.97 if compact else 0.96
+	_code_keyboard.anchor_bottom = 0.98
+	_code_keyboard.offset_left = 0
+	_code_keyboard.offset_top = 0
+	_code_keyboard.offset_right = 0
+	_code_keyboard.offset_bottom = 0
 
 
 func _on_code_keyboard_key_pressed(value: String) -> void:
