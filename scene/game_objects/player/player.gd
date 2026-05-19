@@ -578,7 +578,7 @@ func _configure_player_role() -> void:
 
 
 func _ensure_alive_spawn_state() -> void:
-	var max_health := GameConstants.PLAYER_MAX_HEALTH
+	var max_health: int = int(GameConstants.PLAYER_MAX_HEALTH)
 	if health_int <= 0:
 		health_int = max_health
 	is_dead = false
@@ -617,7 +617,7 @@ func _ready() -> void:
 		current_level + 1
 	)
 
-	var max_health := GameConstants.PLAYER_MAX_HEALTH
+	var max_health: int = int(GameConstants.PLAYER_MAX_HEALTH)
 	if is_local_player and SaveSystem.should_restore_player and SaveSystem.saved_player_health > 0:
 		health_int = clampi(SaveSystem.saved_player_health, 1, max_health)
 	else:
