@@ -159,6 +159,9 @@ func _on_start_button_pressed() -> void:
 
 @rpc("authority", "call_local", "reliable")
 func _rpc_start_game(peers_to_spawn: Array, coop_sync: Dictionary = {}, peer_characters: Dictionary = {}) -> void:
+	NetworkManager.reset_coop_run_state()
+	SaveSystem.should_restore_player = false
+	SaveSystem.saved_player_health = 0
 	if NetworkManager.is_hosting():
 		SaveSystem.delete_dungeon_state()
 	if not coop_sync.is_empty():

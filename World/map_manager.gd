@@ -247,8 +247,12 @@ func _spawn_player():
 
 	var Player = PlayerManager.get_selected_player_scene().instantiate()
 	layer.add_child(Player)
+	if Player.has_method("_configure_player_role"):
+		Player.call("_configure_player_role")
 	if Player.has_method("_ensure_alive_spawn_state"):
 		Player.call("_ensure_alive_spawn_state")
+	if Player.has_method("_refresh_local_player_after_spawn"):
+		Player.call_deferred("_refresh_local_player_after_spawn")
 
 	# Ищем стартовую комнату в списке заспавненных
 	for room_data in spawned_rooms:

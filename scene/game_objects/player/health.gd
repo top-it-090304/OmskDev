@@ -22,7 +22,9 @@ func setup_player_connection():
 		if player.has_method("_get_max_health"):
 			max_h = int(player.call("_get_max_health"))
 		max_value = max_h
-		value = clampi(player.health_int, 0, max_h)
+		if player.has_method("_ensure_alive_spawn_state") and int(player.get("health_int")) <= 0:
+			player.call("_ensure_alive_spawn_state")
+		value = clampi(int(player.health_int), 0, max_h)
 	else:
 		print("Полоска здоровья: Игрок не найден в группе 'player'")
 

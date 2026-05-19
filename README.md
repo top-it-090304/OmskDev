@@ -1,197 +1,341 @@
-# Dungeon — 2D roguelike с процедурным данжем и кооперативом
+<div align="center">
 
-**Коротко для слайда:** изометрический top-down roguelike в духе классических «данж-краулеров»: процедурная карта, рост силы персонажа, артефакты с постоянными бонусами, боссы и переход между этажами. Реализованы **одиночная игра** и **онлайн-кооператив** (хост + до **7** гостей по `MAX_CLIENT_PEERS`, на практике удобно демонить парой клиентов) на **Godot 4.4** с упором на мобильный ввод и читаемый кодовый каркас.
+# 🗡️ Dungeon
 
----
+**2D-roguelike с процедурным данжем, артефактами и онлайн-кооперативом до 8 игроков**
 
-## 1. Позиционирование и аудитория
+[![Godot](https://img.shields.io/badge/Godot-4.4-478CBF?logo=godotengine&logoColor=white)](https://godotengine.org/)
+[![Language](https://img.shields.io/badge/GDScript-100%25-355570?logo=godotengine&logoColor=white)](https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_basics.html)
+[![Platform](https://img.shields.io/badge/Platform-Mobile%20%7C%20Android%20%7C%20AuroraOS-3DDC84?logo=android&logoColor=white)](#)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#-contributing)
 
-| Аспект | Описание |
-|--------|----------|
-| **Жанр** | Action roguelike / dungeon crawler, вид сверху, акцент на комнатах и коридорах |
-| **Референсы по ощущению** | Binding of Isaac-подобный цикл «комната → зачистка → лут → глубже», без копирования конкретных механик |
-| **Платформа** | Проект собран с флагом **Mobile**; управление джойстиками на экране, масштабирование через **Viewport Stretch** |
-| **Целевая аудитория презентации** | Издатели, преподаватели курсов gamedev, команда на хакатоне, инвесторы на ранней стадии |
-
----
-
-## 2. Игровой цикл (что показывать на демо)
-
-1. **Меню** — новая игра или продолжение (при наличии сохранения), настройки, мультиплеер-лобби.
-2. **Генерация этажа** — одна и та же «логическая» карта у всех участников сессии: сид сохраняется, данж воспроизводим.
-3. **Исследование** — сетка комнат (по умолчанию **8×8** клеток), типы: старт, обычные, сокровищницы, босс, пустые клетки.
-4. **Бой** — враги в комнате активируют «режим боя» (музыка, агрессия); зачистка даёт опыт и рост **уровня окружения** врагов.
-5. **Прогресс этажа** — победа над боссом, люк на следующий этаж, перенос прогресса и новая генерация.
-6. **Мета-прогресс** — артефакты и статы пишутся в сохранение; в коопе критичные величины синхронизируются с хоста.
+</div>
 
 ---
 
-## 3. Ключевые особенности (УТП для презентации)
+## 📖 О проекте
 
-- **Процедурная карта с seed** — воспроизводимые забеги, сохранение состояния данжа в `user://dungeon_state.dat` (JSON-подобная структура через систему сохранений).
-- **Туман войны и миникарта** — видимость комнат, посещённые клетки, переключение обзора карты.
-- **Экономия препятствий по графике** — в настройках режим «Камни»: нет / половина / полное количество декоративных препятствий для слабых устройств; в коопе плотность фиксируется в сохранении этажа, чтобы коллизии совпадали у хоста и клиента.
-- **Кооператив** — ENet, хост авторитетный для урона, зачистки комнат, босс-лутa и синхронизации данжа; клиент получает состояние и зеркалирует ключевые события.
-- **Оптимизация сети** — синхрон позиций врагов только в «живой» зоне (текущая комната + соседи), реже RPC, пропуск неизменившихся кадров.
-- **Централизованный баланс** — `GameConstants` + опциональный `user://game_consts.cfg` с горячей перезагрузкой в одиночке; в мультиплеере геометрия карты из cfg не перебивает сессию.
-- **Аудио** — отдельные шины SFX/Music, исследование / бой / босс, плейлисты по папкам для ударов и шагов.
+**Dungeon** — top-down action roguelike в духе классических dungeon-краулеров. Каждый забег — это процедурно сгенерированный данж из связанных комнат: старт → обычные комнаты → сокровищницы → босс → переход на следующий этаж. Между забегами игрок копит **артефакты с постоянными бонусами** и растёт в уровне.
 
----
+Проект собирается с флагом **Mobile** (touch-управление виртуальными джойстиками, viewport-стретч), но запускается и на десктопе через клавиатуру/мышь.
 
-## 4. Контент
+### Ключевые особенности
 
-### 4.1. Комнаты и мир
-
-- Варианты комнат задаются сценами в `World/map_manager.tscn` (старт, обычная, босс, сокровищница).
-- Коридоры — отдельные сцены горизонтальных и вертикальных переходов.
-- Препятствия (камни) спавнятся в контейнере `Obstacles` внутри комнаты, с проверкой коллизий.
-
-### 4.2. Враги (основные типы)
-
-| Тип | Роль |
-|-----|------|
-| **Goblin Axe** | Ближний бой, зона смайта |
-| **Skeleton Bow** | Дальний бой, стрелы |
-| **Goblin Slinger** | Яд, проджектайлы |
-
-Статы масштабируются от `ENEMY_LEVEL` и настраиваются в `globals/game_constants.gd`.
-
-### 4.3. Боссы
-
-- **Skeleton King** и **Beast Goblin** — отдельные сцены с AI, фазами и спавном лута/артефактов; в коопе смерть босса синхронизируется без преждевременного удаления узла до завершения анимаций награды.
-
-### 4.4. Артефакты и расходники
-
-- **Большой набор артефактов** (отдельные `.tscn` + скрипты в `scene/pick_up/artefacts/`): постоянные бонусы к скорости, здоровью, урону, криту, вампиризму, скорости атаки и т.д.; часть наследует общий `artefact_pickup.gd`.
-- **Зелья лечения** и прочие pick-up в `scene/pick_up/`.
-- В коопе подбор артефакта идёт через RPC хоста, чтобы инвентарь и мир оставались согласованными.
+- 🎲 **Процедурная генерация с seed** — забеги воспроизводимы, состояние данжа сохраняется в `user://dungeon_state.dat`.
+- 🤝 **Онлайн-кооператив до 8 человек** (1 хост + 7 гостей, ENet, авторитативный хост).
+- 🗺️ **Туман войны и миникарта** — посещённые/увиденные/зачищенные комнаты.
+- ⚔️ **Несколько типов врагов и боссов** — Goblin Axe, Skeleton Bow, Goblin Slinger, Skeleton King, Beast Goblin.
+- 💎 **Большой набор артефактов** — постоянные бонусы к HP, скорости, урону, криту, вампиризму и пр.
+- 🎵 **Адаптивная музыка** — отдельные плейлисты для исследования / боя / босса.
+- ⚙️ **Горячая перезагрузка баланса** — `globals/game_consts.cfg` пересчитывается на лету в одиночке.
+- 🌍 **Локализация:** русский, английский, азербайджанский.
 
 ---
 
-## 5. Мультиплеер и кооператив (для технического слайда)
+## 🧰 Технологический стек
 
-| Тема | Реализация |
-|------|------------|
-| **Транспорт** | `ENetMultiplayerPeer`, порт по умолчанию **4242** |
-| **Лобби** | `World/UI/lobby.gd` — код комнаты из локального IP, список игроков, старт только с хоста |
-| **Старт забега** | RPC передаёт список peer’ов и снимок `GameConstants` (`capture_coop_start_state` / `apply_coop_start_state`) |
-| **Данж** | После генерации хост публикует `dungeon_state`; клиент ждёт сигнал `dungeon_sync_received` и вызывает `load_dungeon_state` |
-| **Игроки** | `PlayerManager` спавнит экземпляры `player.tscn` с `multiplayer_authority` = id игрока; финальная расстановка в стартовой комнате после физики карты |
-| **Смерть** | Общий game over для коопа при гибели любого участника |
-
-Подробности RPC смотрите в `globals/network_manager.gd` (синхрон врагов, комнаты, артефакты, люк босса, переход этажа).
+| Компонент   | Версия / примечание                                              |
+|-------------|------------------------------------------------------------------|
+| **Движок**  | Godot **4.4** (`config/features=4.4, Mobile`)                    |
+| **Язык**    | GDScript (без .NET/C#/Mono)                                      |
+| **Рендер**  | `mobile` renderer, viewport stretch, ETC2/ASTC-сжатие текстур    |
+| **Сеть**    | Встроенный `MultiplayerAPI` + `ENetMultiplayerPeer`, порт `4242` |
+| **Плагины** | `addons/AS2P` (sprite → collision), 3× `addons/virtual_joystick*`|
 
 ---
 
-## 6. Сохранения и файлы пользователя
+## 📋 Prerequisites (требования)
 
-| Файл | Назначение |
-|------|------------|
-| `user://save_game.dat` | Прогресс игрока, статы, опыт, собранные артефакты (имена/иконки/описания), люк босса |
-| `user://dungeon_state.dat` | Seed данжа, посещённые/видимые/зачищенные комнаты, сокровищницы, текущая позиция в сетке, уровень детализации препятствий для воспроизводимости |
-| `user://game_consts.cfg` | Баланс и размеры карты (секция `[stats]`), перезагрузка в рантайме |
-| `user://settings.cfg` | Громкость, частицы, плотность камней, расклад джойстиков |
+### Для запуска и разработки
 
----
+- **[Godot 4.4](https://github.com/savegame/godot/releases/tag/4.4.1-auroraos-4)** — desktop-редактор с поддержкой Mobile-рендера. Mono-версия **не требуется**.
+- **Git** ≥ 2.30 — для клонирования и работы с историей.
+- ~500 МБ свободного места на диске (с учётом импортов в `.godot/`).
 
-## 7. Настройки и UX
+### Для экспорта в `.apk` (Android)
 
-- Громкость музыки и SFX, переключатель частиц.
-- **Камни** (графика): «Нет» / «Половина» / «Все» — влияет на спавн препятствий на новых этажах.
-- Экран настройки джойстиков и тестовая комната для калибровки управления на мобильных экранах.
+- Godot 4.4 → Editor Settings → Export → Android: настроенные пути к **Android SDK**, **JDK 17** и **debug keystore**. Подробности — в [официальной документации Godot](https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_android.html).
+- В репозитории уже есть пресет в `export_presets.cfg` (target API: `arm64-v8a`, package `com.example.dungeon`).
 
----
+### Для экспорта в AuroraOS
 
-## 8. Технологический стек
-
-| Компонент | Версия / примечание |
-|-----------|---------------------|
-| **Движок** | Godot **4.4** (в `project.godot` указано `config/features=4.4`, `Mobile`) |
-| **Язык** | GDScript |
-| **Сеть** | Встроенный `MultiplayerAPI` + RPC |
-| **Плагины** | `addons/AS2P` (анимация спрайт → коллизии) |
+- Шаблон экспорта AuroraOS для Godot 4.4 (`architectures/armv7hl=true`). Конфигурация лежит в `export_presets.cfg → preset.0`.
 
 ---
 
-## 9. Архитектура: автозагрузки (singleton)
+## 🚀 Quick Start
 
-Подключены в `project.godot` → Autoload:
+### 1. Клонирование
 
-| Имя | Скрипт | Роль |
-|-----|--------|------|
-| `GameConstants` | `globals/game_constants.gd` | Статы игрока/врагов, размеры карты, опыт, сигнал `constants_changed` |
-| `SaveSystem` | `globals/save_system.gd` | JSON-сохранения игрока и данжа |
-| `AudioManager` | `globals/audio_manager.gd` | Музыка и SFX, чтение громкости из настроек |
-| `NetworkManager` | `globals/network_manager.gd` | Подключение, RPC, кооп-логика |
-| `PlayerManager` | `globals/player_manager.gd` | Спавн игроков, кооп-спавн-пойнты, утилиты для AI «ближайший игрок» |
-| `LocalizationManager` | `globals/localization_manager.gd` | Языковые настройки (инфраструктура) |
+```bash
+git clone https://github.com/top-it-090304/OmskDev
+cd OmskDev
+```
 
-**Группы сцен** (для поиска узлов): `player`, `local_player`, `enemys`, `map_manager`, `backpack`, `inventory_screen`, `ui_layer` и др. — см. код регистрации в соответствующих `_ready`.
+### 2. Импорт проекта
+
+Откройте Godot 4.4 и нажмите **Import** → выберите файл `project.godot` в корне репозитория. Godot создаст папку `.godot/` и проимпортирует все ресурсы (первый раз это занимает 1–2 минуты).
+
+### 3. Запуск
+
+В редакторе нажмите **F5** — стартовая сцена уже сконфигурирована (`World/UI/menu.tscn`, поле `run/main_scene` в `project.godot`).
+
+### 4. Smoke-test из CLI (опционально)
+
+Проверка, что проект корректно импортируется и не падает:
+
+```bash
+# Windows (PowerShell)
+& "<path-to-godot>\Godot.windows.editor.x86_64.exe" --path . --headless --quit-after 1
+
+# Linux / macOS
+godot4 --path . --headless --quit-after 1
+```
+
+Команда должна завершиться с кодом `0` и без критических ошибок в stderr.
+
+### 5. Локальный кооп (две машины в одной сети)
+
+1. На обоих устройствах должна быть открыта по UDP/TCP **`4242`** в firewall.
+2. **Хост:** меню → *Мультиплеер* → *Создать игру* → запомнить код комнаты (это локальный IP).
+3. **Клиент:** меню → *Мультиплеер* → *Присоединиться* → ввести код.
+4. Хост стартует забег — клиенту приходит снимок состояния данжа и `GameConstants`.
 
 ---
 
-## 10. Структура репозитория (обзор)
+## 🎮 Управление
+
+| Действие              | Клавиатура           | Touch                    |
+|-----------------------|----------------------|--------------------------|
+| Движение              | `W` / `A` / `S` / `D`| Левый виртуальный стик   |
+| Атака                 | ЛКМ / стрелки        | Правый виртуальный стик  |
+| Открыть карту         | `Tab`                | Кнопка «карта» в HUD     |
+
+Полная карта инпута — секция `[input]` в `project.godot`.
+
+---
+
+## 📁 Структура проекта
 
 ```
-.
-├── README.md                      ← этот документ (обзор для презентации)
-├── project.godot                  ← точка входа проекта, autoload, input map
-├── globals/                       ← синглтоны и конфиги баланса
-├── World/                         ← основная игровая сцена слоя, MapManager, миникарта, UI мира
+dungeon/
+├── project.godot               ← конфигурация: autoload, main scene, input map, локали
+├── LICENSE                     ← MIT License
+├── README.md                   ← вы здесь
+├── export_presets.cfg          ← пресеты экспорта (Android, AuroraOS)
+├── default_bus_layout.tres     ← аудио-шины (Master / Music / SFX)
+│
+├── globals/                    ← autoload-синглтоны и баланс
+│   ├── game_constants.gd       ←   стат-холдер игрока/врагов, сигнал constants_changed
+│   ├── game_consts.cfg         ←   горячо-перезагружаемый конфиг баланса
+│   ├── save_system.gd          ←   JSON-сохранения (player + dungeon)
+│   ├── audio_manager.gd        ←   музыка/SFX, чтение громкости
+│   ├── network_manager.gd      ←   ENet host/join, RPC, кооп-логика
+│   ├── player_manager.gd       ←   спавн игроков, кооп-spawn-points
+│   └── localization_manager.gd ←   языки (ru/en/az)
+│
+├── World/                      ← основная игровая сцена и менеджеры
+│   ├── layer.tscn              ←   слой с MapManager + UI + миникартой
+│   ├── map_manager.tscn/.gd    ←   генерация комнат и коридоров (8×8 сетка)
+│   ├── minimap.tscn/.gd
+│   ├── camera_manager.gd
+│   └── UI/                     ←   меню, лобби, пауза, настройки
+│
 ├── scene/
-│   ├── game_objects/              ← игрок, враги, боссы
-│   ├── pick_up/                   ← артефакты, зелья, люк
-│   ├── room_variants/             ← префабы комнат и тайлсеты
-│   ├── abilities/                 ← визуал/логика атак
-│   ├── ui/                        ← всплывающие UI (артефакт и т.д.)
-│   └── button/                    ← виртуальные джойстики
-├── assets/, music/, Font/         ← контент
-└── addons/AS2P/                   ← плагин редактора
+│   ├── game_objects/
+│   │   ├── player/             ←   player.tscn, опыт, бой, инвентарь
+│   │   ├── enemy/              ←   Goblin Axe / Skeleton Bow / Goblin Slinger
+│   │   └── bosses/             ←   Skeleton King, Beast Goblin
+│   ├── pick_up/                ←   артефакты, зелья, люк
+│   │   └── artefacts/          ←   ~30 артефактов, общий artefact_pickup.gd
+│   ├── room_variants/          ←   префабы комнат, тайлсеты
+│   ├── abilities/              ←   логика и визуал атак
+│   ├── effects/                ←   партиклы, FX
+│   ├── ui/                     ←   всплывающие UI (попап артефакта и т.д.)
+│   └── button/                 ←   виртуальные джойстики
+│
+├── addons/
+│   ├── AS2P/                   ←   AnimatedSprite2D → Polygon2D-коллизии
+│   ├── virtual_joystick/
+│   ├── virtual_joystick_attack/
+│   └── virtual_joystick_move/
+│
+├── translations/               ←   translations.csv + ru/en/az .translation
+├── assets/, sprites/, music/, Font/, icons/   ←   арт и аудио
+└── docs/                       ←   архитектурные доки и история изменений
+    ├── ARTEFACTS_SUMMARY.md
+    ├── BACKPACK_SYSTEM.md
+    ├── CHANGELOG_ARTEFACTS.md
+    ├── LEVEL_SYSTEM_UI_GUIDE.md
+    ├── PLAN_IMPROVEMENTS.md
+    └── SAVE_SYSTEM.md
 ```
 
-Главная игровая сцена после старта забега: **`World/layer.tscn`** (слой с `MapManager`, UI, рюкзаком, миникартой). Точка входа приложения задаётся UID главного меню в `project.godot`.
+> **Внимание:** файлы `Player.gd`, `PlayerInput.gd`, `LevelSetup.gd`, `test_network.gd`, `artefact(boots_of_travel).gd`, `void.png` в **корне** репозитория — устаревшие прототипы и тестовые скрипты, **не используются** в собираемом проекте. Их планируется убрать; новый код кладите в соответствующие подпапки (`scene/`, `World/`, `globals/`).
 
 ---
 
-## 11. Запуск проекта (для демонстрации живьём)
+## 🧠 Архитектура: autoload-синглтоны
 
-1. Установить **Godot 4.4** с поддержкой экспорта под целевые платформы.
-2. Открыть папку проекта как проект Godot (`project.godot`).
-3. Запустить сцену с главным меню (main scene в настройках проекта) или **F5** с выбранной главной сценой.
-4. Для коопа: два экземпляра редактора или экспорт + ПК; один хостит, второй подключается по IP/коду из лобби.
+Все глобальные сервисы зарегистрированы в `project.godot → [autoload]`:
 
-Для автоматизированной проверки открытия проекта из CLI путь к исполняемому файлу Godot задаётся **локально** (например, в правилах среды разработки или CI); в репозитории путь к бинарнику не фиксируется.
+| Имя                   | Скрипт                              | Роль                                                |
+|-----------------------|-------------------------------------|-----------------------------------------------------|
+| `GameConstants`       | `globals/game_constants.gd`         | Статы игрока/врагов, сигнал `constants_changed`     |
+| `SaveSystem`          | `globals/save_system.gd`            | JSON-сохранения игрока и данжа                      |
+| `AudioManager`        | `globals/audio_manager.gd`          | Музыка и SFX, чтение громкости из настроек          |
+| `NetworkManager`      | `globals/network_manager.gd`        | Подключение, RPC, кооп-логика                       |
+| `PlayerManager`       | `globals/player_manager.gd`         | Спавн игроков, утилиты «ближайший игрок» для AI     |
+| `LocalizationManager` | `globals/localization_manager.gd`   | Язык интерфейса (ru/en/az)                          |
 
----
-
-## 12. Документация по подсистемам (углубление после презентации)
-
-Ниже — модульные README в репозитории; их удобно раздать команде как «читать дальше».
-
-- [`globals/README.md`](globals/README.md) — баланс, сохранения, константы  
-- [`World/README.md`](World/README.md) — генерация, двери, туман войны  
-- [`World/UI/README.md`](World/UI/README.md) — меню, пауза, лобби  
-- [`scene/game_objects/player/README.md`](scene/game_objects/player/README.md) — игрок, опыт, бой  
-- [`scene/game_objects/enemy/README.md`](scene/game_objects/enemy/README.md) — враги  
-- [`scene/game_objects/bosses/README.md`](scene/game_objects/bosses/README.md) — боссы  
-- [`scene/pick_up/artefacts/README.md`](scene/pick_up/artefacts/README.md) — артефакты  
-- [`scene/room_variants/README.md`](scene/room_variants/README.md) — устройство комнат  
-- [`scene/abilities/README.md`](scene/abilities/README.md) — способности  
+Поиск узлов в рантайме — через **группы**: `player`, `local_player`, `enemys`, `map_manager`, `backpack`, `inventory_screen`, `ui_layer`.
 
 ---
 
-## 13. Риски и честные ограничения (для Q&A)
+## 💾 Пользовательские файлы
 
-- Баланс и числа в `game_consts.cfg` могут сильно менять сложность; для стабильного демо лучше приложить проверенный конфиг.
-- Кооп рассчитан на **LAN / известный адрес**; лимит пиров задаётся в коде (**хост + до 7 гостей**). Для стабильного демо часто используют два клиента.
-- Проект ориентирован на **touch**; клавиатура дублирует движение через `project.godot` → Input Map.
+| Файл                            | Назначение                                                                |
+|---------------------------------|---------------------------------------------------------------------------|
+| `user://save_game.dat`          | Прогресс игрока, статы, опыт, собранные артефакты                         |
+| `user://dungeon_state.dat`      | Seed данжа, посещённые/зачищенные комнаты, плотность препятствий          |
+| `user://game_consts.cfg`        | Баланс и размеры карты (`[stats]`), горячая перезагрузка в одиночке       |
+| `user://settings.cfg`           | Громкость, частицы, плотность камней, раскладка джойстиков                |
+
+Расположение `user://` — см. [Godot docs: File paths](https://docs.godotengine.org/en/stable/tutorials/io/data_paths.html). На Windows это обычно `%APPDATA%\Godot\app_userdata\Dungeon\`.
 
 ---
 
-## 14. Лицензия и контакты
+## 📡 Сеть и кооператив
 
-Укажите здесь лицензию репозитория (MIT/GPL/собственная) и контакт команды для презентации (e-mail, Discord, сайт студии).
+| Тема              | Реализация                                                                 |
+|-------------------|----------------------------------------------------------------------------|
+| Транспорт         | `ENetMultiplayerPeer`, **порт 4242** (`network_manager.gd:48`)             |
+| Максимум игроков  | **8** (1 хост + `MAX_CLIENT_PEERS = 7` гостей)                             |
+| Лобби             | `World/UI/lobby.gd`, код комнаты = локальный IP                            |
+| Старт забега      | RPC передаёт список peer'ов и снимок `GameConstants`                       |
+| Синхрон данжа     | Хост публикует `dungeon_state`, клиенты вызывают `load_dungeon_state()`    |
+| Авторитет         | Хост авторитативен для урона, зачисток, лута и перехода этажей             |
+| Game over         | Общий — если погиб любой участник                                          |
+
+Подробности RPC — в `globals/network_manager.gd`.
 
 ---
 
-*Документ предназначен для презентации продукта и онбординга разработчиков; детали реализации всегда уточняйте по актуальному коду в указанных путях.*
+## 📚 Дополнительная документация
+
+- [`globals/README.md`](globals/README.md) — баланс, сохранения, константы
+- [`World/README.md`](World/README.md) — генерация, двери, туман войны
+- [`World/UI/README.md`](World/UI/README.md) — меню, пауза, лобби
+- [`scene/game_objects/player/README.md`](scene/game_objects/player/README.md) — игрок, опыт, бой
+- [`scene/game_objects/enemy/README.md`](scene/game_objects/enemy/README.md) — враги
+- [`scene/game_objects/bosses/README.md`](scene/game_objects/bosses/README.md) — боссы
+- [`scene/pick_up/artefacts/README.md`](scene/pick_up/artefacts/README.md) — артефакты
+- [`scene/room_variants/README.md`](scene/room_variants/README.md) — устройство комнат
+- [`scene/abilities/README.md`](scene/abilities/README.md) — способности
+- [`docs/SAVE_SYSTEM.md`](docs/SAVE_SYSTEM.md), [`docs/BACKPACK_SYSTEM.md`](docs/BACKPACK_SYSTEM.md), [`docs/LEVEL_SYSTEM_UI_GUIDE.md`](docs/LEVEL_SYSTEM_UI_GUIDE.md) — углублённые архитектурные заметки.
+
+---
+
+## 🛠️ Сборка
+
+### Android (.apk)
+
+1. В Godot: **Project → Export → Android**.
+2. Убедитесь, что в *Editor Settings → Export → Android* настроены пути к **adb**, **JDK 17**, **debug keystore**.
+3. Нажмите **Export Project** → выберите путь сохранения. Текущий пресет таргетит `arm64-v8a`, минимальный SDK = 24.
+
+### AuroraOS (.rpm)
+
+Пресет `AuroraOS` (preset.0) собирает под `armv7hl`. Требуется установленный шаблон экспорта AuroraOS для Godot 4.4 (см. [официальную документацию ОмП](https://omprussia.ru/developer)).
+
+---
+
+## 🤝 Contributing
+
+Pull-реквесты и issue приветствуются! Краткие правила:
+
+1. **Форкните** репозиторий и создайте ветку: `git checkout -b feature/<short-description>`.
+2. **Стиль кода:** табы для отступов (как в существующем GDScript), `snake_case` для функций/переменных, `PascalCase` для классов и узлов.
+3. **Коммиты:** одна логическая правка = один коммит. Префиксы по [Conventional Commits](https://www.conventionalcommits.org/): `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`.
+4. **Перед PR** прогоните headless smoke-test:
+   ```bash
+   godot4 --path . --headless --quit-after 1
+   ```
+   — стартового вывода должно хватать, чтобы убедиться, что нет ошибок импорта.
+5. **Не коммитьте** `.godot/`, `user://`-данные, экспортированные `.apk` и сторонние ассеты под несовместимой лицензией.
+6. **Описание PR** — что меняется, почему, как тестировалось.
+
+> Раздел Contribution guidelines пока минимальный — если хотите его расширить (CoC, CLA, шаблоны issue/PR), откройте issue с тегом `meta`.
+
+---
+
+## 🐞 Troubleshooting / FAQ
+
+<details>
+<summary><strong>«Failed to bind socket» при создании комнаты</strong></summary>
+
+Порт **4242** уже занят другим процессом или заблокирован firewall.
+- Закройте предыдущий запуск Godot.
+- Откройте 4242/UDP во входящих правилах Windows Defender Firewall.
+- Если нужен другой порт — измените `DEFAULT_PORT` в `globals/network_manager.gd`.
+</details>
+
+<details>
+<summary><strong>Клиент видит «другие» комнаты, чем хост</strong></summary>
+
+Это значит, что сид данжа не дошёл до клиента. Проверьте, что:
+- Клиент дождался сигнала `dungeon_sync_received` перед загрузкой.
+- В `user://game_consts.cfg` у обоих участников одинаковые `MAP_MANAGER_*` поля **либо** клиент позволил хосту перезаписать константы при старте сессии.
+</details>
+
+<details>
+<summary><strong>Плагин AS2P не загружается / красные ошибки в Output</strong></summary>
+
+Удалите `.godot/` и перезапустите редактор — Godot переимпортирует все ресурсы. Если ошибки остались, проверьте, что в `project.godot` секция `[editor_plugins]` содержит `res://addons/AS2P/plugin.cfg`.
+</details>
+
+<details>
+<summary><strong>Сохранения пропали после переустановки</strong></summary>
+
+Сохранения лежат вне репозитория — в `user://` (`%APPDATA%\Godot\app_userdata\Dungeon\` на Windows). Переустановка Godot их не удаляет; удаление профиля Godot — удалит.
+</details>
+
+<details>
+<summary><strong>Низкий FPS на слабом телефоне</strong></summary>
+
+В *Настройках* выставьте «**Камни → Нет**» — это резко снизит число коллайдеров и партиклов на этаже.
+</details>
+
+---
+
+## 📜 License
+
+Распространяется под лицензией **MIT** — см. файл [`LICENSE`](LICENSE).
+
+```
+Copyright (c) 2026 top-it-090304
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software ...
+```
+
+---
+
+## 🙏 Acknowledgements
+
+- [Godot Engine](https://github.com/savegame/godot/releases/tag/4.4.1-auroraos-4) — open-source движок.
+- [AS2P plugin](https://github.com/) (Animated-Sprite2D-to-Polygon2D) — генерация коллизий.
+- Виртуальные джойстики — на базе свободно распространяемых аддонов под Godot 4.
+- Спасибо всем тестерам и контрибьюторам.
+
+---
+
+## 📬 Контакты
+
+- **Issues / баги:** [GitHub Issues](https://github.com/top-it-090304/OmskDev)
+- **Email команды:** `rabotarabocij17@gmail.com n.shmykov@yandex.ru`
+- **Discord / Telegram:** `https://t.me/TarlanNaz https://t.me/x00zzz`
+
+---
+
+<sub>Документ предназначен для онбординга разработчиков и презентации продукта. Технические детали всегда уточняйте по актуальному коду в указанных путях.</sub>

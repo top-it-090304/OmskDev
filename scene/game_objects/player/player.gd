@@ -564,6 +564,42 @@ func _on_can_take_damage_timeout() -> void:
 func _on_can_attack_timeout() -> void:
 	can_attack = true
 
+
+func _configure_player_role() -> void:
+	if NetworkManager.connection_state == NetworkManager.ConnectionState.DISCONNECTED:
+		is_local_player = true
+	else:
+		is_local_player = is_multiplayer_authority()
+	if is_local_player:
+		if not is_in_group("local_player"):
+			add_to_group("local_player")
+	elif is_in_group("local_player"):
+		remove_from_group("local_player")
+
+
+func _ensure_alive_spawn_state() -> void:
+	var max_health := GameConstants.PLAYER_MAX_HEALTH
+	if health_int <= 0:
+		health_int = max_health
+	is_dead = false
+	can_anim = true
+	can_move = true
+	can_attack = true
+	can_take_damage = true
+
+
+func _refresh_local_player_after_spawn() -> void:
+	if not is_local_player:
+		return
+	_ensure_alive_spawn_state()
+	if NetworkManager.is_game_online():
+		NetworkManager.reset_coop_run_state()
+	health_changed.emit(health_int, GameConstants.PLAYER_MAX_HEALTH)
+	if has_node("Camera2D"):
+		var cam := $Camera2D as Camera2D
+		cam.enabled = true
+		cam.make_current()
+
 # =========================================================
 # READY
 # =========================================================
@@ -572,10 +608,7 @@ func _ready() -> void:
 	add_to_group("player")
 	damage_timer.wait_time = GameConstants.PLAYER_DAMAGE_INVINCIBILITY_SEC
 
-	if NetworkManager.is_game_offline():
-		is_local_player = true
-	else:
-		is_local_player = is_multiplayer_authority()
+	_configure_player_role()
 
 	current_level = GameConstants.PLAYER_LEVEL
 	current_exp = GameConstants.PLAYER_EXPERIENCE
@@ -584,13 +617,14 @@ func _ready() -> void:
 		current_level + 1
 	)
 
-	health_int = (
-		clampi(SaveSystem.saved_player_health, 1, GameConstants.PLAYER_MAX_HEALTH)
-		if SaveSystem.should_restore_player
-		else GameConstants.PLAYER_MAX_HEALTH
-	)
+	var max_health := GameConstants.PLAYER_MAX_HEALTH
+	if is_local_player and SaveSystem.should_restore_player and SaveSystem.saved_player_health > 0:
+		health_int = clampi(SaveSystem.saved_player_health, 1, max_health)
+	else:
+		health_int = max_health
+	_ensure_alive_spawn_state()
 
-	last_known_max_health = GameConstants.PLAYER_MAX_HEALTH
+	last_known_max_health = max_health
 
 	if not GameConstants.constants_changed.is_connected(_on_constants_changed):
 		GameConstants.constants_changed.connect(_on_constants_changed)
@@ -605,7 +639,7 @@ func _ready() -> void:
 		exp_to_next_level
 	)
 
-	if SaveSystem.should_restore_player:
+	if is_local_player and SaveSystem.should_restore_player:
 		SaveSystem.restore_player_state()
 
 	if not is_local_player:
@@ -658,10 +692,13 @@ func _on_constants_changed() -> void:
 
 	if health_int > new_max:
 		health_int = new_max
+	if health_int <= 0 and not is_dead:
+		health_int = new_max
 
 	last_known_max_health = new_max
 
-	health_changed.emit(health_int, new_max)
+	if is_local_player or NetworkManager.is_game_offline():
+		health_changed.emit(health_int, new_max)
 
 # =========================================================
 # ATTACK HITBOX

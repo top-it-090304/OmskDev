@@ -228,6 +228,26 @@ func _get_active_network_spawn_ids() -> Array[int]:
 	return ids
 
 
+func _apply_spawned_player_role(instance: Node, player_id: int) -> void:
+	if instance.has_method("_configure_player_role"):
+		instance.call("_configure_player_role")
+	else:
+		var mp := get_tree().get_multiplayer()
+		var is_local := NetworkManager.connection_state == NetworkManager.ConnectionState.DISCONNECTED
+		if not is_local and mp.has_multiplayer_peer():
+			is_local = player_id == mp.get_unique_id()
+		instance.is_local_player = is_local
+	if instance.is_local_player:
+		if not instance.is_in_group("local_player"):
+			instance.add_to_group("local_player")
+		if instance.has_method("_ensure_alive_spawn_state"):
+			instance.call("_ensure_alive_spawn_state")
+		if instance.has_method("_refresh_local_player_after_spawn"):
+			instance.call_deferred("_refresh_local_player_after_spawn")
+	elif instance.is_in_group("local_player"):
+		instance.remove_from_group("local_player")
+
+
 func _add_unique_peer_id(ids: Array[int], peer_id: int) -> void:
 	if peer_id <= 0:
 		return
@@ -261,13 +281,8 @@ func _spawn_player(player_id: int, game_root: Node = null) -> void:
 	instance.name = "Player_%d" % player_id
 	instance.set_multiplayer_authority(player_id)
 	world.add_child(instance)
-	if instance.has_method("_ensure_alive_spawn_state"):
-		instance.call("_ensure_alive_spawn_state")
-	
-	if player_id == NetworkManager.my_id:
-		instance.is_local_player = true
-	
 	players[player_id] = instance
+	_apply_spawned_player_role(instance, player_id)
 	_refresh_multiplayer_name_labels()
 	if NetworkManager.connection_state == NetworkManager.ConnectionState.DISCONNECTED:
 		_position_new_player(instance, player_id)
@@ -371,6 +386,12 @@ func finalize_network_spawns() -> void:
 			(inst as CharacterBody2D).velocity = Vector2.ZERO
 		if inst.has_method("flush_network_transform"):
 			inst.flush_network_transform()
+		if inst.has_method("_ensure_alive_spawn_state"):
+			inst.call("_ensure_alive_spawn_state")
+		var mp := get_tree().get_multiplayer()
+		if mp.has_multiplayer_peer() and inst.get_multiplayer_authority() == mp.get_unique_id():
+			if inst.has_method("_refresh_local_player_after_spawn"):
+				inst.call("_refresh_local_player_after_spawn")
 	if NetworkManager.is_multiplayer_active():
 		network_spawn_finalize_done = true
 
