@@ -7,7 +7,7 @@
 [ext_resource type="Script" uid="uid://dsey46gvbv6sr" path="res://scene/ui/floor_label.gd" id="5_floor"]
 [ext_resource type="FontFile" uid="uid://wbjr6hf3uxdc" path="res://Font/PixelRpgFont-Regular.ttf" id="6_font"]
 [ext_resource type="Script" uid="uid://b6lp37p7qsno" path="res://scene/ui/inventory_screen.gd" id="7_inv"]
-[ext_resource type="Script" path="res://scene/ui/distance_fog.gd" id="8_fog"]
+[ext_resource type="Script" uid="uid://bjf5icx27rgee" path="res://scene/ui/distance_fog.gd" id="8_fog"]
 [ext_resource type="PackedScene" uid="uid://ot1bjrnddml7" path="res://scene/game_objects/enemy/skeleton_bow/skeleton_bow.tscn" id="9_g4073"]
 [ext_resource type="PackedScene" uid="uid://ofcl7u6j834h" path="res://scene/game_objects/enemy/skeleton_grunt/skeleton_grunt.tscn" id="10_0j3bq"]
 [ext_resource type="PackedScene" uid="uid://cqu11x06knfef" path="res://scene/game_objects/bosses/skeleton_king/skeleton_king.tscn" id="11_komed"]
