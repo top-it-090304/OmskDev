@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://cj2hkcukuaptd" path="res://scene/game_objects/enemy/goblin_slinger/goblin_slinger.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://8o1hatxsh21y" path="res://assets/hpUnderEnemy.png" id="2"]
 [ext_resource type="Texture2D" uid="uid://bu1d3dqfv283u" path="res://assets/hpProgressEnemy.png" id="3"]
-[ext_resource type="Script" uid="uid://osq5kv0630j2" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="4"]
+[ext_resource type="Script" path="res://scene/game_objects/enemy/goblin_axe/texture_progress_bar.gd" id="4"]
 [ext_resource type="PackedScene" uid="uid://djw8n7hn0de6h" path="res://scene/ui/enemy_level_display.tscn" id="5"]
 [ext_resource type="Texture2D" uid="uid://b3gc3ocpm88px" path="res://sprites/enemys/Goblin_Slinger/Down/Png/GoblinSlingerDownAttack01.png" id="6_vgf8l"]
 [ext_resource type="Texture2D" uid="uid://cxsi0332741kw" path="res://sprites/enemys/Goblin_Slinger/Left/Png/GoblinSlingerLeftAttack01.png" id="7_tr5ay"]
@@ -57,6 +57,20 @@ tracks/1/keys = {
 "transitions": PackedFloat32Array(1),
 "update": 1,
 "values": ["attack_down"]
+}
+tracks/2/type = "method"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0.6),
+"transitions": PackedFloat32Array(1),
+"values": [{
+"args": [],
+"method": &"shoot_poison"
+}]
 }
 
 [sub_resource type="Animation" id="Animation_tr5ay"]
@@ -1869,7 +1883,7 @@ collision_layer = 0
 [node name="CollisionShape2D" type="CollisionShape2D" parent="detector"]
 shape = SubResource("CircleShape2D_1")
 
-[node name="hitbox" type="Area2D" parent="." groups=["enemys"]]
+[node name="hitbox" type="Area2D" parent="."]
 collision_layer = 0
 collision_mask = 4
 
@@ -1907,7 +1921,7 @@ offset_bottom = 24.0
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_yj1gu")
-animation = &"attack_down"
+animation = &"death_up"
 autoplay = "idle_down"
 
 [connection signal="body_entered" from="detector" to="." method="_on_detector_body_entered"]

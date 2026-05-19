@@ -13,10 +13,10 @@ func _set_direction(value: Vector2) -> void:
 	direction = value
 
 func _ready() -> void:
-	set_process(get_multiplayer_authority() == multiplayer.get_unique_id())
+	set_process(is_multiplayer_authority())
 
 func _process(delta: float) -> void:
-	if not get_multiplayer_authority() == multiplayer.get_unique_id():
+	if not is_multiplayer_authority():
 		return
 		
 	jumping = false

@@ -3,6 +3,7 @@ extends "res://scene/game_objects/enemy/enemy_base.gd"
 var hp = 0
 
 @onready var detector_shape = $detector/CollisionShape2D
+@onready var detector_area: Area2D = $detector
 @onready var anim = $AnimatedSprite2D
 @onready var animP = $AnimationPlayer
 @onready var attack_timer = $attack_timer
@@ -26,14 +27,25 @@ func _ready() -> void:
 	hp = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_GOBLIN_AXE_HP)
 	speed = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_GOBLIN_AXE_MAX_SPEED)
 	hp_bar.update_hp(hp, hp)
-	player = get_tree().get_first_node_in_group("player") as Node2D
+	player = PlayerManager.get_nearest_target_player_node(global_position) as Node2D
 	parent_node = get_parent()
 
+func _is_player_in_attack_radius() -> bool:
+	if not is_instance_valid(player):
+		return false
+	return global_position.distance_squared_to(PlayerManager.get_player_world_pos_for_hosting_ai(player)) <= GameConstants.ENEMY_GOBLIN_AXE_ATTACK_RANGE * GameConstants.ENEMY_GOBLIN_AXE_ATTACK_RANGE
+
 func _physics_process(delta: float) -> void:
+	if NetworkManager.enemy_client_interpolate_if_needed(self, delta):
+		return
 	_apply_knockback_logic(delta)
 	
 	if is_dead: 
 		return
+
+	player = PlayerManager.get_nearest_target_player_node(global_position) as Node2D
+	if NetworkManager.is_multiplayer_active():
+		player_in_range = PlayerManager.detector_has_living_player(detector_area)
 
 	if not can_walk:
 		velocity = Vector2.ZERO
@@ -43,7 +55,8 @@ func _physics_process(delta: float) -> void:
 	var is_aggressive = parent_node and parent_node.get("aggression")
 
 	if is_instance_valid(player) and is_aggressive:
-		var to_player = player.global_position - global_position
+		var ppos := PlayerManager.get_player_world_pos_for_hosting_ai(player)
+		var to_player = ppos - global_position
 		var direction = to_player.normalized()
 		velocity = direction * speed + knockback_velocity
 		move_and_slide()
@@ -77,6 +90,9 @@ func _process(_delta):
 
 func attack():
 	if not can_attack or not player_in_range or is_dead:
+		return
+	if not _is_player_in_attack_radius():
+		attack_timer.start(0.2)
 		return
 	can_attack = false
 	can_anim = false
@@ -112,7 +128,7 @@ func take_damage(amount: int):
 	AudioManager.play_sfx("враг_урон")
 	var tween = create_tween()
 	tween.tween_property(anim, "modulate", Color(1, 0, 0, 1), 0.0)
-	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.15)
+	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.1)
 
 func apply_knockback(source_position: Vector2, strength: float) -> void:
 	super.apply_knockback(source_position, strength)
@@ -125,15 +141,15 @@ func death():
 	can_attack = false
 	velocity = Vector2.ZERO
 	anim.stop()
-	animP.stop()
+	animP.active = false
+	animP.stop(true)
 	set_collision_layer_value(1, false)
 	set_collision_mask_value(1, false)
 	match current_dir:
-		Dir.UP: anim.play("death_up")
-		Dir.DOWN: anim.play("death_down")
-		Dir.LEFT: anim.play("death_left")
-		Dir.RIGHT: anim.play("death_right")
-	await anim.animation_finished
+		Dir.UP: await _await_enemy_death_sprite(anim, "death_up")
+		Dir.DOWN: await _await_enemy_death_sprite(anim, "death_down")
+		Dir.LEFT: await _await_enemy_death_sprite(anim, "death_left")
+		Dir.RIGHT: await _await_enemy_death_sprite(anim, "death_right")
 	_give_exp_to_player()
 	if randf() <= 0.25:
 		_spawn_loot()
@@ -151,12 +167,15 @@ func _spawn_loot():
 	get_tree().current_scene.add_child(potion)
 
 func swing():
-	if not is_instance_valid(player) or is_dead: return
+	if not is_instance_valid(player) or is_dead:
+		return
+	if not _is_player_in_attack_radius():
+		return
 	smite_instance = GameConstants.ENEMY_GOBLIN_AXE_SMITE.instantiate()
 	add_child(smite_instance)
 	smite_instance.visible = false
 	smite_instance.monitoring = false
-	var target_dir = (player.global_position - global_position).normalized()
+	var target_dir = (PlayerManager.get_player_world_pos_for_hosting_ai(player) - global_position).normalized()
 	if "direction" in smite_instance:
 		smite_instance.direction = target_dir
 	smite_instance.position = target_dir * GameConstants.ENEMY_GOBLIN_AXE_SMITE_OFFSET
@@ -164,6 +183,11 @@ func swing():
 	AudioManager.play_sfx("враг_атака_ближний")
 
 func activate_smite():
+	if not _is_player_in_attack_radius():
+		if is_instance_valid(smite_instance):
+			smite_instance.queue_free()
+			smite_instance = null
+		return
 	if is_instance_valid(smite_instance) and not is_dead:
 		smite_instance.visible = true
 		smite_instance.monitoring = true
@@ -187,10 +211,15 @@ func _on_attack_timer_timeout():
 		attack()
 
 func _on_hitbox_area_entered(_area: Area2D) -> void:
-	take_damage(GameConstants.ENEMY_GOBLIN_AXE_TAKE_DAMAGE)
+	# Урон только через hitbox_attack игрока (избегаем двойного урона с TAKE_DAMAGE).
+	pass
 
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player") and body.has_method("take_damage"):
+		if not PlayerManager.is_player_nearest_hosting_target(global_position, body):
+			return
+		if not _is_player_in_attack_radius():
+			return
 		var damage = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_GOBLIN_AXE_DAMAGE)
-		body.take_damage(damage)
+		NetworkManager.server_apply_damage_to_player_from_enemy(body, damage)

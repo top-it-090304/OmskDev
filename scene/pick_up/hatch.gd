@@ -12,10 +12,10 @@ func _ready() -> void:
 func open_hatch() -> void:
 	if is_open:
 		return
-	var mp := get_tree().get_multiplayer()
-	if not mp.has_multiplayer_peer():
+	if NetworkManager.is_game_offline():
 		_apply_hatch_open_visual()
-	elif mp.is_server():
+		return
+	if get_tree().get_multiplayer().is_server():
 		rpc_hatch_opened.rpc()
 
 
@@ -24,6 +24,11 @@ func _apply_hatch_open_visual() -> void:
 	monitoring = true
 	var tween := create_tween()
 	tween.tween_property(self, "modulate:a", 1.0, 0.6)
+
+
+## Публичная обёртка для MapManager / RPC (приватный _apply не виден has_method на некоторых версиях Godot).
+func apply_hatch_open_visual() -> void:
+	_apply_hatch_open_visual()
 
 
 ## Восстановление после загрузки сейва (без RPC / твина)
@@ -44,18 +49,32 @@ func _on_body_entered(body: Node2D) -> void:
 	var local_flag: Variant = body.get("is_local_player")
 	if local_flag == false:
 		return
-	var mp := get_tree().get_multiplayer()
-	if not mp.has_multiplayer_peer():
+	if NetworkManager.is_game_offline():
 		_go_to_next_floor_solo()
 		return
-	if mp.is_server():
+	if get_tree().get_multiplayer().is_server():
 		NetworkManager.rpc_coop_transition_next_floor.rpc()
 	else:
 		NetworkManager.rpc_request_coop_next_floor.rpc_id(NetworkManager.SERVER_ID)
 
 
 func _go_to_next_floor_solo() -> void:
+	AudioManager.play_sfx("люк_переход")
+	var player = get_tree().get_first_node_in_group("player")
+	if player != null and "health_int" in player:
+		SaveSystem.saved_player_health = int(player.health_int)
+		SaveSystem.should_restore_player = true
+	# Новый этаж — люк босса снова закрыт (иначе флаг из прошлого этажа открывает люк сразу).
+	SaveSystem.set_boss_hatch_opened(false)
 	GameConstants.CURRENT_FLOOR += 1
 	GameConstants.ROOMS_CLEARED = 0
+	# Рюкзак/статы в сейв (в т.ч. current_floor), затем сброс данжа — иначе снова load_dungeon_state того же мира.
+	SaveSystem.save_game()
+	SaveSystem.delete_dungeon_state()
 	GameConstants.save_to_disk()
-	get_tree().change_scene_to_file("res://World/layer.tscn")
+	var path := GameConstants.get_current_floor_scene_path()
+	var cs := get_tree().current_scene
+	if cs != null and cs.scene_file_path == path:
+		get_tree().reload_current_scene()
+	else:
+		get_tree().change_scene_to_file(path)

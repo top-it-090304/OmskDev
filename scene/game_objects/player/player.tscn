@@ -1727,7 +1727,7 @@ debug_color = Color(0.290712, 0.629766, 0, 0.42)
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 z_index = 2
 sprite_frames = SubResource("SpriteFrames_uvqrg")
-animation = &"attack_up"
+animation = &"idle_left"
 autoplay = "idle_down"
 
 [node name="Camera2D" type="Camera2D" parent="."]
@@ -1757,7 +1757,6 @@ offset_top = -112.0
 offset_right = 104.0
 offset_bottom = -80.0
 texture_normal = ExtResource("30_tigyi")
-texture_pressed = ExtResource("27_au6ap")
 stretch_mode = 0
 script = ExtResource("32_invbtn")
 metadata/_edit_use_anchors_ = true

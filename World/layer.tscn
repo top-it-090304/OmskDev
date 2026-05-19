@@ -4,18 +4,17 @@
 [ext_resource type="PackedScene" uid="uid://ec471alip6hl" path="res://scene/game_objects/player/exp_bar.tscn" id="2_jn37s"]
 [ext_resource type="PackedScene" uid="uid://capqga0p285u0" path="res://World/minimap.tscn" id="3_o2u7n"]
 [ext_resource type="PackedScene" uid="uid://d00qjcqxvua3o" path="res://scene/game_objects/player/backpack.tscn" id="4_backpack"]
-[ext_resource type="PackedScene" uid="uid://djme8hqe5u87s" path="res://scene/game_objects/enemy/goblin_axe/enemy(goblin_axe).tscn" id="5_d0rex"]
 [ext_resource type="PackedScene" uid="uid://bbelva8io0yft" path="res://scene/pick_up/artefacts/artefact(boots_of_travel).tscn" id="5_v7fgi"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/blue_shroom.tscn" id="6_ikq8h"]
-[ext_resource type="PackedScene" uid="uid://ot1bjrnddml7" path="res://scene/game_objects/enemy/skeleton_bow/skeleton_bow.tscn" id="6_n4o4r"]
-[ext_resource type="PackedScene" uid="uid://bx8m4n7p2qlar" path="res://scene/game_objects/enemy/goblin_slinger/goblin_slinger.tscn" id="7_1olng"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/clock.tscn" id="7_qpvvc"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/coffee_mug.tscn" id="8_shab0"]
+[ext_resource type="PackedScene" uid="uid://d1478ke7qpkxf" path="res://scene/room_variants/forest/forest_room.tscn" id="8_ylsjx"]
+[ext_resource type="PackedScene" path="res://scene/room_variants/forest/corridor_for.tscn" id="9_3hlwg"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/crown.tscn" id="9_f2vw5"]
+[ext_resource type="PackedScene" path="res://scene/room_variants/forest/corridor_vfor.tscn" id="10_0el4m"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/diamond.tscn" id="10_ylsjx"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/golden_cup.tscn" id="11_3hlwg"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/injector.tscn" id="12_0el4m"]
-[ext_resource type="PackedScene" uid="uid://cqu11x06knfef" path="res://scene/game_objects/bosses/skeleton_king/skeleton_king.tscn" id="12_hhjyk"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/metal_shield.tscn" id="13_cueid"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/old_book.tscn" id="14_36tnp"]
 [ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/red_potion.tscn" id="15_rhie0"]
@@ -23,10 +22,20 @@
 [ext_resource type="Script" uid="uid://dsey46gvbv6sr" path="res://scene/ui/floor_label.gd" id="37_floor"]
 [ext_resource type="FontFile" uid="uid://wbjr6hf3uxdc" path="res://Font/PixelRpgFont-Regular.ttf" id="38_font"]
 [ext_resource type="Script" uid="uid://b6lp37p7qsno" path="res://scene/ui/inventory_screen.gd" id="39_inv"]
+[ext_resource type="Script" path="res://scene/ui/distance_fog.gd" id="40_fog"]
 
 [node name="Layer" type="Node"]
 
+[node name="DistanceFogLayer" type="CanvasLayer" parent="."]
+
+[node name="DistanceFog" type="ColorRect" parent="DistanceFogLayer"]
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("40_fog")
+
 [node name="UI" type="CanvasLayer" parent="."]
+layer = 2
 
 [node name="InventoryScreen" type="CanvasLayer" parent="UI"]
 layer = 2
@@ -56,19 +65,6 @@ script = ExtResource("37_floor")
 [node name="minimap" parent="UI" node_paths=PackedStringArray("map_manager") instance=ExtResource("3_o2u7n")]
 map_manager = NodePath("../../MapManager")
 
-[node name="ExpBar" parent="UI" instance=ExtResource("2_jn37s")]
-anchor_left = 0.785
-anchor_top = 0.462
-anchor_right = 0.978
-anchor_bottom = 0.551
-offset_left = 0.0999756
-offset_top = -0.120003
-offset_right = -0.119995
-offset_bottom = -1.25999
-grow_horizontal = 2
-size_flags_horizontal = 4
-size_flags_vertical = 0
-
 [node name="Backpack" parent="UI" instance=ExtResource("4_backpack")]
 anchors_preset = -1
 anchor_left = 1.185
@@ -80,8 +76,25 @@ offset_top = 0.120001
 offset_right = 0.0999756
 offset_bottom = 0.120001
 
+[node name="ExpBar" parent="UI" instance=ExtResource("2_jn37s")]
+anchor_left = 0.711111
+anchor_top = 0.356
+anchor_right = 1.0
+anchor_bottom = 0.443231
+offset_left = -376.0
+offset_top = -52.56
+offset_right = -377.0
+offset_bottom = -53.24
+grow_horizontal = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+
 [node name="MapManager" parent="." node_paths=PackedStringArray("layer") instance=ExtResource("1_mln5v")]
+start_room_variations = Array[PackedScene]([ExtResource("8_ylsjx")])
+normal_room_variations = Array[PackedScene]([ExtResource("8_ylsjx")])
+boss_room_variations = Array[PackedScene]([ExtResource("8_ylsjx")])
+treasure_room_variations = Array[PackedScene]([ExtResource("8_ylsjx")])
 layer = NodePath("..")
-enemy_variations = Array[PackedScene]([ExtResource("5_d0rex"), ExtResource("6_n4o4r"), ExtResource("7_1olng")])
-boss_variations = Array[PackedScene]([ExtResource("12_hhjyk")])
-treasure_items = Array[PackedScene]([ExtResource("5_v7fgi"), ExtResource("6_ikq8h"), ExtResource("7_qpvvc"), ExtResource("8_shab0"), ExtResource("9_f2vw5"), ExtResource("10_ylsjx"), ExtResource("11_3hlwg"), ExtResource("12_0el4m"), ExtResource("13_cueid"), ExtResource("14_36tnp"), ExtResource("15_rhie0"), ExtResource("16_art01")])
+corridor_h_scene = ExtResource("9_3hlwg")
+corridor_v_scene = ExtResource("10_0el4m")
+treasure_items = Array[PackedScene]([ExtResource("5_v7fgi"), ExtResource("6_ikq8h"), ExtResource("8_shab0"), ExtResource("16_art01")])

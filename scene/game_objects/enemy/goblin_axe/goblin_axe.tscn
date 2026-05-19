@@ -1315,7 +1315,7 @@ animation = &"hurt_up"
 autoplay = "idle_down"
 frame = 3
 
-[node name="hitbox" type="Area2D" parent="." groups=["enemys"]]
+[node name="hitbox" type="Area2D" parent="."]
 collision_layer = 0
 collision_mask = 4
 
@@ -1340,7 +1340,7 @@ libraries = {
 }
 speed_scale = 3.0
 
-[node name="attack_timer" type="Timer" parent="." groups=["enemys"]]
+[node name="attack_timer" type="Timer" parent="."]
 wait_time = 1.5
 one_shot = true
 script = ExtResource("19_gsofr")

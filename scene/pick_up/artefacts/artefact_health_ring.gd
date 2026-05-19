@@ -17,7 +17,7 @@ func _on_area_entered(area: Area2D) -> void:
 		var player = area.get_parent()
 		pickup(player)
 
-func pickup(player: Node) -> void:
+func pickup(_player: Node) -> void:
 	# Применяем эффект
 	GameConstants.PLAYER_MAX_HEALTH += health_bonus
 	print("Подобрано Health Ring! Здоровье увеличено на ", health_bonus)

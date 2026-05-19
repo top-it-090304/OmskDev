@@ -1,4 +1,4 @@
-[gd_scene load_steps=62 format=3 uid="uid://btc3fcnovye8d"]
+[gd_scene load_steps=70 format=3 uid="uid://btc3fcnovye8d"]
 
 [ext_resource type="Texture2D" uid="uid://4oxwsurkv5fc" path="res://assets/Button/GenericButton.png" id="1_fiq8v"]
 [ext_resource type="Texture2D" uid="uid://b70s4hl2nftxd" path="res://assets/Button/GenericPanel.png" id="1_kiqlh"]
@@ -54,6 +54,8 @@
 [ext_resource type="Texture2D" uid="uid://bsfd2gitdnquq" path="res://assets/menu/Main Menu animated background 39.png" id="49_dxcqv"]
 [ext_resource type="Texture2D" uid="uid://c5x2kkafq3ial" path="res://assets/menu/Main Menu animated background 40.png" id="50_au5xu"]
 [ext_resource type="Script" uid="uid://ds3shfulev8d1" path="res://World/UI/multiplayer_button.gd" id="51_mpbtn"]
+[ext_resource type="Script" uid="uid://5jwl6sf0arnj" path="res://World/UI/menu.gd" id="52_menu"]
+[ext_resource type="Texture2D" uid="uid://urwbkuvhote4" path="res://sprites/player2/Down/Png/SorceressDownIdle.png" id="60_hsllf"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_u7pht"]
 animations = [{
@@ -203,6 +205,30 @@ region = Rect2(144, 0, 48, 48)
 atlas = ExtResource("7_g0kwj")
 region = Rect2(192, 0, 48, 48)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_c6rb5_0"]
+atlas = ExtResource("60_hsllf")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_c6rb5_1"]
+atlas = ExtResource("60_hsllf")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_c6rb5_2"]
+atlas = ExtResource("60_hsllf")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_c6rb5_3"]
+atlas = ExtResource("60_hsllf")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_c6rb5_4"]
+atlas = ExtResource("60_hsllf")
+region = Rect2(192, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_c6rb5_5"]
+atlas = ExtResource("60_hsllf")
+region = Rect2(240, 0, 48, 48)
+
 [sub_resource type="SpriteFrames" id="SpriteFrames_c6rb5"]
 animations = [{
 "frames": [{
@@ -224,6 +250,29 @@ animations = [{
 "loop": true,
 "name": &"Knight",
 "speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_c6rb5_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_c6rb5_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_c6rb5_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_c6rb5_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_c6rb5_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_c6rb5_5")
+}],
+"loop": true,
+"name": &"Sorceress",
+"speed": 5.0
 }]
 
 [node name="Control" type="Control"]
@@ -233,6 +282,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("52_menu")
 
 [node name="Background" type="AnimatedSprite2D" parent="."]
 position = Vector2(270, 130)

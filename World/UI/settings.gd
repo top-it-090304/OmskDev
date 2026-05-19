@@ -4,6 +4,7 @@ extends Control
 @onready var music_slider: HSlider = $VBoxContainer/MusicRow/Slider
 @onready var lang_option: OptionButton = $VBoxContainer/LangRow/OptionButton
 @onready var particles_check: CheckButton = $VBoxContainer/ParticlesRow/CheckButton
+@onready var obstacle_detail_option: OptionButton = $VBoxContainer/ObstaclesRow/OptionButton
 
 const LANGS = ["ru", "en", "az"]
 const CFG_PATH = "user://settings.cfg"
@@ -15,13 +16,22 @@ func _ready() -> void:
 func _load_settings() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(CFG_PATH) != OK:
+		sound_slider.value = 1.0
+		music_slider.value = 1.0
+		_apply_bus("SFX", sound_slider.value)
+		_apply_bus("Music", music_slider.value)
 		return
-	sound_slider.value = float(cfg.get_value("audio", "sfx", 1.0))
-	music_slider.value = float(cfg.get_value("audio", "music", 1.0))
+	sound_slider.value = _sanitize_volume(cfg.get_value("audio", "sfx", 1.0))
+	music_slider.value = _sanitize_volume(cfg.get_value("audio", "music", 1.0))
+	if sound_slider.value <= 0.0 and music_slider.value <= 0.0:
+		sound_slider.value = 1.0
+		music_slider.value = 1.0
 	var lang: String = str(cfg.get_value("settings", "language", "ru"))
 	lang_option.selected = LANGS.find(lang) if LANGS.has(lang) else 0
 	# Загружаем настройку частиц
-	particles_check.button_pressed = bool(cfg.get_value("graphics", "show_particles", true))
+	particles_check.button_pressed = GameConstants.variant_to_bool(cfg.get_value("graphics", "show_particles", true))
+	var od: int = GameConstants.clamp_obstacle_detail_level(cfg.get_value("graphics", "obstacle_detail", 2))
+	obstacle_detail_option.select(od)
 	# Применяем загруженные настройки громкости
 	_apply_bus("SFX", sound_slider.value)
 	_apply_bus("Music", music_slider.value)
@@ -45,6 +55,12 @@ func _save_setting(section: String, key: String, value) -> void:
 func _on_lang_selected(_idx: int) -> void:
 	pass  # applied on save
 
+func _on_obstacle_detail_selected(idx: int) -> void:
+	var v: int = GameConstants.clamp_obstacle_detail_level(idx)
+	_save_setting("graphics", "obstacle_detail", v)
+	if GameConstants:
+		GameConstants.OBSTACLE_DETAIL_LEVEL = v
+
 func _on_particles_toggled(button_pressed: bool) -> void:
 	_save_setting("graphics", "show_particles", button_pressed)
 	# Обновляем глобальную настройку
@@ -54,8 +70,20 @@ func _on_particles_toggled(button_pressed: bool) -> void:
 func _apply_bus(bus_name: String, value: float) -> void:
 	var idx := AudioServer.get_bus_index(bus_name)
 	if idx >= 0:
-		AudioServer.set_bus_volume_db(idx, linear_to_db(value) if value > 0 else -80.0)
-		AudioServer.set_bus_mute(idx, value == 0.0)
+		var normalized := _sanitize_volume(value)
+		AudioServer.set_bus_volume_db(idx, linear_to_db(normalized) if normalized > 0.0 else -80.0)
+		AudioServer.set_bus_mute(idx, normalized <= 0.0)
+
+
+func _sanitize_volume(raw: Variant) -> float:
+	var value := 1.0
+	if raw is int or raw is float:
+		value = float(raw)
+	elif raw is String and raw.is_valid_float():
+		value = float(raw)
+	if is_nan(value) or is_inf(value):
+		return 1.0
+	return clampf(value, 0.0, 1.0)
 
 func _on_back_pressed() -> void:
 	queue_free()
@@ -89,7 +117,7 @@ func _save_came_from_scene() -> void:
 			# Проверяем есть ли игрок (значит зашли из игры)
 			var player = get_tree().get_first_node_in_group("player")
 			if player:
-				scene_path = "res://World/layer.tscn"
+				scene_path = GameConstants.get_current_floor_scene_path()
 			else:
 				scene_path = "res://World/UI/menu.tscn"
 	

@@ -23,6 +23,7 @@ var _stats_popup: Control
 
 func _ready() -> void:
 	add_to_group("inventory_screen")
+	layer = 100
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build_ui()
 	hide_inventory()
@@ -132,6 +133,14 @@ func show_inventory() -> void:
 	_visible = true
 	show()
 	get_tree().paused = true
+	# После смены сцены/этажа deferred-синк мог ещё не успеть — подтягиваем из рюкзака.
+	var bp: Node = get_tree().get_first_node_in_group("backpack")
+	if bp == null:
+		bp = get_tree().root.find_child("Backpack", true, false)
+	if bp != null and _grid != null and _artefacts.is_empty():
+		var arr: Variant = bp.get("collected_artefacts")
+		if arr is Array and (arr as Array).size() > 0:
+			clear_and_sync(arr as Array)
 	_refresh_artefacts()
 
 func hide_inventory() -> void:
@@ -155,6 +164,9 @@ func _show_stats_popup() -> void:
 
 	_stats_popup = Control.new()
 	_stats_popup.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_stats_popup.mouse_filter = Control.MOUSE_FILTER_STOP
+	_stats_popup.z_index = 1000
+	_stats_popup.z_as_relative = false
 	add_child(_stats_popup)
 
 	var bg = ColorRect.new()
@@ -269,13 +281,6 @@ func add_artefact(artefact_info) -> void:
 			"icon_path": artefact_info.artefact_icon.resource_path if ("artefact_icon" in artefact_info and artefact_info.artefact_icon) else "",
 			"description": artefact_info.get("artefact_description") if "artefact_description" in artefact_info else ""
 		}
-	
-	# Проверяем на дубликаты
-	var artefact_name = info.get("name", "")
-	for existing in _artefacts:
-		if existing.get("name", "") == artefact_name:
-			print("Артефакт уже есть в inventory_screen, пропускаем: ", artefact_name)
-			return
 	
 	_artefacts.append(info)
 	_add_artefact_icon(info)

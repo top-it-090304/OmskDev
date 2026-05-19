@@ -17,12 +17,20 @@ var collected_treasure_rooms: Array = []
 # Флаг что люк босса открыт
 var boss_hatch_opened: bool = false
 
+# Выбранный игрок (0 = Knight, 1 = Sorceress)
+var selected_player: int = 0
+
+## resource_path последнего заспавненного босса — на новом этаже выбираем другого из списка (чередование).
+var last_spawned_boss_scene_path: String = ""
+
 # Базовые значения для сброса
 const BASE_VALUES = {
 	"PLAYER_MAX_SPEED": 200,
-	"PLAYER_MAX_HEALTH": 400,
+	"PLAYER_MAX_HEALTH": 450,
 	"PLAYER_ENEMY_CONTACT_DAMAGE": 10,
-	"PLAYER_ATTACK_DAMAGE": 10,
+	"PLAYER_ATTACK_DAMAGE": 40,
+	"PLAYER2_MAX_HEALTH": 200,
+	"PLAYER2_ATTACK_DAMAGE": 15,
 	"PLAYER_ARMOR": 0,
 	"PLAYER_DODGE_CHANCE": 0.0,
 	"PLAYER_CRIT_CHANCE": 0.0,
@@ -56,6 +64,8 @@ func save_game() -> bool:
 			"max_health": GameConstants.PLAYER_MAX_HEALTH,
 			"enemy_contact_damage": GameConstants.PLAYER_ENEMY_CONTACT_DAMAGE,
 			"attack_damage": GameConstants.PLAYER_ATTACK_DAMAGE,
+			"player2_max_health": GameConstants.PLAYER2_MAX_HEALTH,
+			"player2_attack_damage": GameConstants.PLAYER2_ATTACK_DAMAGE,
 			"armor": GameConstants.PLAYER_ARMOR,
 			"dodge_chance": GameConstants.PLAYER_DODGE_CHANCE,
 			"crit_chance": GameConstants.PLAYER_CRIT_CHANCE,
@@ -86,8 +96,13 @@ func save_game() -> bool:
 	}
 
 	# Сохраняем текущее здоровье и позицию игрока
-	var player = get_tree().get_first_node_in_group("player")
+	var tree := get_tree()
+	var player := tree.get_first_node_in_group("local_player")
+	if player == null:
+		player = tree.get_first_node_in_group("player")
 	if player and "health_int" in player:
+		saved_player_health = int(player.health_int)
+		saved_player_position = player.global_position
 		save_data["player_current_health"] = player.health_int
 		save_data["player_position"] = {
 			"x": player.global_position.x,
@@ -97,9 +112,16 @@ func save_game() -> bool:
 	else:
 		save_data["player_current_health"] = saved_player_health if saved_player_health > 0 else GameConstants.PLAYER_MAX_HEALTH
 		print("Используем сохраненные данные: health=", save_data["player_current_health"])
+		if saved_player_position != Vector2.ZERO:
+			save_data["player_position"] = {
+				"x": saved_player_position.x,
+				"y": saved_player_position.y,
+			}
 
 	# Сохраняем собранные артефакты (сначала обновляем из backpack)
-	var backpack = get_tree().get_first_node_in_group("backpack")
+	var backpack: Node = get_tree().get_first_node_in_group("backpack")
+	if backpack == null:
+		backpack = get_tree().root.find_child("Backpack", true, false)
 	if backpack and backpack.has_method("get_collected_artefact_names"):
 		collected_artefacts = backpack.get_collected_artefact_names()
 		print("Артефакты синхронизированы из backpack: ", collected_artefacts.size())
@@ -114,6 +136,8 @@ func save_game() -> bool:
 	# Сохраняем состояние люка босса
 	save_data["boss_hatch_opened"] = boss_hatch_opened
 	print("Люк босса открыт: ", boss_hatch_opened)
+
+	save_data["last_spawned_boss_scene_path"] = last_spawned_boss_scene_path
 
 	var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file:
@@ -154,10 +178,13 @@ func load_game() -> bool:
 	# Загружаем характеристики игрока
 	if "player_stats" in save_data:
 		var stats = save_data["player_stats"]
-		GameConstants.PLAYER_MAX_SPEED = stats.get("max_speed", BASE_VALUES["PLAYER_MAX_SPEED"])
-		GameConstants.PLAYER_MAX_HEALTH = stats.get("max_health", BASE_VALUES["PLAYER_MAX_HEALTH"])
-		GameConstants.PLAYER_ENEMY_CONTACT_DAMAGE = stats.get("enemy_contact_damage", BASE_VALUES["PLAYER_ENEMY_CONTACT_DAMAGE"])
-		GameConstants.PLAYER_ATTACK_DAMAGE = stats.get("attack_damage", BASE_VALUES["PLAYER_ATTACK_DAMAGE"])
+		GameConstants.PLAYER_MAX_SPEED = int(stats.get("max_speed", BASE_VALUES["PLAYER_MAX_SPEED"]))
+		GameConstants.PLAYER_MAX_HEALTH = maxi(1, int(stats.get("max_health", BASE_VALUES["PLAYER_MAX_HEALTH"])))
+		GameConstants.PLAYER_ENEMY_CONTACT_DAMAGE = int(stats.get("enemy_contact_damage", BASE_VALUES["PLAYER_ENEMY_CONTACT_DAMAGE"]))
+		GameConstants.PLAYER_ATTACK_DAMAGE = maxi(1, int(stats.get("attack_damage", BASE_VALUES["PLAYER_ATTACK_DAMAGE"])))
+		var p2_max := int(stats.get("player2_max_health", BASE_VALUES["PLAYER2_MAX_HEALTH"]))
+		GameConstants.PLAYER2_MAX_HEALTH = p2_max if p2_max > 0 else BASE_VALUES["PLAYER2_MAX_HEALTH"]
+		GameConstants.PLAYER2_ATTACK_DAMAGE = maxi(1, int(stats.get("player2_attack_damage", BASE_VALUES["PLAYER2_ATTACK_DAMAGE"])))
 		GameConstants.PLAYER_ARMOR = stats.get("armor", BASE_VALUES["PLAYER_ARMOR"])
 		GameConstants.PLAYER_DODGE_CHANCE = stats.get("dodge_chance", BASE_VALUES["PLAYER_DODGE_CHANCE"])
 		GameConstants.PLAYER_CRIT_CHANCE = stats.get("crit_chance", BASE_VALUES["PLAYER_CRIT_CHANCE"])
@@ -187,12 +214,27 @@ func load_game() -> bool:
 
 	# Сохраняем данные для восстановления здоровья
 	if "player_current_health" in save_data:
-		saved_player_health = save_data["player_current_health"]
+		var h: int = int(save_data["player_current_health"])
+		var max_h: int = GameConstants.PLAYER_MAX_HEALTH
+		if selected_player == 1:
+			max_h = GameConstants.get_player2_max_health()
+		if h <= 0:
+			h = max_h
+		saved_player_health = clampi(h, 1, max_h)
 		should_restore_player = true
 
-	# При полной загрузке игрок ВСЕГДА появляется в стартовой комнате (4, 4)
-	# Позиция НЕ восстанавливается из сохранения
+	# Одиночное продолжение: сброс флага «забег окончен», иначе логика коопа может блокировать урон/движение
+	var tree := get_tree()
+	if tree and not tree.get_multiplayer().has_multiplayer_peer():
+		NetworkManager.reset_coop_run_state()
+
 	saved_player_position = Vector2.ZERO
+	if "player_position" in save_data:
+		var pp: Variant = save_data["player_position"]
+		if pp is Dictionary:
+			saved_player_position = Vector2(float(pp.get("x", 0.0)), float(pp.get("y", 0.0)))
+			if saved_player_position != Vector2.ZERO:
+				should_restore_player = true
 
 	# Загружаем собранные артефакты (очищаем перед загрузкой во избежание дублей)
 	collected_artefacts.clear()
@@ -209,6 +251,8 @@ func load_game() -> bool:
 	# Загружаем состояние люка босса
 	boss_hatch_opened = save_data.get("boss_hatch_opened", false)
 	print("Люк босса открыт: ", boss_hatch_opened)
+
+	last_spawned_boss_scene_path = str(save_data.get("last_spawned_boss_scene_path", ""))
 
 	GameConstants.save_to_disk()
 
@@ -240,6 +284,7 @@ func reset_to_base_values():
 	
 	# Сбрасываем состояние люка босса
 	boss_hatch_opened = false
+	last_spawned_boss_scene_path = ""
 
 	print("Все значения сброшены к базовым")
 	print("================================")
@@ -252,8 +297,22 @@ func delete_save():
 		DirAccess.remove_absolute(SAVE_PATH)
 		print("Файл сохранения удален")
 
+	last_spawned_boss_scene_path = ""
 	# Также удаляем состояние данжена
 	delete_dungeon_state()
+
+
+## После смерти забег нельзя продолжить из главного меню (одиночка и кооп).
+func invalidate_run_after_death() -> void:
+	delete_save()
+	should_restore_player = false
+	saved_player_health = 0
+	saved_player_position = Vector2.ZERO
+	clear_collected_artefacts()
+	clear_collected_treasure_rooms()
+	boss_hatch_opened = false
+	last_spawned_boss_scene_path = ""
+
 
 # Восстановление здоровья игрока после загрузки
 func restore_player_state():
@@ -262,16 +321,39 @@ func restore_player_state():
 
 	await get_tree().create_timer(0.1).timeout
 
-	var player = get_tree().get_first_node_in_group("player")
+	var tree := get_tree()
+	var player := tree.get_first_node_in_group("local_player")
+	if player == null:
+		player = tree.get_first_node_in_group("player")
 	if not player:
 		return
 
-	# Восстанавливаем здоровье
-	if saved_player_health > 0:
-		if "health_int" in player:
-			player.health_int = saved_player_health
-			player.health_changed.emit(saved_player_health, GameConstants.PLAYER_MAX_HEALTH)
-			print("Восстановлено здоровье игрока: ", saved_player_health)
+	# Восстанавливаем именно сохранённое здоровье. Позиция/этаж не должны давать полный отхил.
+	if saved_player_health <= 0:
+		return
+	var max_h: int = GameConstants.PLAYER_MAX_HEALTH
+	if player.has_method("_get_max_health"):
+		max_h = int(player.call("_get_max_health"))
+	max_h = maxi(1, max_h)
+	var h: int = maxi(1, saved_player_health)
+	if h > max_h:
+		h = max_h
+	if "health_int" in player:
+		player.health_int = h
+		if player.get("is_local_player") != false or NetworkManager.is_game_offline():
+			player.health_changed.emit(h, max_h)
+		print("Восстановлено здоровье игрока: ", h)
+
+	if "is_dead" in player:
+		player.set("is_dead", false)
+	if "can_anim" in player:
+		player.set("can_anim", true)
+	if "can_move" in player:
+		player.set("can_move", true)
+	if "can_attack" in player:
+		player.set("can_attack", true)
+	if "can_take_damage" in player:
+		player.set("can_take_damage", true)
 
 	# Восстанавливаем позицию (опционально)
 	if saved_player_position != Vector2.ZERO:
@@ -360,3 +442,9 @@ func set_boss_hatch_opened(opened: bool):
 
 func is_boss_hatch_opened() -> bool:
 	return boss_hatch_opened
+
+func set_selected_player(index: int) -> void:
+	selected_player = index
+
+func get_selected_player() -> int:
+	return selected_player

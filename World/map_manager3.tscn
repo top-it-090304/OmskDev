@@ -1,0 +1,33 @@
+[gd_scene load_steps=20 format=3]
+
+[ext_resource type="Script" uid="uid://c71xmlpvgo7v2" path="res://World/map_manager.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://c823kc80seg18" path="res://scene/room_variants/BaseRoom[0]/start_room_0.tscn" id="2_start"]
+[ext_resource type="PackedScene" uid="uid://m1ir1mum4qac" path="res://scene/room_variants/BaseRoom[0]/base_room0.tscn" id="3_normal"]
+[ext_resource type="PackedScene" uid="uid://bto3swn3i5217" path="res://scene/room_variants/BaseRoom[0]/boss_room_0.tscn" id="4_boss"]
+[ext_resource type="PackedScene" uid="uid://800whowwu1y0" path="res://scene/room_variants/BaseRoom[0]/treasure_room_0.tscn" id="5_treasure"]
+[ext_resource type="PackedScene" uid="uid://dkch1f7o4dp5j" path="res://scene/room_variants/BaseRoom[0]/corridorH.tscn" id="6_corridor_h"]
+[ext_resource type="PackedScene" uid="uid://r0v8453yqewl" path="res://scene/room_variants/BaseRoom[0]/corridorV.tscn" id="7_corridor_v"]
+[ext_resource type="PackedScene" uid="uid://mes1twfxfifa" path="res://scene/game_objects/player/player.tscn" id="8_player"]
+[ext_resource type="PackedScene" uid="uid://bbelva8io0yft" path="res://scene/pick_up/artefacts/artefact(boots_of_travel).tscn" id="9_art_boots"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/blue_shroom.tscn" id="10_art_shroom"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/clock.tscn" id="11_art_clock"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/coffee_mug.tscn" id="12_art_coffee"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/crown.tscn" id="13_art_crown"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/diamond.tscn" id="14_art_diamond"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/golden_cup.tscn" id="15_art_cup"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/injector.tscn" id="16_art_injector"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/metal_shield.tscn" id="17_art_shield"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/old_book.tscn" id="18_art_book"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/red_potion.tscn" id="19_art_potion"]
+[ext_resource type="PackedScene" path="res://scene/pick_up/artefacts/bottle.tscn" id="20_art_bottle"]
+
+[node name="MapManager3" type="Node2D"]
+script = ExtResource("1_script")
+start_room_variations = Array[PackedScene]([ExtResource("2_start")])
+normal_room_variations = Array[PackedScene]([ExtResource("3_normal")])
+boss_room_variations = Array[PackedScene]([ExtResource("4_boss")])
+treasure_room_variations = Array[PackedScene]([ExtResource("5_treasure")])
+corridor_h_scene = ExtResource("6_corridor_h")
+corridor_v_scene = ExtResource("7_corridor_v")
+treasure_items = Array[PackedScene]([ExtResource("11_art_clock"), ExtResource("13_art_crown"), ExtResource("14_art_diamond"), ExtResource("18_art_book")])
+player_scene = ExtResource("8_player")

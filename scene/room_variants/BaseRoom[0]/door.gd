@@ -15,7 +15,7 @@ func _process(_delta: float) -> void:
 func _update_door_state() -> void:
 	var should_close := false
 	if _enemys_node:
-		should_close = bool(_enemys_node.get("aggression"))
+		should_close = GameConstants.variant_to_bool(_enemys_node.get("aggression"))
 
 	if should_close == _is_closed:
 		return

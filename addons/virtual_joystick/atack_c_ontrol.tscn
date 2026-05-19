@@ -21,7 +21,7 @@ size_flags_vertical = 4
 script = ExtResource("1_gkscv")
 
 [node name="Base" type="TextureRect" parent="."]
-modulate = Color(0.678431, 0.513726, 0.341176, 0.784314)
+modulate = Color(0.92, 0.82, 0.62, 0.95)
 z_index = 400
 layout_mode = 1
 anchors_preset = 8
@@ -43,7 +43,7 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="Tip" type="TextureRect" parent="Base"]
-modulate = Color(0.937255, 0.847059, 0.760784, 0.784314)
+modulate = Color(1, 0.95, 0.88, 0.98)
 z_index = 400
 layout_mode = 1
 anchors_preset = 8
@@ -63,23 +63,24 @@ expand_mode = 1
 stretch_mode = 3
 
 [node name="HintIcon" type="Label" parent="Base/Tip"]
-z_index = -2
+z_index = 1
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -20.0
-offset_top = -20.0
-offset_right = 20.0
-offset_bottom = 20.0
+offset_left = -32.0
+offset_top = -32.0
+offset_right = 32.0
+offset_bottom = 32.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 20
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 34
 text = "⚔️"
 horizontal_alignment = 1
 vertical_alignment = 1

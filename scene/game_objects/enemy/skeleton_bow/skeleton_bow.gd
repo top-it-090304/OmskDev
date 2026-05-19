@@ -8,6 +8,7 @@ var max_hp = 0
 @onready var attack_timer = $attack_timer
 @onready var anim = $AnimatedSprite2D
 @onready var hp_bar = $TextureProgressBar
+@onready var detector_area: Area2D = $detector
 
 var player: Node2D = null
 var parent_node: Node = null
@@ -32,12 +33,18 @@ func _ready() -> void:
 	
 	hp_bar.update_hp(hp, max_hp)
 	
-	player = get_tree().get_first_node_in_group("player") as Node2D
+	player = PlayerManager.get_nearest_target_player_node(global_position) as Node2D
 	parent_node = get_parent()
 	attack_timer.start(1.0)
 
 func _physics_process(_delta: float) -> void:
+	if NetworkManager.enemy_client_interpolate_if_needed(self, _delta):
+		return
 	if is_dead: return
+
+	player = PlayerManager.get_nearest_target_player_node(global_position) as Node2D
+	if NetworkManager.is_multiplayer_active():
+		player_in_range = PlayerManager.detector_has_living_player(detector_area)
 
 	var is_aggressive = parent_node and parent_node.get("aggression")
 
@@ -51,7 +58,8 @@ func _physics_process(_delta: float) -> void:
 		move_and_slide()
 		return
 
-	var to_player: Vector2 = player.global_position - global_position
+	var ppos := PlayerManager.get_player_world_pos_for_hosting_ai(player)
+	var to_player: Vector2 = ppos - global_position
 	var direction = to_player.normalized()
 	update_direction(direction)
 
@@ -115,17 +123,26 @@ func take_damage(amount: int):
 	AudioManager.play_sfx("враг_урон")
 	var tween = create_tween()
 	tween.tween_property(anim, "modulate", Color(1, 0, 0, 1), 0.0)
-	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.15)
+	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.1)
 
 func shoot():
+	if NetworkManager.enemy_mp_is_network_client():
+		return
 	if not player or not is_instance_valid(player) or is_dead: return
 	var arrow_instance = GameConstants.SKELETON_BOW_ARROW.instantiate()
 	arrow_instance.global_position = global_position
-	var target_dir = (player.global_position - global_position).normalized()
+	var target_dir = (PlayerManager.get_player_world_pos_for_hosting_ai(player) - global_position).normalized()
 	arrow_instance.direction = target_dir
 	arrow_instance.rotation = target_dir.angle()
 	get_tree().current_scene.add_child.call_deferred(arrow_instance)
 	AudioManager.play_sfx("враг_выстрел_стрела")
+	var mp := get_tree().get_multiplayer()
+	if mp.has_multiplayer_peer() and mp.is_server():
+		NetworkManager.host_mirror_projectile_if_coop(
+			GameConstants.SKELETON_BOW_ARROW.resource_path,
+			arrow_instance.global_position,
+			target_dir
+		)
 
 func death():
 	if is_dead: return
@@ -135,18 +152,17 @@ func death():
 	can_attack = false
 	velocity = Vector2.ZERO
 	anim.stop()
-	animP.stop()
+	animP.active = false
+	animP.stop(true)
 	
 	set_collision_layer_value(1, false)
 	set_collision_mask_value(1, false)
 	
 	match current_dir:
-		Dir.UP: anim.play("death_up")
-		Dir.DOWN: anim.play("death_down")
-		Dir.LEFT: anim.play("death_left")
-		Dir.RIGHT: anim.play("death_right")
-		
-	await anim.animation_finished
+		Dir.UP: await _await_local_death_sprite(anim, "death_up")
+		Dir.DOWN: await _await_local_death_sprite(anim, "death_down")
+		Dir.LEFT: await _await_local_death_sprite(anim, "death_left")
+		Dir.RIGHT: await _await_local_death_sprite(anim, "death_right")
 	_give_exp_to_player()
 	if randf() <= 0.25:
 		_spawn_loot()
@@ -184,5 +200,24 @@ func _on_attack_timer_timeout():
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player") and body.has_method("take_damage"):
+		if not PlayerManager.is_player_nearest_hosting_target(global_position, body):
+			return
 		var damage = GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_BODY_DAMAGE)
-		body.take_damage(damage)
+		NetworkManager.server_apply_damage_to_player_from_enemy(body, damage)
+
+
+func _await_local_death_sprite(
+	sprite: AnimatedSprite2D,
+	anim_name: String,
+	fallback_sec: float = 0.75,
+	max_wait_sec: float = 3.5
+) -> void:
+	if sprite.sprite_frames != null and sprite.sprite_frames.has_animation(anim_name):
+		sprite.play(anim_name)
+		var deadline_ms := Time.get_ticks_msec() + int(max_wait_sec * 1000.0)
+		while sprite.is_playing() and Time.get_ticks_msec() < deadline_ms:
+			await get_tree().process_frame
+		if sprite.is_playing():
+			sprite.stop()
+	else:
+		await get_tree().create_timer(fallback_sec).timeout

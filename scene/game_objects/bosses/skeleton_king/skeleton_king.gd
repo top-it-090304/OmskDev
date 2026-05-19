@@ -26,6 +26,8 @@ var active_minions: Array = []  # Отслеживаем активных мин
 @onready var anim: AnimatedSprite2D = $AnimatedSprite2D
 @onready var attack_timer: Timer = $attack_timer
 @onready var hp_bar: TextureProgressBar = $TextureProgressBar
+@onready var detector_melee: Area2D = $detector_melee
+@onready var detector_charge: Area2D = $detector_charge
 
 enum Dir { DOWN, UP, LEFT, RIGHT }
 var current_dir: Dir = Dir.DOWN
@@ -57,10 +59,11 @@ var bone_projectile_instance: Node2D = null
 
 func _ready() -> void:
 	add_to_group("enemys")
+	add_to_group("boss")
 	hp = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_HP)
 	speed = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_MAX_SPEED)
 	hp_bar.update_hp(hp, hp)
-	player = get_tree().get_first_node_in_group("player") as Node2D
+	player = PlayerManager.get_nearest_target_player_node(global_position) as Node2D
 	parent_node = get_parent()
 	attack_timer.one_shot = true
 	player_took_damage = false
@@ -69,6 +72,14 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if is_dead:
 		return
+
+	if NetworkManager.enemy_client_interpolate_if_needed(self, delta):
+		return
+
+	player = PlayerManager.get_nearest_target_player_node(global_position) as Node2D
+	if NetworkManager.is_multiplayer_active():
+		player_in_melee_zone = PlayerManager.detector_has_living_player(detector_melee)
+		player_in_charge_zone = PlayerManager.detector_has_living_player(detector_charge)
 
 	# Обновляем кулдауны
 	_cd_melee  = max(0.0, _cd_melee  - delta)
@@ -93,7 +104,8 @@ func _physics_process(delta: float) -> void:
 	if not can_walk:
 		return
 
-	var to_player = player.global_position - global_position
+	var ppos := PlayerManager.get_player_world_pos_for_hosting_ai(player)
+	var to_player = ppos - global_position
 	var dist      = to_player.length()
 	var direction = to_player.normalized()
 
@@ -156,6 +168,7 @@ func attack(type: String):
 	is_attacking = true
 	can_walk = false
 	can_anim = false
+	_show_attack_warning(Color(0.75, 0.75, 1.0, 0.55), 120.0, 0.32)
 
 	var anim_type := "attack_01" if type == "melee" else ("attack_02" if type == "summon" else "attack_03")
 	var anim_name = anim_type + "_" + _get_dir_string()
@@ -235,11 +248,12 @@ func spawn_melee_hitbox() -> void:
 
 func _on_melee_hitbox_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):
+		if not PlayerManager.is_player_nearest_hosting_target(global_position, body):
+			return
 		AudioManager.play_sfx("босс_атака_удар")
-		if body.has_method("take_damage"):
-			body.take_damage(GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_MELEE_DAMAGE))
-		if body.has_method("apply_knockback"):
-			body.apply_knockback(global_position, 500.0)
+		var dmg := GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_MELEE_DAMAGE)
+		NetworkManager.server_apply_damage_to_player_from_enemy(body, dmg)
+		NetworkManager.server_apply_knockback_to_player_from_enemy(body, global_position, 500.0)
 
 # ============ АТАКА 02: Призыв миньонов / Стрелы вокруг игрока ============
 func _cleanup_minions() -> void:
@@ -247,6 +261,8 @@ func _cleanup_minions() -> void:
 	active_minions = active_minions.filter(func(m): return is_instance_valid(m) and not m.is_dead if "is_dead" in m else is_instance_valid(m))
 
 func summon_minions() -> void:
+	if NetworkManager.enemy_mp_is_network_client():
+		return
 	AudioManager.play_sfx("босс_суммон")
 	
 	# Проверяем, можно ли призвать миньонов
@@ -305,6 +321,7 @@ func _spawn_arrows_around_player() -> void:
 	if not is_instance_valid(player):
 		return
 	
+	var ppos := PlayerManager.get_player_world_pos_for_hosting_ai(player)
 	var arrow_count = 5
 	var radius = 60.0
 	var arrows: Array = []
@@ -312,10 +329,10 @@ func _spawn_arrows_around_player() -> void:
 	# Создаём 5 стрел вокруг игрока с задержкой
 	for i in arrow_count:
 		var angle = (TAU / float(arrow_count)) * i
-		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * radius
+		var spawn_pos = ppos + Vector2(cos(angle), sin(angle)) * radius
 		
 		# Создаём стрелу
-		var arrow = _create_warning_arrow(spawn_pos, player.global_position)
+		var arrow = _create_warning_arrow(spawn_pos, ppos)
 		arrows.append(arrow)
 		
 		# Задержка между созданием стрел
@@ -381,13 +398,15 @@ func _launch_arrow_at_player(arrow: Node2D) -> void:
 	
 	# Получаем направление (уже направлено к игроку)
 	var direction: Vector2 = arrow.get_meta("direction", Vector2.DOWN)
-	var speed = 300.0
+	var arrow_speed = 300.0
 	
 	# Подключаем сигнал урона
 	arrow.body_entered.connect(func(body):
 		if body.is_in_group("player"):
-			if body.has_method("take_damage"):
-				body.take_damage(GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_BODY_DAMAGE))
+			if not PlayerManager.is_player_nearest_hosting_target(global_position, body):
+				return
+			var admg := GameConstants.get_scaled_enemy_stat(GameConstants.SKELETON_BOW_BODY_DAMAGE)
+			NetworkManager.server_apply_damage_to_player_from_enemy(body, admg)
 			if is_instance_valid(arrow):
 				arrow.queue_free()
 	)
@@ -395,17 +414,19 @@ func _launch_arrow_at_player(arrow: Node2D) -> void:
 	# Движение стрелы
 	var travel_time = 3.0
 	var travel_tween = create_tween()
-	travel_tween.tween_property(arrow, "global_position", arrow.global_position + direction * speed * travel_time, travel_time)
+	travel_tween.tween_property(arrow, "global_position", arrow.global_position + direction * arrow_speed * travel_time, travel_time)
 	travel_tween.tween_callback(arrow.queue_free)
 
 # ============ АТАКА 03: Ультимативная способность (Bone Spear Rush) ============
 func start_charge_attack() -> void:
+	if NetworkManager.enemy_mp_is_network_client():
+		return
 	is_charging = true
 	can_walk = false
 
 	var start_pos = global_position
 	# Цель — позиция игрока на момент начала атаки (не обновляется)
-	charge_target_pos = player.global_position
+	charge_target_pos = PlayerManager.get_player_world_pos_for_hosting_ai(player)
 
 	# Задержка перед рывком для возможности увернуться
 	var warning_tween = create_tween()
@@ -459,6 +480,8 @@ func start_charge_attack() -> void:
 	is_charging = false
 
 func spawn_charge_hitbox() -> void:
+	if NetworkManager.enemy_mp_is_network_client():
+		return
 	# Ударная волна в точке приземления
 	var hitbox = Area2D.new()
 	hitbox.z_index = 2
@@ -515,10 +538,11 @@ func spawn_charge_hitbox() -> void:
 
 func _on_charge_hitbox_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):
-		if body.has_method("take_damage"):
-			body.take_damage(GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_BONE_SPEAR_DAMAGE))
-		if body.has_method("apply_knockback"):
-			body.apply_knockback(global_position, 1200.0)
+		if not PlayerManager.is_player_nearest_hosting_target(global_position, body):
+			return
+		var dmg := GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_BONE_SPEAR_DAMAGE)
+		NetworkManager.server_apply_damage_to_player_from_enemy(body, dmg)
+		NetworkManager.server_apply_knockback_to_player_from_enemy(body, global_position, 1200.0)
 
 # ============ УТИЛИТЫ ============
 func update_run_animation(direction: Vector2):
@@ -540,6 +564,22 @@ func _play_idle_animation():
 	if anim.animation != "idle_down":
 		anim.play("idle_down")
 
+
+func _show_attack_warning(color: Color, radius: float, duration: float) -> void:
+	var warning := Polygon2D.new()
+	var points := PackedVector2Array()
+	for i in range(32):
+		var angle := TAU * float(i) / 32.0
+		points.append(Vector2(cos(angle), sin(angle)) * radius)
+	warning.polygon = points
+	warning.color = color
+	warning.z_index = z_index + 4
+	warning.global_position = global_position
+	get_tree().current_scene.add_child(warning)
+	var tween := warning.create_tween()
+	tween.tween_property(warning, "color:a", 0.0, duration)
+	tween.tween_callback(warning.queue_free)
+
 func take_damage(amount: int):
 	if is_dead:
 		return
@@ -552,7 +592,7 @@ func take_damage(amount: int):
 	AudioManager.play_sfx("враг_урон")
 	var tween = create_tween()
 	tween.tween_property(anim, "modulate", Color(1, 0, 0, 1), 0.0)
-	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.15)
+	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.1)
 
 # ============ ДЕТЕКТОРЫ ЗОН АТАКИ ============
 func _on_detector_melee_body_entered(body: Node2D) -> void:
@@ -582,10 +622,8 @@ func _on_detector_charge_body_exited(body: Node2D) -> void:
 	if body.is_in_group("player"):
 		player_in_charge_zone = false
 
-func _on_hitbox_area_entered(area: Area2D) -> void:
-	if is_dead: return
-	# Любая Area2D (атака игрока) наносит урон
-	take_damage(GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_TAKE_DAMAGE))
+func _on_hitbox_area_entered(_area: Area2D) -> void:
+	pass
 
 func _on_attack_timer_timeout(): pass  # не используется, кулдауны через delta
 
@@ -602,20 +640,15 @@ func death():
 	if bone_projectile_instance and is_instance_valid(bone_projectile_instance):
 		bone_projectile_instance.queue_free()
 	var d_anim = "death_" + _get_dir_string()
-	anim.play(d_anim)
-	
 	# ТРЯСКА ЭКРАНА при смерти босса!
 	var shaker = get_tree().get_first_node_in_group("camera_shaker")
 	if not shaker:
-		# Пробуем найти просто по пути или имени
 		shaker = get_tree().root.find_child("CameraShaker", true, false)
 	if shaker and shaker.has_method("add_trauma"):
-		shaker.add_trauma(0.8)  # Сильная тряска (0.8 из 1.0)
-		print("Тряска камеры: 0.8")
-	
-	await anim.animation_finished
-	_give_exp_to_player()
+		shaker.add_trauma(0.8)
 	_spawn_loot_near_hatch()
+	await _await_boss_death_animation(d_anim)
+	_give_exp_to_player()
 	_open_hatch_via_map_manager()
 	queue_free()
 
@@ -625,7 +658,7 @@ func _give_exp_to_player():
 		p.add_experience(GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_SKELETON_KING_EXP_REWARD))
 
 func _spawn_loot_near_hatch():
-	var map_manager = get_tree().get_first_node_in_group("map_manager")
+	var map_manager := _find_map_manager()
 	if not map_manager:
 		# Fallback - спавн на месте смерти босса
 		_spawn_loot_fallback()
@@ -636,39 +669,89 @@ func _spawn_loot_near_hatch():
 		_spawn_loot_fallback()
 		return
 	
-	# Спавним артефакты на 32 пикселя ниже люка
+	# Артефакты на 48 px ниже люка (центр дропа)
+	var parent_n := hatch.get_parent() as Node2D
+	if parent_n == null:
+		_spawn_loot_fallback()
+		return
+	var spawn_pos: Vector2 = (hatch as Node2D).global_position + Vector2(0, 48)
 	if player_took_damage:
-		var artefact = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()].instantiate()
-		artefact.z_index = 2
-		var spawn_pos = hatch.global_position + Vector2(0, 32)
-		hatch.get_parent().add_child(artefact)
-		artefact.global_position = spawn_pos
+		var ps := _pick_boss_artefact_scene()
+		if ps == null:
+			return
+		NetworkManager.server_spawn_boss_loot_for_coop(ps.resource_path, parent_n, spawn_pos)
 	else:
-		var artefact1 = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()].instantiate()
-		var artefact2 = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()].instantiate()
-		artefact1.z_index = 2
-		artefact2.z_index = 2
-		var spawn_pos = hatch.global_position + Vector2(0, 32)
-		hatch.get_parent().add_child(artefact1)
-		hatch.get_parent().add_child(artefact2)
-		artefact1.global_position = spawn_pos + Vector2(-20, 0)
-		artefact2.global_position = spawn_pos + Vector2(20, 0)
+		var scenes := GameConstants.get_random_boss_artefact_scenes(2)
+		if scenes.is_empty():
+			return
+		NetworkManager.server_spawn_boss_loot_for_coop(scenes[0].resource_path, parent_n, spawn_pos + Vector2(-20, 0))
+		if scenes.size() > 1:
+			NetworkManager.server_spawn_boss_loot_for_coop(scenes[1].resource_path, parent_n, spawn_pos + Vector2(20, 0))
 
 func _spawn_loot_fallback():
-	# Старый метод - спавн на месте смерти босса
+	var scene_root := get_tree().current_scene
+	var parent_n := scene_root as Node2D
 	if player_took_damage:
-		var artefact = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()].instantiate()
-		artefact.global_position = global_position
-		get_tree().current_scene.add_child(artefact)
+		var ps := _pick_boss_artefact_scene()
+		if ps == null:
+			return
+		if parent_n != null:
+			NetworkManager.server_spawn_boss_loot_for_coop(ps.resource_path, parent_n, global_position)
+		else:
+			var artefact: Node2D = ps.instantiate() as Node2D
+			artefact.global_position = global_position
+			artefact.add_to_group("artefact")
+			scene_root.add_child(artefact)
 	else:
-		var artefact1 = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()].instantiate()
-		var artefact2 = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()].instantiate()
-		artefact1.global_position = global_position + Vector2(-20, 0)
-		artefact2.global_position = global_position + Vector2(20, 0)
-		get_tree().current_scene.add_child(artefact1)
-		get_tree().current_scene.add_child(artefact2)
+		var scenes := GameConstants.get_random_boss_artefact_scenes(2)
+		if scenes.is_empty():
+			return
+		if parent_n != null:
+			NetworkManager.server_spawn_boss_loot_for_coop(scenes[0].resource_path, parent_n, global_position + Vector2(-20, 0))
+			if scenes.size() > 1:
+				NetworkManager.server_spawn_boss_loot_for_coop(scenes[1].resource_path, parent_n, global_position + Vector2(20, 0))
+		else:
+			var artefact1: Node2D = scenes[0].instantiate() as Node2D
+			artefact1.global_position = global_position + Vector2(-20, 0)
+			artefact1.add_to_group("artefact")
+			scene_root.add_child(artefact1)
+			if scenes.size() > 1:
+				var artefact2: Node2D = scenes[1].instantiate() as Node2D
+				artefact2.global_position = global_position + Vector2(20, 0)
+				artefact2.add_to_group("artefact")
+				scene_root.add_child(artefact2)
 
 func _open_hatch_via_map_manager():
-	var map_manager = get_tree().get_first_node_in_group("map_manager")
+	var map_manager := _find_map_manager()
 	if map_manager and map_manager.has_method("open_boss_hatch"):
 		map_manager.open_boss_hatch()
+
+
+func _pick_boss_artefact_scene() -> PackedScene:
+	var scenes := GameConstants.get_random_boss_artefact_scenes(1)
+	if scenes.is_empty():
+		return null
+	return scenes[0]
+
+
+func _find_map_manager() -> Node:
+	var mm := get_tree().get_first_node_in_group("map_manager")
+	if mm != null:
+		return mm
+	mm = get_tree().root.find_child("MapManager", true, false)
+	if mm != null:
+		return mm
+	return get_tree().root.find_child("MapManager2", true, false)
+
+
+func _await_boss_death_animation(anim_name: String) -> void:
+	if anim.sprite_frames != null and anim.sprite_frames.has_animation(anim_name):
+		anim.play(anim_name)
+		var deadline_ms := Time.get_ticks_msec() + int(4000.0)
+		while anim.is_playing() and Time.get_ticks_msec() < deadline_ms:
+			await get_tree().process_frame
+		if anim.is_playing():
+			anim.stop()
+	else:
+		push_warning("skeleton_king: нет анимации %s" % anim_name)
+		await get_tree().create_timer(1.0).timeout

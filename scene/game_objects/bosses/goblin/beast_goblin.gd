@@ -11,8 +11,8 @@ const ARTEFACT_SCENES = [
 	preload("res://scene/pick_up/artefacts/coffee_mug.tscn")      # Кофе - энергетик
 ]
 
-const TELEPORT_INTERVAL = 8.0
-const ATTACK_COOLDOWN   = 4.0
+const TELEPORT_INTERVAL = 4.0
+const ATTACK_COOLDOWN   = 8.0
 
 var hp = 0
 var speed = GameConstants.ENEMY_BEASTGOBLIN_MAX_SPEED
@@ -22,6 +22,9 @@ var player_took_damage: bool = false
 @onready var animP = $AnimationPlayer
 @onready var attack_timer = $attack_timer
 @onready var hp_bar = $TextureProgressBar
+@onready var detector_bite: Area2D = $detectorBite
+@onready var detector_slap: Area2D = $detectorSlap
+@onready var detector_shoot: Area2D = $detectorShoot
 
 enum Dir { DOWN, UP, LEFT, RIGHT }
 var current_dir = Dir.DOWN
@@ -48,17 +51,26 @@ var _teleport_timer := 0.0
 
 func _ready() -> void:
 	add_to_group("enemys")
+	add_to_group("boss")
 	hp    = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_HP)
 	speed = GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_MAX_SPEED)
 	hp_bar.update_hp(hp, hp)
-	player      = get_tree().get_first_node_in_group("player") as Node2D
+	player      = PlayerManager.get_nearest_target_player_node(global_position) as Node2D
 	parent_node = get_parent()
 	attack_timer.one_shot = true
 	player_took_damage = false
 	_play_idle_animation()
 
 func _physics_process(delta: float) -> void:
+	if NetworkManager.enemy_client_interpolate_if_needed(self, delta):
+		return
 	if is_dead: return
+
+	player = PlayerManager.get_nearest_target_player_node(global_position) as Node2D
+	if NetworkManager.is_multiplayer_active():
+		player_in_bite_zone = PlayerManager.detector_has_living_player(detector_bite)
+		player_in_slap_zone = PlayerManager.detector_has_living_player(detector_slap)
+		player_in_shoot_zone = PlayerManager.detector_has_living_player(detector_shoot)
 
 	_cd_bite  = max(0.0, _cd_bite  - delta)
 	_cd_slap  = max(0.0, _cd_slap  - delta)
@@ -79,7 +91,8 @@ func _physics_process(delta: float) -> void:
 
 	if not can_walk: return
 
-	var to_player = player.global_position - global_position
+	var ppos := PlayerManager.get_player_world_pos_for_hosting_ai(player)
+	var to_player = ppos - global_position
 	var dist      = to_player.length()
 	var direction = to_player.normalized()
 
@@ -139,6 +152,7 @@ func attack(type: String):
 	is_attacking = true
 	can_walk = false
 	can_anim = false
+	_show_attack_warning(Color(0.3, 1.0, 0.25, 0.5), 105.0, 0.28)
 	var anim_type = "shoot" if type == "summon" else type
 	var anim_name = anim_type + "_" + _get_dir_string()
 	if animP.has_animation(anim_name):
@@ -192,7 +206,7 @@ func _do_teleport():
 				randf_range(inner.position.x, inner.end.x),
 				randf_range(inner.position.y, inner.end.y)
 			)
-			if candidate.distance_to(player.global_position) > 100.0:
+			if candidate.distance_to(PlayerManager.get_player_world_pos_for_hosting_ai(player)) > 100.0:
 				new_pos = candidate
 				break
 
@@ -213,7 +227,7 @@ func spawn_bite_swing():
 	smite_instance.visible = false
 	smite_instance.monitoring = false
 	smite_instance.scale = Vector2(2.5, 2.5)
-	var target_dir = (player.global_position - global_position).normalized()
+	var target_dir = (PlayerManager.get_player_world_pos_for_hosting_ai(player) - global_position).normalized()
 	if "direction" in smite_instance:
 		smite_instance.direction = target_dir
 	smite_instance.rotation = target_dir.angle()
@@ -229,16 +243,27 @@ func activate_bite():
 	AudioManager.play_sfx("босс_атака_укус")
 
 func shoot():
+	if NetworkManager.enemy_mp_is_network_client():
+		return
 	if is_dead or not is_instance_valid(player): return
 	var proj = GameConstants.GOBLIN_SLINGER_PROJECTILE.instantiate()
-	var dir = (player.global_position - global_position).normalized()
+	var dir = (PlayerManager.get_player_world_pos_for_hosting_ai(player) - global_position).normalized()
 	proj.direction = dir
 	proj.global_position = global_position
 	proj.rotation = dir.angle()
 	proj.scale = Vector2(2.5, 2.5)
 	get_tree().current_scene.add_child(proj)
+	var mp := get_tree().get_multiplayer()
+	if mp.has_multiplayer_peer() and mp.is_server():
+		NetworkManager.host_mirror_projectile_if_coop(
+			GameConstants.GOBLIN_SLINGER_PROJECTILE.resource_path,
+			proj.global_position,
+			dir
+		)
 
 func summon_projectiles():
+	if NetworkManager.enemy_mp_is_network_client():
+		return
 	if is_dead: return
 	for i in range(8):
 		var angle = (TAU / 8.0) * i
@@ -249,6 +274,13 @@ func summon_projectiles():
 		proj.rotation = angle
 		proj.scale = Vector2(2.5, 2.5)
 		get_tree().current_scene.add_child(proj)
+		var mp2 := get_tree().get_multiplayer()
+		if mp2.has_multiplayer_peer() and mp2.is_server():
+			NetworkManager.host_mirror_projectile_if_coop(
+				GameConstants.GOBLIN_SLINGER_PROJECTILE.resource_path,
+				proj.global_position,
+				dir
+			)
 
 func spawn_slap_effect():
 	if is_dead: return
@@ -291,11 +323,12 @@ func spawn_slap_effect():
 func _on_slap_body_entered(body: Node2D) -> void:
 	if is_dead: return
 	if body.is_in_group("player"):
+		if not PlayerManager.is_player_nearest_hosting_target(global_position, body):
+			return
 		AudioManager.play_sfx("босс_атака_удар")
-		if body.has_method("take_damage"):
-			body.take_damage(GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_SLAP_DAMAGE))
-		if body.has_method("apply_knockback"):
-			body.apply_knockback(global_position, 800.0)
+		var dmg := GameConstants.get_scaled_enemy_stat(GameConstants.ENEMY_BEASTGOBLIN_SLAP_DAMAGE)
+		NetworkManager.server_apply_damage_to_player_from_enemy(body, dmg)
+		NetworkManager.server_apply_knockback_to_player_from_enemy(body, global_position, 800.0)
 
 func take_damage(amount: int):
 	if is_dead: return
@@ -308,7 +341,7 @@ func take_damage(amount: int):
 	AudioManager.play_sfx("враг_урон")
 	var tween = create_tween()
 	tween.tween_property(anim, "modulate", Color(1, 0, 0, 1), 0.0)
-	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.15)
+	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.1)
 
 func _on_detector_bite_body_entered(body):  if body.is_in_group("player"): player_in_bite_zone  = true
 func _on_detector_bite_body_exited(body):   if body.is_in_group("player"): player_in_bite_zone  = false
@@ -317,7 +350,8 @@ func _on_detector_slap_body_exited(body):   if body.is_in_group("player"): playe
 func _on_detector_shoot_body_entered(body): if body.is_in_group("player"): player_in_shoot_zone = true
 func _on_detector_shoot_body_exited(body):  if body.is_in_group("player"): player_in_shoot_zone = false
 
-func _on_hitbox_area_entered(_area): take_damage(GameConstants.ENEMY_BEASTGOBLIN_TAKE_DAMAGE)
+func _on_hitbox_area_entered(_area) -> void:
+	pass
 func _on_attack_timer_timeout(): pass  # кулдауны теперь через delta
 
 func update_run_animation(direction: Vector2):
@@ -338,7 +372,25 @@ func _get_dir_string() -> String:
 func _play_idle_animation():
 	if anim.animation != "idle_down": anim.play("idle_down")
 
+
+func _show_attack_warning(color: Color, radius: float, duration: float) -> void:
+	var warning := Polygon2D.new()
+	var points := PackedVector2Array()
+	for i in range(32):
+		var angle := TAU * float(i) / 32.0
+		points.append(Vector2(cos(angle), sin(angle)) * radius)
+	warning.polygon = points
+	warning.color = color
+	warning.z_index = z_index + 4
+	warning.global_position = global_position
+	get_tree().current_scene.add_child(warning)
+	var tween := warning.create_tween()
+	tween.tween_property(warning, "color:a", 0.0, duration)
+	tween.tween_callback(warning.queue_free)
+
 func death():
+	if is_dead:
+		return
 	is_dead = true
 	can_walk = false
 	is_attacking = false
@@ -348,38 +400,87 @@ func death():
 	animP.stop()
 	if is_instance_valid(smite_instance): smite_instance.queue_free()
 	var d_anim = "death_" + _get_dir_string()
-	if _get_dir_string() == "down": d_anim = "death_dowm"
-	anim.play(d_anim)
-	await anim.animation_finished
+	_spawn_artefact_near_hatch()
+	await _await_boss_death_animation(d_anim)
 	_give_exp_to_player()
 	if randf() <= 0.75: _spawn_loot()
-	_spawn_artefact_near_hatch()
 	_open_hatch_via_map_manager()
 	queue_free()
 
 func _spawn_artefact_near_hatch():
-	var map_manager = get_tree().get_first_node_in_group("map_manager")
+	var map_manager := _find_map_manager()
 	if not map_manager:
+		_spawn_artefact_fallback()
 		return
-	
+
 	var hatch = map_manager.boss_hatch
 	if not hatch or not is_instance_valid(hatch):
+		_spawn_artefact_fallback()
 		return
-	
-	# Спавним артефакт на 32 пикселя ниже люка
-	var artefact_scene = ARTEFACT_SCENES[randi() % ARTEFACT_SCENES.size()]
-	var artefact = artefact_scene.instantiate()
-	artefact.z_index = 2
-	
-	var spawn_pos = hatch.global_position + Vector2(0, 32)
-	
-	hatch.get_parent().add_child(artefact)
-	artefact.global_position = spawn_pos
+
+	var parent_n := hatch.get_parent() as Node2D
+	if parent_n == null:
+		_spawn_artefact_fallback()
+		return
+	var spawn_pos: Vector2 = (hatch as Node2D).global_position + Vector2(0, 48)
+	var ps := _pick_boss_artefact_scene()
+	if ps == null:
+		return
+	NetworkManager.server_spawn_boss_loot_for_coop(ps.resource_path, parent_n, spawn_pos)
+
+
+func _spawn_artefact_fallback() -> void:
+	var scene_root := get_tree().current_scene
+	var parent_n := scene_root as Node2D
+	var ps := _pick_boss_artefact_scene()
+	if ps == null:
+		return
+	if parent_n != null:
+		NetworkManager.server_spawn_boss_loot_for_coop(ps.resource_path, parent_n, global_position)
+	else:
+		var inst: Node2D = ps.instantiate() as Node2D
+		inst.global_position = global_position
+		inst.add_to_group("artefact")
+		scene_root.add_child(inst)
+
+
+func _pick_boss_artefact_scene() -> PackedScene:
+	var scenes := GameConstants.get_random_boss_artefact_scenes(1)
+	if scenes.is_empty():
+		return null
+	return scenes[0]
+
 
 func _open_hatch_via_map_manager():
-	var map_manager = get_tree().get_first_node_in_group("map_manager")
+	var map_manager := _find_map_manager()
 	if map_manager and map_manager.has_method("open_boss_hatch"):
 		map_manager.open_boss_hatch()
+
+
+func _find_map_manager() -> Node:
+	var mm := get_tree().get_first_node_in_group("map_manager")
+	if mm != null:
+		return mm
+	mm = get_tree().root.find_child("MapManager", true, false)
+	if mm != null:
+		return mm
+	return get_tree().root.find_child("MapManager2", true, false)
+
+
+func _await_boss_death_animation(anim_name: String) -> void:
+	if animP:
+		animP.active = false
+		animP.stop(true)
+	if anim.sprite_frames != null and anim.sprite_frames.has_animation(anim_name):
+		anim.play(anim_name)
+		var deadline_ms := Time.get_ticks_msec() + int(4000.0)
+		while anim.is_playing() and Time.get_ticks_msec() < deadline_ms:
+			await get_tree().process_frame
+		if anim.is_playing():
+			anim.stop()
+	else:
+		push_warning("beast_goblin: нет анимации %s" % anim_name)
+		await get_tree().create_timer(1.0).timeout
 
 func _give_exp_to_player():
 	var p := PlayerManager.get_player_for_local_rewards()

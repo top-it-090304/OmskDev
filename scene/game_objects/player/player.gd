@@ -12,6 +12,7 @@ extends CharacterBody2D
 
 const LEVEL_UP_POPUP = preload("res://scene/ui/level_up_popup.tscn")
 const DAMAGE_POPUP = preload("res://scene/ui/damage_popup.tscn")
+const DEFAULT_GAME_OVER = preload("res://World/UI/game_over.tscn")
 
 # =========================================================
 # ОСНОВНЫЕ ПЕРЕМЕННЫЕ
@@ -86,6 +87,8 @@ func rpc_set_position(pos: Vector2, dir: int) -> void:
 	target_position = pos
 	target_direction = dir
 	interpolation_timer = 0.0
+	if not is_multiplayer_authority():
+		set_meta(&"net_target_valid", true)
 	if is_local_player:
 		return
 	var dist2 := global_position.distance_squared_to(pos)
@@ -96,10 +99,24 @@ func rpc_set_position(pos: Vector2, dir: int) -> void:
 		play_idle_animation()
 
 
-@rpc("authority", "call_local")
-func rpc_take_damage(amount: int) -> void:
-	if not is_local_player and not is_dead:
-		take_damage(amount)
+@rpc("any_peer", "call_remote", "reliable")
+func rpc_take_damage_from_server(resolved_amount: int) -> void:
+	if not is_multiplayer_authority():
+		return
+	apply_damage_direct(resolved_amount, true)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func rpc_apply_poison_from_server(duration: float, damage_per_tick: int, tick_rate: float) -> void:
+	if is_multiplayer_authority():
+		apply_poison(duration, damage_per_tick, tick_rate)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func rpc_apply_knockback_from_server(source_x: float, source_y: float, force: float) -> void:
+	if is_multiplayer_authority():
+		apply_knockback(Vector2(source_x, source_y), force)
+
 
 @rpc("authority", "call_local")
 func rpc_die() -> void:
@@ -112,7 +129,7 @@ func rpc_heal(amount: int) -> void:
 		heal(amount)
 
 @rpc("authority", "call_local")
-func rpc_attack(from_rpc: bool) -> void:
+func rpc_attack(_from_rpc: bool) -> void:
 	if not is_local_player and not is_dead:
 		attack(true)
 
@@ -124,8 +141,7 @@ func _physics_process(delta: float) -> void:
 	if is_dead:
 		return
 
-	var mp := get_tree().get_multiplayer()
-	if mp.has_multiplayer_peer() and NetworkManager.coop_run_finished and is_local_player:
+	if NetworkManager.is_game_online() and NetworkManager.coop_run_finished and is_local_player:
 		velocity = Vector2.ZERO
 		move_and_slide()
 		return
@@ -133,7 +149,7 @@ func _physics_process(delta: float) -> void:
 	if is_local_player:
 		move_and_slide()
 
-		if mp.has_multiplayer_peer():
+		if NetworkManager.is_game_online():
 			_pos_sync_accum += delta
 			if _pos_sync_accum >= POS_SYNC_MIN_INTERVAL_SEC:
 				_pos_sync_accum = 0.0
@@ -181,20 +197,11 @@ func _process(delta: float) -> void:
 	if is_dead:
 		return
 
-	if get_tree().get_multiplayer().has_multiplayer_peer() and NetworkManager.coop_run_finished:
+	if NetworkManager.is_game_online() and NetworkManager.coop_run_finished:
 		return
 
 	if not is_local_player:
 		return
-
-	# DEBUG BOOST
-	if Input.is_action_just_pressed("ui_focus_next"):
-		GameConstants.PLAYER_MAX_SPEED = 500
-		GameConstants.PLAYER_ATTACK_SPEED = 5.0
-
-	if Input.is_action_just_released("ui_focus_next"):
-		GameConstants.PLAYER_MAX_SPEED = SaveSystem.BASE_VALUES["PLAYER_MAX_SPEED"]
-		GameConstants.PLAYER_ATTACK_SPEED = 1.0
 
 	# =====================================================
 	# ЯД
@@ -210,14 +217,6 @@ func _process(delta: float) -> void:
 
 		if poison_timer <= 0:
 			remove_poison()
-
-	# =====================================================
-	# СМЕРТЬ
-	# =====================================================
-
-	if health_int <= 0:
-		die()
-		return
 
 	# =====================================================
 	# АТАКА ДЖОЙСТИКОМ
@@ -315,6 +314,8 @@ func play_idle_animation():
 func attack(from_rpc: bool = false) -> void:
 	if not can_attack or is_dead:
 		return
+	if NetworkManager.is_game_online() and NetworkManager.coop_run_finished and is_local_player:
+		return
 
 	can_anim = false
 	can_attack = false
@@ -357,12 +358,13 @@ func attack(from_rpc: bool = false) -> void:
 		attack_timer.wait_time / GameConstants.PLAYER_ATTACK_SPEED
 	)
 
-	# Отправка RPC
-	if not from_rpc and is_local_player:
-		if get_tree().get_multiplayer().is_server():
+	# Только онлайн: без peer вызовы is_server()/RPC дают тысячи ошибок в отладчике.
+	if NetworkManager.is_game_online() and not from_rpc and is_local_player:
+		var mp := get_tree().get_multiplayer()
+		if mp.is_server():
 			rpc_attack.rpc(true)
 		else:
-			rpc_attack.rpc_id(1, true)
+			rpc_attack.rpc_id(NetworkManager.SERVER_ID, true)
 
 @rpc("any_peer", "call_remote", "reliable")
 func rpc_server_teleport_to(pos: Vector2) -> void:
@@ -379,8 +381,7 @@ func rpc_server_teleport_to(pos: Vector2) -> void:
 func flush_network_transform() -> void:
 	if not is_local_player:
 		return
-	var mp := get_tree().get_multiplayer()
-	if not mp.has_multiplayer_peer():
+	if NetworkManager.is_game_offline():
 		return
 	_last_sent_pos_net = global_position
 	_last_sent_dir_net = current_dir
@@ -401,31 +402,48 @@ func apply_knockback(source_position: Vector2, force: float):
 	velocity = knockback_dir * force
 
 
-func take_damage(amount: int):
-	if not can_take_damage or is_dead:
+func take_damage(amount: int) -> void:
+	# В коопе HP меняет только машина владельца персонажа (или хост в server_apply).
+	if NetworkManager.is_game_online() and not is_multiplayer_authority():
 		return
+	apply_damage_direct(amount)
 
-	if get_tree().get_multiplayer().has_multiplayer_peer() and NetworkManager.coop_run_finished:
-		return
 
-	# Уклонение
+## Сколько HP снять после брони/уклонения/i-frame; 0 — удар не прошёл.
+func resolve_incoming_damage(amount: int) -> int:
+	if is_dead:
+		return 0
+	if NetworkManager.is_game_online() and NetworkManager.coop_run_finished:
+		return 0
 	if randf() < GameConstants.PLAYER_DODGE_CHANCE:
 		_show_popup("dodge")
-		return
+		return 0
+	var final_amount := maxi(1, amount - GameConstants.PLAYER_ARMOR)
+	if not can_take_damage and health_int > final_amount:
+		return 0
+	return final_amount
 
-	var final_amount = max(
-		1,
-		amount - GameConstants.PLAYER_ARMOR
-	)
+
+func apply_damage_direct(amount: int, authoritative: bool = false) -> void:
+	var final_amount: int
+	if authoritative:
+		if amount <= 0:
+			return
+		final_amount = amount
+	else:
+		final_amount = resolve_incoming_damage(amount)
+		if final_amount <= 0:
+			return
 
 	can_take_damage = false
 
 	health_int -= final_amount
 
-	health_changed.emit(
-		health_int,
-		GameConstants.PLAYER_MAX_HEALTH
-	)
+	if is_local_player or NetworkManager.is_game_offline():
+		health_changed.emit(
+			health_int,
+			GameConstants.PLAYER_MAX_HEALTH
+		)
 
 	if health_int <= 0:
 		die()
@@ -438,20 +456,8 @@ func take_damage(amount: int):
 	)
 
 	var tween = create_tween()
-
-	tween.tween_property(
-		anim,
-		"modulate",
-		Color(1, 0, 0, 1),
-		0.0
-	)
-
-	tween.tween_property(
-		anim,
-		"modulate",
-		restore_color,
-		0.15
-	)
+	tween.tween_property(anim, "modulate", Color(1, 1, 1, 1), 0.0)
+	tween.tween_property(anim, "modulate", restore_color, 0.1)
 
 	AudioManager.play_sfx("игрок_урон")
 
@@ -466,49 +472,76 @@ func take_damage(amount: int):
 # DEATH
 # =========================================================
 
+func die_from_coop_partner_death() -> void:
+	if is_dead:
+		return
+	if NetworkManager.is_game_offline():
+		return
+	if not is_local_player:
+		return
+	is_dead = true
+	can_anim = false
+	velocity = Vector2.ZERO
+	NetworkManager.mark_coop_run_finished()
+	await _death_presentation_async()
+
+
 func die():
 	if is_dead:
 		return
-
-	var mp := get_tree().get_multiplayer()
-	if mp.has_multiplayer_peer() and is_local_player:
-		if not NetworkManager.coop_run_finished:
-			if mp.is_server():
-				NetworkManager.rpc_coop_game_over.rpc(multiplayer.get_multiplayer_authority())
-			else:
-				NetworkManager.rpc_report_player_death.rpc_id(NetworkManager.SERVER_ID)
-		NetworkManager.mark_coop_run_finished()
 
 	is_dead = true
 	can_anim = false
 	velocity = Vector2.ZERO
 
+	var mp := get_tree().get_multiplayer()
+	if NetworkManager.is_game_online() and is_local_player:
+		if not NetworkManager.coop_run_finished:
+			if mp.is_server():
+				NetworkManager.server_broadcast_coop_game_over(get_multiplayer_authority())
+			else:
+				NetworkManager.rpc_report_player_death.rpc_id(NetworkManager.SERVER_ID)
+		NetworkManager.mark_coop_run_finished()
+
+	await _death_presentation_async()
+
+
+func _death_presentation_async() -> void:
 	AudioManager.play_sfx("игрок_смерть")
 
+	if animP:
+		animP.active = false
+		animP.stop(true)
+
+	var death_anim := "death_down"
 	match current_dir:
 		Dir.UP:
-			anim.play("death_up")
-
+			death_anim = "death_up"
 		Dir.DOWN:
-			anim.play("death_down")
-
+			death_anim = "death_down"
 		Dir.LEFT:
-			anim.play("death_left")
-
+			death_anim = "death_left"
 		Dir.RIGHT:
-			anim.play("death_right")
+			death_anim = "death_right"
+	await _await_player_death_sprite(death_anim)
 
-	await anim.animation_finished
+	SaveSystem.invalidate_run_after_death()
 
-	SaveSystem.save_game()
-
-	var map_manager = get_tree().get_first_node_in_group("map_manager")
-
-	if map_manager and map_manager.has_method("save_dungeon_state"):
-		map_manager.save_dungeon_state()
-
-	var over = gameover.instantiate()
+	var gameover_scene := gameover if gameover != null else DEFAULT_GAME_OVER
+	var over = gameover_scene.instantiate()
 	add_child(over)
+
+
+func _await_player_death_sprite(anim_name: String, fallback_sec: float = 1.0, max_wait_sec: float = 3.5) -> void:
+	if anim.sprite_frames != null and anim.sprite_frames.has_animation(anim_name):
+		anim.play(anim_name)
+		var deadline_ms := Time.get_ticks_msec() + int(max_wait_sec * 1000.0)
+		while anim.is_playing() and Time.get_ticks_msec() < deadline_ms:
+			await get_tree().process_frame
+		if anim.is_playing():
+			anim.stop()
+	else:
+		await get_tree().create_timer(fallback_sec).timeout
 
 # =========================================================
 # HITBOX
@@ -519,7 +552,9 @@ func _on_hitbox_body_entered(body: Node2D) -> void:
 		return
 
 	if body.is_in_group("enemys"):
-		take_damage(GameConstants.PLAYER_ENEMY_CONTACT_DAMAGE)
+		NetworkManager.server_apply_damage_to_player_from_enemy(
+			self, GameConstants.PLAYER_ENEMY_CONTACT_DAMAGE
+		)
 
 
 func _on_can_take_damage_timeout() -> void:
@@ -535,11 +570,12 @@ func _on_can_attack_timeout() -> void:
 
 func _ready() -> void:
 	add_to_group("player")
+	damage_timer.wait_time = GameConstants.PLAYER_DAMAGE_INVINCIBILITY_SEC
 
-	if get_tree().get_multiplayer().get_multiplayer_peer() == null:
+	if NetworkManager.is_game_offline():
 		is_local_player = true
 	else:
-		is_local_player = (get_multiplayer_authority() == get_tree().get_multiplayer().get_unique_id())
+		is_local_player = is_multiplayer_authority()
 
 	current_level = GameConstants.PLAYER_LEVEL
 	current_exp = GameConstants.PLAYER_EXPERIENCE
@@ -549,7 +585,7 @@ func _ready() -> void:
 	)
 
 	health_int = (
-		SaveSystem.saved_player_health
+		clampi(SaveSystem.saved_player_health, 1, GameConstants.PLAYER_MAX_HEALTH)
 		if SaveSystem.should_restore_player
 		else GameConstants.PLAYER_MAX_HEALTH
 	)
@@ -620,10 +656,7 @@ func _hide_ui_for_remote_peer() -> void:
 func _on_constants_changed() -> void:
 	var new_max = GameConstants.PLAYER_MAX_HEALTH
 
-	if new_max > last_known_max_health:
-		health_int = min(health_int * 2, new_max)
-
-	elif health_int > new_max:
+	if health_int > new_max:
 		health_int = new_max
 
 	last_known_max_health = new_max
@@ -647,7 +680,7 @@ func _on_hitbox_attack_body_entered(body: Node2D) -> void:
 			dmg = int(dmg * GameConstants.PLAYER_CRIT_MULTIPLIER)
 			is_crit = true
 
-		body.take_damage(dmg)
+		NetworkManager.apply_melee_damage_to_enemy_from_player(body, dmg)
 		
 		# Показываем урон над врагом
 		if GameConstants.SHOW_DAMAGE_NUMBERS:
@@ -669,23 +702,34 @@ func _on_hitbox_attack_body_entered(body: Node2D) -> void:
 # =========================================================
 
 func heal(amount: int) -> void:
-	health_int += amount
+	if amount <= 0:
+		return
+	var max_health: int = GameConstants.PLAYER_MAX_HEALTH
+	var old_health: int = health_int
+	health_int = mini(health_int + amount, max_health)
+	var healed: int = health_int - old_health
+	if healed <= 0:
+		return
 
 	health_changed.emit(
 		health_int,
-		GameConstants.PLAYER_MAX_HEALTH
+		max_health
 	)
 	
 	# Показываем хил
-	if GameConstants.SHOW_HEAL_NUMBERS and amount > 0:
-		_show_popup("heal", amount)
+	if GameConstants.SHOW_HEAL_NUMBERS:
+		_show_popup("heal", healed)
+
+
+func can_heal() -> bool:
+	return not is_dead and health_int < GameConstants.PLAYER_MAX_HEALTH
 
 # =========================================================
 # EXPERIENCE
 # =========================================================
 
 func add_experience(amount: int) -> void:
-	if get_tree().get_multiplayer().has_multiplayer_peer() and not is_local_player:
+	if NetworkManager.is_game_online() and not is_local_player:
 		return
 
 	var multiplier = 1.0
@@ -719,7 +763,7 @@ func _calculate_exp_for_level(level: int) -> int:
 # =========================================================
 
 func level_up_player() -> void:
-	if get_tree().get_multiplayer().has_multiplayer_peer() and not is_local_player:
+	if NetworkManager.is_game_online() and not is_local_player:
 		return
 
 	current_level += 1
@@ -767,6 +811,14 @@ func level_up_player() -> void:
 		current_exp,
 		exp_to_next_level
 	)
+
+	if NetworkManager.is_game_online():
+		var snap := GameConstants.capture_coop_shared_state()
+		var mp := get_tree().get_multiplayer()
+		if mp.is_server():
+			NetworkManager.rpc_replicate_player_stats.rpc(snap)
+		else:
+			NetworkManager.rpc_submit_progress_after_level_up.rpc_id(NetworkManager.SERVER_ID, snap)
 
 # =========================================================
 # POPUP

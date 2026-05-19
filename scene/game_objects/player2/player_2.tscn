@@ -1,4 +1,4 @@
-[gd_scene load_steps=163 format=3 uid="uid://de86lga3qrnjr"]
+[gd_scene load_steps=184 format=3 uid="uid://de86lga3qrnjr"]
 
 [ext_resource type="Texture2D" uid="uid://pagggpic45vn" path="res://sprites/player/Health/Health_progressbar_sprite_under.png" id="1_o0ofg"]
 [ext_resource type="Script" uid="uid://dxvimbfajb7yw" path="res://scene/game_objects/player2/player_2.gd" id="1_wqtsj"]
@@ -13,9 +13,13 @@
 [ext_resource type="Texture2D" uid="uid://teqifhipcbuj" path="res://sprites/player2/Right/Png/SorceressRightDeath.png" id="10_wqtsj"]
 [ext_resource type="Texture2D" uid="uid://v0k2u0tar5if" path="res://sprites/player2/Up/Png/SorceressUpDeath.png" id="11_dvmra"]
 [ext_resource type="Texture2D" uid="uid://urwbkuvhote4" path="res://sprites/player2/Down/Png/SorceressDownIdle.png" id="12_msnq1"]
+[ext_resource type="Texture2D" uid="uid://kix0n4lg2s3m" path="res://sprites/player2/Down/Png/SorceressDownHurt.png" id="13_mvo2b"]
 [ext_resource type="Texture2D" uid="uid://cgnboc1hbu3j4" path="res://sprites/player2/Left/Png/SorceressLeftIdle.png" id="13_o0ofg"]
+[ext_resource type="Texture2D" uid="uid://sk3hmw3ub7pp" path="res://sprites/player2/Left/Png/SorceressLefttHurt.png" id="14_hsllf"]
 [ext_resource type="Texture2D" uid="uid://ttgx45rt43ur" path="res://sprites/player2/Right/Png/SorceressRightIdle.png" id="14_mvo2b"]
 [ext_resource type="Texture2D" uid="uid://dibft3jj47qpb" path="res://sprites/player2/Up/Png/SorceressUpIdle.png" id="15_hsllf"]
+[ext_resource type="Texture2D" uid="uid://ccebuky44yqwl" path="res://sprites/player2/Right/Png/SorceressRightHurt.png" id="15_l40kf"]
+[ext_resource type="Texture2D" uid="uid://cblqcfcmvex51" path="res://sprites/player2/Up/Png/SorceressUpHurt.png" id="16_3ntbr"]
 [ext_resource type="Texture2D" uid="uid://c6xpkxi6b0sqx" path="res://sprites/player2/Down/Png/SorceressDownRun.png" id="16_l40kf"]
 [ext_resource type="Texture2D" uid="uid://wn45lqb8xm4y" path="res://sprites/player2/Left/Png/SorceressLeftRun.png" id="17_3ntbr"]
 [ext_resource type="Texture2D" uid="uid://c8mlbdkf7ws17" path="res://sprites/player2/Right/Png/SorceressRightRun.png" id="18_qi5c4"]
@@ -28,6 +32,7 @@
 [ext_resource type="Script" uid="uid://d2csheqwcyoey" path="res://scene/game_objects/player/inventory_button.gd" id="29_j70ss"]
 [ext_resource type="PackedScene" uid="uid://5f3o7tew7oun" path="res://scene/button/mobile_controller.tscn" id="30_th1yf"]
 [ext_resource type="PackedScene" uid="uid://tqdnqu04xabq" path="res://scene/ui/level_up_popup.tscn" id="31_x434b"]
+[ext_resource type="PackedScene" uid="uid://5b5gg5popt2v" path="res://World/UI/game_over.tscn" id="32_gameover"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_jvrbn"]
 radius = 9.0
@@ -276,6 +281,70 @@ region = Rect2(384, 0, 48, 48)
 atlas = ExtResource("11_dvmra")
 region = Rect2(432, 0, 48, 48)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_ihr38"]
+atlas = ExtResource("13_mvo2b")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_br7he"]
+atlas = ExtResource("13_mvo2b")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_x5c8a"]
+atlas = ExtResource("13_mvo2b")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_eu3wt"]
+atlas = ExtResource("13_mvo2b")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6sobx"]
+atlas = ExtResource("14_hsllf")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_54m6p"]
+atlas = ExtResource("14_hsllf")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xu0rf"]
+atlas = ExtResource("14_hsllf")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tdb6f"]
+atlas = ExtResource("14_hsllf")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2eoyp"]
+atlas = ExtResource("15_l40kf")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fg53g"]
+atlas = ExtResource("15_l40kf")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ji0j8"]
+atlas = ExtResource("15_l40kf")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_iy1je"]
+atlas = ExtResource("15_l40kf")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ankm7"]
+atlas = ExtResource("16_3ntbr")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_86qdx"]
+atlas = ExtResource("16_3ntbr")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5fqkq"]
+atlas = ExtResource("16_3ntbr")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_twfh3"]
+atlas = ExtResource("16_3ntbr")
+region = Rect2(144, 0, 48, 48)
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_prck5"]
 atlas = ExtResource("12_msnq1")
 region = Rect2(0, 0, 48, 48)
@@ -488,7 +557,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"attack_down",
-"speed": 20.0
+"speed": 5.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -508,7 +577,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"attack_left",
-"speed": 20.0
+"speed": 5.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -528,7 +597,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"attack_right",
-"speed": 20.0
+"speed": 5.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -548,7 +617,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"attack_up",
-"speed": 20.0
+"speed": 5.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -692,6 +761,74 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_ihr38")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_br7he")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_x5c8a")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_eu3wt")
+}],
+"loop": false,
+"name": &"hurt_down",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6sobx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_54m6p")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xu0rf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tdb6f")
+}],
+"loop": false,
+"name": &"hurt_left",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2eoyp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fg53g")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ji0j8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_iy1je")
+}],
+"loop": false,
+"name": &"hurt_right",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ankm7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_86qdx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5fqkq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_twfh3")
+}],
+"loop": false,
+"name": &"hurt_up",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_prck5")
 }, {
 "duration": 1.0,
@@ -709,7 +846,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_rq8f1")
 }],
-"loop": true,
+"loop": false,
 "name": &"idle_down",
 "speed": 5.0
 }, {
@@ -732,7 +869,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_3m2y1")
 }],
-"loop": true,
+"loop": false,
 "name": &"idle_left",
 "speed": 5.0
 }, {
@@ -755,7 +892,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_pxcuj")
 }],
-"loop": true,
+"loop": false,
 "name": &"idle_right",
 "speed": 5.0
 }, {
@@ -778,7 +915,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_wm5vx")
 }],
-"loop": true,
+"loop": false,
 "name": &"idle_up",
 "speed": 5.0
 }, {
@@ -940,41 +1077,19 @@ tracks/1/keys = {
 "update": 1,
 "values": ["attack_down"]
 }
-tracks/2/type = "value"
+tracks/2/type = "method"
 tracks/2/imported = false
 tracks/2/enabled = true
-tracks/2/path = NodePath("hitbox_attack/CollisionShape2D:disabled")
+tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0.1, 0.266667),
-"transitions": PackedFloat32Array(1, 1),
-"update": 1,
-"values": [false, true]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath("hitbox_attack/CollisionShape2D:position")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0),
+"times": PackedFloat32Array(0.15),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector2(0, 20)]
-}
-tracks/4/type = "value"
-tracks/4/imported = false
-tracks/4/enabled = true
-tracks/4/path = NodePath("hitbox_attack/CollisionShape2D:rotation")
-tracks/4/interp = 1
-tracks/4/loop_wrap = true
-tracks/4/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [1.5708]
+"values": [{
+"args": [],
+"method": &"shoot"
+}]
 }
 
 [sub_resource type="Animation" id="Animation_edl67"]
@@ -1003,41 +1118,19 @@ tracks/1/keys = {
 "update": 1,
 "values": ["attack_left"]
 }
-tracks/2/type = "value"
+tracks/2/type = "method"
 tracks/2/imported = false
 tracks/2/enabled = true
-tracks/2/path = NodePath("hitbox_attack/CollisionShape2D:position")
+tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0),
+"times": PackedFloat32Array(0.15),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector2(-18, 0)]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath("hitbox_attack/CollisionShape2D:rotation")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [0.0]
-}
-tracks/4/type = "value"
-tracks/4/imported = false
-tracks/4/enabled = true
-tracks/4/path = NodePath("hitbox_attack/CollisionShape2D:disabled")
-tracks/4/interp = 1
-tracks/4/loop_wrap = true
-tracks/4/keys = {
-"times": PackedFloat32Array(0, 0.1, 0.266667),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 1,
-"values": [true, false, true]
+"values": [{
+"args": [],
+"method": &"shoot"
+}]
 }
 
 [sub_resource type="Animation" id="Animation_t4lt5"]
@@ -1066,41 +1159,19 @@ tracks/1/keys = {
 "update": 1,
 "values": ["attack_right"]
 }
-tracks/2/type = "value"
+tracks/2/type = "method"
 tracks/2/imported = false
 tracks/2/enabled = true
-tracks/2/path = NodePath("hitbox_attack/CollisionShape2D:position")
+tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0),
+"times": PackedFloat32Array(0.15),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector2(18, 0)]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath("hitbox_attack/CollisionShape2D:rotation")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [0.0]
-}
-tracks/4/type = "value"
-tracks/4/imported = false
-tracks/4/enabled = true
-tracks/4/path = NodePath("hitbox_attack/CollisionShape2D:disabled")
-tracks/4/interp = 1
-tracks/4/loop_wrap = true
-tracks/4/keys = {
-"times": PackedFloat32Array(0, 0.1, 0.266667),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 1,
-"values": [true, false, true]
+"values": [{
+"args": [],
+"method": &"shoot"
+}]
 }
 
 [sub_resource type="Animation" id="Animation_jyiia"]
@@ -1129,41 +1200,19 @@ tracks/1/keys = {
 "update": 1,
 "values": ["attack_up"]
 }
-tracks/2/type = "value"
+tracks/2/type = "method"
 tracks/2/imported = false
 tracks/2/enabled = true
-tracks/2/path = NodePath("hitbox_attack/CollisionShape2D:position")
+tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0),
+"times": PackedFloat32Array(0.15),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector2(0, -20)]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath("hitbox_attack/CollisionShape2D:rotation")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [1.5708]
-}
-tracks/4/type = "value"
-tracks/4/imported = false
-tracks/4/enabled = true
-tracks/4/path = NodePath("hitbox_attack/CollisionShape2D:disabled")
-tracks/4/interp = 1
-tracks/4/loop_wrap = true
-tracks/4/keys = {
-"times": PackedFloat32Array(0, 0.1, 0.266667),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 1,
-"values": [true, false, true]
+"values": [{
+"args": [],
+"method": &"shoot"
+}]
 }
 
 [sub_resource type="Animation" id="Animation_dx8m4"]
@@ -1634,8 +1683,13 @@ _data = {
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_nbsmq"]
 radius = 5.0
 
-[node name="Player2" type="CharacterBody2D"]
+[node name="Player2" type="CharacterBody2D" groups=["player"]]
+z_index = 2
+collision_layer = 3
+floor_max_angle = 0.0
+safe_margin = 0.001
 script = ExtResource("1_wqtsj")
+gameover = ExtResource("32_gameover")
 
 [node name="TextureProgressBar" type="TextureProgressBar" parent="."]
 z_index = 10
@@ -1669,7 +1723,7 @@ debug_color = Color(0.290712, 0.629766, 0, 0.42)
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 z_index = 2
 sprite_frames = SubResource("SpriteFrames_f8kpb")
-animation = &"walk_up"
+animation = &"hurt_down"
 autoplay = "idle_down"
 
 [node name="Camera2D" type="Camera2D" parent="."]
@@ -1699,7 +1753,6 @@ offset_top = -112.0
 offset_right = 104.0
 offset_bottom = -80.0
 texture_normal = ExtResource("28_bj7nq")
-texture_pressed = ExtResource("25_pv3j8")
 stretch_mode = 0
 script = ExtResource("29_j70ss")
 metadata/_edit_use_anchors_ = true
@@ -1716,7 +1769,9 @@ shape = SubResource("CapsuleShape2D_nbsmq")
 disabled = true
 
 [node name="can_attack" type="Timer" parent="."]
-wait_time = 0.3
+process_callback = 0
+wait_time = 0.5
+one_shot = true
 
 [node name="MobileController" parent="." instance=ExtResource("30_th1yf")]
 
@@ -1724,5 +1779,9 @@ wait_time = 0.3
 offset_right = 538.0
 offset_bottom = 260.0
 
+[connection signal="body_entered" from="hitbox" to="." method="_on_hitbox_body_entered"]
 [connection signal="pressed" from="TextureButton" to="TextureButton" method="_on_pressed"]
 [connection signal="pressed" from="InventoryButton" to="InventoryButton" method="_on_pressed"]
+[connection signal="timeout" from="can_take_damage" to="." method="_on_can_take_damage_timeout"]
+[connection signal="body_entered" from="hitbox_attack" to="." method="_on_hitbox_attack_body_entered"]
+[connection signal="timeout" from="can_attack" to="." method="_on_can_attack_timeout"]

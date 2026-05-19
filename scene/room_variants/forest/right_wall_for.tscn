@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://btympfi550idc"]
+
+[ext_resource type="TileSet" uid="uid://cb20mgnea32ub" path="res://scene/room_variants/forest/forest_room.tres" id="2_gc237"]
+
+[node name="RightWall" type="Node2D"]
+
+[node name="TileMapLayer2" type="TileMapLayer" parent="."]
+tile_map_data = PackedByteArray(0, 0, 53, 0, 21, 0, 0, 0, 61, 0, 8, 0, 0, 80, 53, 0, 22, 0, 0, 0, 62, 0, 8, 0, 0, 80, 53, 0, 23, 0, 0, 0, 63, 0, 8, 0, 0, 80, 53, 0, 24, 0, 0, 0, 64, 0, 8, 0, 0, 80)
+tile_set = ExtResource("2_gc237")

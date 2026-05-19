@@ -6,6 +6,15 @@ extends Control
 
 var player: Node = null
 
+func _exit_tree() -> void:
+	if is_instance_valid(player):
+		if player.exp_changed.is_connected(_on_exp_changed):
+			player.exp_changed.disconnect(_on_exp_changed)
+		if player.level_up.is_connected(_on_level_up):
+			player.level_up.disconnect(_on_level_up)
+	player = null
+
+
 func _ready():
 	# Ждем один кадр, чтобы игрок успел инициализироваться
 	await get_tree().process_frame
@@ -33,9 +42,13 @@ func _ready():
 		push_warning("ExpBar: Игрок не найден в группе 'player'")
 
 func _on_exp_changed(current_exp: int, exp_needed: int):
+	if not is_instance_valid(player):
+		return
 	_update_display(current_exp, exp_needed, player.current_level)
 
 func _on_level_up(new_level: int):
+	if not is_instance_valid(player):
+		return
 	_update_display(player.current_exp, player.exp_to_next_level, new_level)
 	_play_level_up_animation()
 
