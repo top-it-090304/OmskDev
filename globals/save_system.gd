@@ -324,13 +324,17 @@ func restore_player_state():
 	var tree := get_tree()
 	var player := tree.get_first_node_in_group("local_player")
 	if player == null:
-		player = tree.get_first_node_in_group("player")
-	if not player:
+		return
+	if NetworkManager.is_game_online() and not player.is_multiplayer_authority():
 		return
 
 	# Восстанавливаем именно сохранённое здоровье. Позиция/этаж не должны давать полный отхил.
 	if saved_player_health <= 0:
-		return
+		saved_player_health = 0
+		if player.has_method("_get_max_health"):
+			saved_player_health = int(player.call("_get_max_health"))
+		else:
+			saved_player_health = GameConstants.PLAYER_MAX_HEALTH
 	var max_h: int = GameConstants.PLAYER_MAX_HEALTH
 	if player.has_method("_get_max_health"):
 		max_h = int(player.call("_get_max_health"))

@@ -11,7 +11,36 @@ const CFG_PATH = "user://settings.cfg"
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	var dimmer := get_node_or_null("Dimmer") as Control
+	if dimmer:
+		dimmer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var panel := get_node_or_null("VBoxContainer") as Control
+	if panel:
+		panel.z_index = 1
+		panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	var back := get_node_or_null("VBoxContainer/BackButton") as TextureButton
+	_ignore_button_label_mouse(get_node_or_null("VBoxContainer/ControlsButton") as Control)
+	_ignore_button_label_mouse(back)
+	_ignore_button_label_mouse(
+		get_node_or_null("VBoxContainer/ScrollContainer/SettingsList/TextureButton4") as Control
+	)
+	if back and not back.pressed.is_connected(_on_back_pressed):
+		back.pressed.connect(_on_back_pressed)
 	_load_settings()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		_close_settings()
+		get_viewport().set_input_as_handled()
+
+
+func _ignore_button_label_mouse(button: Control) -> void:
+	if button == null:
+		return
+	for child in button.get_children():
+		if child is Control:
+			(child as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 func _load_settings() -> void:
 	var cfg := ConfigFile.new()
@@ -86,7 +115,25 @@ func _sanitize_volume(raw: Variant) -> float:
 	return clampf(value, 0.0, 1.0)
 
 func _on_back_pressed() -> void:
+	_close_settings()
+
+
+func _close_settings() -> void:
+	if not is_inside_tree():
+		return
+	var tree := get_tree()
+	if tree == null:
+		queue_free()
+		return
+	# Закрываем все экземпляры настроек (на случай двойного открытия).
+	for node in tree.get_nodes_in_group("settings_overlay"):
+		if is_instance_valid(node):
+			node.queue_free()
 	queue_free()
+
+
+func _enter_tree() -> void:
+	add_to_group("settings_overlay")
 
 func _on_controls_pressed() -> void:
 	# Сохраняем откуда зашли

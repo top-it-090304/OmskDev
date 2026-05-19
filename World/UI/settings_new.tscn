@@ -204,4 +204,4 @@ vertical_alignment = 1
 [connection signal="toggled" from="VBoxContainer/ScrollContainer/SettingsList/CheckButtonDamage" to="." method="_on_check_button_damage_toggled"]
 [connection signal="toggled" from="VBoxContainer/ScrollContainer/SettingsList/CheckButtonHeal" to="." method="_on_check_button_heal_toggled"]
 [connection signal="toggled" from="VBoxContainer/ScrollContainer/SettingsList/CheckButtonDodge" to="." method="_on_check_button_dodge_toggled"]
-[connection signal="pressed" from="VBoxContainer/ScrollContainer/SettingsList/TextureButton4" to="." method="_on_texture_button_4_pressed"]
+[connection signal="pressed" from="VBoxContainer/ScrollContainer/SettingsList/TextureButton4" to="." method="_on_back_pressed"]

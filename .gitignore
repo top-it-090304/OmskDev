@@ -2,15 +2,23 @@
 .godot/
 /android/
 
-# Local editor/agent files
-.openclaude/
-.kilo/
+# IDE / editor workspace data
+.cursor/
+.vscode/
+.idea/
+
+# Build artifacts
+*.apk
+*.apk.idsig
+*.aab
+export/
 
 # Generated temporary scene/resource files
 *.tmp
 
-# Local context dumps
+# Local context dumps and reports
 [path].json
 chathistory.txt
 project_context.txt
 scripts_only.txt
+*_report_*.txt

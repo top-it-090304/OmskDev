@@ -6,6 +6,16 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	if NetworkManager.is_game_offline():
 		get_tree().paused = true
+	for button in $VBoxContainer.find_children("*", "TextureButton", true, false):
+		_ignore_button_label_mouse(button as Control)
+
+
+func _ignore_button_label_mouse(button: Control) -> void:
+	if button == null:
+		return
+	for child in button.get_children():
+		if child is Control:
+			(child as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 func _on_texture_button_pressed() -> void:
 	# Продолжить игру

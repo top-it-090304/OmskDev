@@ -21,7 +21,7 @@ const DEFAULT_GAME_OVER = preload("res://World/UI/game_over.tscn")
 # ОСНОВНЫЕ ПЕРЕМЕННЫЕ
 # =========================================================
 
-var health_int: int = GameConstants.get_player2_max_health()
+var health_int: int = 0
 var can_take_damage = true
 
 # Отравление
@@ -137,6 +137,29 @@ func rpc_attack(_from_rpc: bool, shot_direction: Vector2 = Vector2.ZERO) -> void
 	if not is_local_player and not is_dead:
 		attack(true, shot_direction)
 
+func _is_offline_session() -> bool:
+	return NetworkManager.connection_state == NetworkManager.ConnectionState.DISCONNECTED
+
+
+func _is_locally_controlled() -> bool:
+	if _is_offline_session():
+		return true
+	return is_local_player
+
+
+func _configure_player_role() -> void:
+	if _is_offline_session():
+		is_local_player = true
+	else:
+		is_local_player = is_multiplayer_authority()
+	if is_local_player:
+		if not is_in_group("local_player"):
+			add_to_group("local_player")
+	else:
+		if is_in_group("local_player"):
+			remove_from_group("local_player")
+
+
 # =========================================================
 # PHYSICS
 # =========================================================
@@ -145,44 +168,45 @@ func _physics_process(delta: float) -> void:
 	if is_dead:
 		return
 
-	if NetworkManager.is_game_online() and NetworkManager.coop_run_finished and is_local_player:
-		velocity = Vector2.ZERO
-		move_and_slide()
-		return
-
-	if is_local_player:
-		move_and_slide()
-
-		if NetworkManager.is_game_online():
-			_pos_sync_accum += delta
-			if _pos_sync_accum >= POS_SYNC_MIN_INTERVAL_SEC:
-				_pos_sync_accum = 0.0
-				var pos_d2 := global_position.distance_squared_to(_last_sent_pos_net)
-				var dir_changed := current_dir != _last_sent_dir_net
-				if dir_changed or pos_d2 >= POS_SYNC_MIN_DIST_SQ or is_nan(_last_sent_pos_net.x):
-					_last_sent_pos_net = global_position
-					_last_sent_dir_net = current_dir
-					rpc_set_position.rpc(global_position, current_dir)
-
-	else:
-		# Интерполяция удаленных игроков
+	if not _is_locally_controlled():
 		interpolation_timer += delta
-
-		var t = clamp(
-			interpolation_timer / INTERPOLATION_DELAY,
-			0.0,
-			1.0
-		)
-
-		global_position = global_position.lerp(
-			target_position,
-			t
-		)
-
+		var t := clampf(interpolation_timer / INTERPOLATION_DELAY, 0.0, 1.0)
+		global_position = global_position.lerp(target_position, t)
 		if target_direction != current_dir:
 			current_dir = target_direction
 			velocity = Vector2.ZERO
 			move_and_slide()
+		return
+
+	if NetworkManager.is_game_online() and NetworkManager.coop_run_finished:
+		velocity = Vector2.ZERO
+		move_and_slide()
+		return
+
+	var direction := movement_vector()
+	if direction != Vector2.ZERO:
+		velocity = direction * GameConstants.PLAYER_MAX_SPEED
+		if not (attack_joystick and attack_joystick.is_active):
+			update_direction(direction)
+		if can_anim and not _is_attack_anim_playing():
+			play_walk_animation()
+	else:
+		velocity = velocity.move_toward(Vector2.ZERO, GameConstants.PLAYER_MAX_SPEED)
+		if can_anim and not _is_attack_anim_playing():
+			play_idle_animation()
+
+	move_and_slide()
+
+	if NetworkManager.is_game_online():
+		_pos_sync_accum += delta
+		if _pos_sync_accum >= POS_SYNC_MIN_INTERVAL_SEC:
+			_pos_sync_accum = 0.0
+			var pos_d2 := global_position.distance_squared_to(_last_sent_pos_net)
+			var dir_changed := current_dir != _last_sent_dir_net
+			if dir_changed or pos_d2 >= POS_SYNC_MIN_DIST_SQ or is_nan(_last_sent_pos_net.x):
+				_last_sent_pos_net = global_position
+				_last_sent_dir_net = current_dir
+				rpc_set_position.rpc(global_position, current_dir)
 
 # =========================================================
 # PROCESS
@@ -195,7 +219,7 @@ func _process(delta: float) -> void:
 	if NetworkManager.is_game_online() and NetworkManager.coop_run_finished:
 		return
 
-	if not is_local_player:
+	if not _is_locally_controlled():
 		return
 
 	# =====================================================
@@ -248,30 +272,6 @@ func _process(delta: float) -> void:
 
 			if can_attack:
 				attack()
-
-	# =====================================================
-	# ДВИЖЕНИЕ (во время каста тоже можно ходить)
-	# =====================================================
-
-	var direction = movement_vector()
-
-	if direction != Vector2.ZERO:
-		velocity = direction * GameConstants.PLAYER_MAX_SPEED
-
-		if not (attack_joystick and attack_joystick.is_active):
-			update_direction(direction)
-
-		if can_anim and not _is_attack_anim_playing():
-			play_walk_animation()
-
-	else:
-		velocity = velocity.move_toward(
-			Vector2.ZERO,
-			GameConstants.PLAYER_MAX_SPEED
-		)
-
-		if can_anim and not _is_attack_anim_playing():
-			play_idle_animation()
 
 # =========================================================
 # MOVEMENT
@@ -763,10 +763,7 @@ func _ready() -> void:
 	attack_timer.one_shot = true
 	attack_timer.wait_time = attack_cooldown
 
-	if NetworkManager.is_game_offline():
-		is_local_player = true
-	else:
-		is_local_player = is_multiplayer_authority()
+	_configure_player_role()
 
 	current_level = GameConstants.PLAYER_LEVEL
 	current_exp = GameConstants.PLAYER_EXPERIENCE
@@ -775,11 +772,11 @@ func _ready() -> void:
 		current_level + 1
 	)
 
-	health_int = (
-		clampi(SaveSystem.saved_player_health, 1, _get_max_health())
-		if SaveSystem.should_restore_player
-		else _get_max_health()
-	)
+	var max_health := _get_max_health()
+	if is_local_player and SaveSystem.should_restore_player and SaveSystem.saved_player_health > 0:
+		health_int = clampi(SaveSystem.saved_player_health, 1, max_health)
+	else:
+		health_int = max_health
 	_ensure_alive_spawn_state()
 
 	last_known_max_health = _get_max_health()
@@ -797,7 +794,7 @@ func _ready() -> void:
 		exp_to_next_level
 	)
 
-	if SaveSystem.should_restore_player:
+	if is_local_player and SaveSystem.should_restore_player:
 		SaveSystem.restore_player_state()
 
 	if has_node("hitbox_attack/CollisionShape2D"):
@@ -808,12 +805,13 @@ func _ready() -> void:
 			attack_joystick.set_process(false)
 		_hide_ui_for_remote_peer()
 	else:
-		add_to_group("local_player")
 		if has_node("Camera2D"):
 			var cam := $Camera2D as Camera2D
 			cam.enabled = true
 			cam.make_current()
-		anim.play("idle_down")
+		if anim.sprite_frames != null and anim.sprite_frames.has_animation("idle_down"):
+			anim.play("idle_down")
+		call_deferred("_refresh_local_player_after_spawn")
 
 
 func _hide_ui_for_remote_peer() -> void:
@@ -851,10 +849,32 @@ func _on_constants_changed() -> void:
 
 	if health_int > new_max:
 		health_int = new_max
+	if health_int <= 0 and not is_dead:
+		health_int = new_max
 
 	last_known_max_health = new_max
 
-	health_changed.emit(health_int, new_max)
+	if is_local_player or NetworkManager.is_game_offline():
+		health_changed.emit(health_int, new_max)
+
+
+func _refresh_local_player_after_spawn() -> void:
+	_configure_player_role()
+	if not _is_locally_controlled():
+		return
+	_ensure_alive_spawn_state()
+	is_dead = false
+	can_move = true
+	can_anim = true
+	can_attack = true
+	can_take_damage = true
+	if NetworkManager.is_game_online():
+		NetworkManager.reset_coop_run_state()
+	health_changed.emit(health_int, _get_max_health())
+	if has_node("Camera2D"):
+		var cam := $Camera2D as Camera2D
+		cam.enabled = true
+		cam.make_current()
 
 # =========================================================
 # ATTACK HITBOX
