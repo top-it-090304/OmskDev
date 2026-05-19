@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🗡️ Dungeon
+<img src="icons/172.png" alt="Dungeon logo" width="128" height="128"/>
+
+# Dungeon
 
 **2D-roguelike с процедурным данжем, артефактами и онлайн-кооперативом до 8 игроков**
 
@@ -8,13 +10,17 @@
 [![Language](https://img.shields.io/badge/GDScript-100%25-355570?logo=godotengine&logoColor=white)](https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_basics.html)
 [![Platform](https://img.shields.io/badge/Platform-Mobile%20%7C%20Android%20%7C%20AuroraOS-3DDC84?logo=android&logoColor=white)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#-contributing)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
+
+<sub>Положите главный геймплейный кадр в <code>docs/screenshots/hero.png</code> — он автоматически появится ниже</sub>
+
+<img src="docs/screenshots/hero.png" alt="Dungeon gameplay" width="720"/>
 
 </div>
 
 ---
 
-## 📖 О проекте
+## О проекте
 
 **Dungeon** — top-down action roguelike в духе классических dungeon-краулеров. Каждый забег — это процедурно сгенерированный данж из связанных комнат: старт → обычные комнаты → сокровищницы → босс → переход на следующий этаж. Между забегами игрок копит **артефакты с постоянными бонусами** и растёт в уровне.
 
@@ -22,18 +28,64 @@
 
 ### Ключевые особенности
 
-- 🎲 **Процедурная генерация с seed** — забеги воспроизводимы, состояние данжа сохраняется в `user://dungeon_state.dat`.
-- 🤝 **Онлайн-кооператив до 8 человек** (1 хост + 7 гостей, ENet, авторитативный хост).
-- 🗺️ **Туман войны и миникарта** — посещённые/увиденные/зачищенные комнаты.
-- ⚔️ **Несколько типов врагов и боссов** — Goblin Axe, Skeleton Bow, Goblin Slinger, Skeleton King, Beast Goblin.
-- 💎 **Большой набор артефактов** — постоянные бонусы к HP, скорости, урону, криту, вампиризму и пр.
-- 🎵 **Адаптивная музыка** — отдельные плейлисты для исследования / боя / босса.
-- ⚙️ **Горячая перезагрузка баланса** — `globals/game_consts.cfg` пересчитывается на лету в одиночке.
-- 🌍 **Локализация:** русский, английский, азербайджанский.
+- **Процедурная генерация с seed** — забеги воспроизводимы, состояние данжа сохраняется в `user://dungeon_state.dat`.
+- **Онлайн-кооператив до 8 человек** (1 хост + 7 гостей, ENet, авторитативный хост).
+- **Туман войны и миникарта** — посещённые/увиденные/зачищенные комнаты.
+- **Несколько типов врагов и боссов** — Goblin Axe, Skeleton Bow, Goblin Slinger, Skeleton King, Beast Goblin.
+- **Большой набор артефактов** — постоянные бонусы к HP, скорости, урону, криту, вампиризму и пр.
+- **Адаптивная музыка** — отдельные плейлисты для исследования / боя / босса.
+- **Горячая перезагрузка баланса** — `globals/game_consts.cfg` пересчитывается на лету в одиночке.
+- **Локализация:** русский, английский, азербайджанский.
 
 ---
 
-## 🧰 Технологический стек
+## Скриншоты
+
+**Куда класть файлы:** папка [`docs/screenshots/`](docs/screenshots/) (не в корень рядом с README). Сохраните картинки с нужными именами — README подхватит их автоматически. Подробности: [`docs/screenshots/README.md`](docs/screenshots/README.md).
+
+| Файл | Назначение |
+|------|------------|
+| `hero.png` | главный кадр в шапке |
+| `gameplay.gif` | короткий ролик геймплея (до ~20 МБ) |
+| `minimap.png` | миникарта |
+| `boss.png` | бой с боссом |
+| `coop.png` | кооператив |
+| `menu.png` | меню / лобби |
+
+**Важно:** лимит GitHub — **100 МБ** на файл. GIF ~17 МБ подходит. Файлы больше ~50 МБ лучше не коммитить.
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/gameplay.gif" alt="Геймплей" width="320"/><br/>
+      <sub><b>Геймплей</b><br/>файл <code>gameplay.gif</code></sub>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/minimap.png" alt="Миникарта" width="320"/><br/>
+      <sub><b>Миникарта</b><br/>туман войны, посещённые комнаты</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/boss.png" alt="Бой с боссом" width="320"/><br/>
+      <sub><b>Boss fight</b><br/>Skeleton King / Beast Goblin</sub>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/coop.png" alt="Кооператив" width="320"/><br/>
+      <sub><b>Кооператив</b><br/>хост + клиент в одной комнате</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" colspan="2">
+      <img src="docs/screenshots/menu.png" alt="Главное меню" width="640"/><br/>
+      <sub><b>Главное меню и лобби</b></sub>
+    </td>
+  </tr>
+</table>
+
+---
+
+## Технологический стек
 
 | Компонент   | Версия / примечание                                              |
 |-------------|------------------------------------------------------------------|
@@ -45,7 +97,7 @@
 
 ---
 
-## 📋 Prerequisites (требования)
+## Требования
 
 ### Для запуска и разработки
 
@@ -64,7 +116,7 @@
 
 ---
 
-## 🚀 Quick Start
+## Быстрый старт
 
 ### 1. Клонирование
 
@@ -104,7 +156,7 @@ godot4 --path . --headless --quit-after 1
 
 ---
 
-## 🎮 Управление
+## Управление
 
 | Действие              | Клавиатура           | Touch                    |
 |-----------------------|----------------------|--------------------------|
@@ -116,7 +168,7 @@ godot4 --path . --headless --quit-after 1
 
 ---
 
-## 📁 Структура проекта
+## Структура проекта
 
 ```
 dungeon/
@@ -172,11 +224,11 @@ dungeon/
     └── SAVE_SYSTEM.md
 ```
 
-> **Внимание:** файлы `Player.gd`, `PlayerInput.gd`, `LevelSetup.gd`, `test_network.gd`, `artefact(boots_of_travel).gd`, `void.png` в **корне** репозитория — устаревшие прототипы и тестовые скрипты, **не используются** в собираемом проекте. Их планируется убрать; новый код кладите в соответствующие подпапки (`scene/`, `World/`, `globals/`).
+> **Примечание:** `artefact(boots_of_travel).gd` и `void.png` в корне — рабочие ресурсы, на которые ссылаются `.tscn`-сцены. Новый код кладите в `scene/`, `World/`, `globals/`.
 
 ---
 
-## 🧠 Архитектура: autoload-синглтоны
+## Архитектура: autoload-синглтоны
 
 Все глобальные сервисы зарегистрированы в `project.godot → [autoload]`:
 
@@ -193,7 +245,7 @@ dungeon/
 
 ---
 
-## 💾 Пользовательские файлы
+## Пользовательские файлы
 
 | Файл                            | Назначение                                                                |
 |---------------------------------|---------------------------------------------------------------------------|
@@ -206,7 +258,7 @@ dungeon/
 
 ---
 
-## 📡 Сеть и кооператив
+## Сеть и кооператив
 
 | Тема              | Реализация                                                                 |
 |-------------------|----------------------------------------------------------------------------|
@@ -222,7 +274,7 @@ dungeon/
 
 ---
 
-## 📚 Дополнительная документация
+## Дополнительная документация
 
 - [`globals/README.md`](globals/README.md) — баланс, сохранения, константы
 - [`World/README.md`](World/README.md) — генерация, двери, туман войны
@@ -234,10 +286,12 @@ dungeon/
 - [`scene/room_variants/README.md`](scene/room_variants/README.md) — устройство комнат
 - [`scene/abilities/README.md`](scene/abilities/README.md) — способности
 - [`docs/SAVE_SYSTEM.md`](docs/SAVE_SYSTEM.md), [`docs/BACKPACK_SYSTEM.md`](docs/BACKPACK_SYSTEM.md), [`docs/LEVEL_SYSTEM_UI_GUIDE.md`](docs/LEVEL_SYSTEM_UI_GUIDE.md) — углублённые архитектурные заметки.
+- [`docs/presentation/`](docs/presentation/) — презентационные материалы (архитектура, фичи).
+- [`docs/screenshots/`](docs/screenshots/README.md) — изображения для README и документации (как пополнять).
 
 ---
 
-## 🛠️ Сборка
+## Сборка
 
 ### Android (.apk)
 
@@ -251,7 +305,7 @@ dungeon/
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Pull-реквесты и issue приветствуются! Краткие правила:
 
@@ -270,7 +324,7 @@ Pull-реквесты и issue приветствуются! Краткие пр
 
 ---
 
-## 🐞 Troubleshooting / FAQ
+## Troubleshooting / FAQ
 
 <details>
 <summary><strong>«Failed to bind socket» при создании комнаты</strong></summary>
@@ -309,7 +363,7 @@ Pull-реквесты и issue приветствуются! Краткие пр
 
 ---
 
-## 📜 License
+## License
 
 Распространяется под лицензией **MIT** — см. файл [`LICENSE`](LICENSE).
 
@@ -321,7 +375,7 @@ of this software ...
 
 ---
 
-## 🙏 Acknowledgements
+## Acknowledgements
 
 - [Godot Engine](https://github.com/savegame/godot/releases/tag/4.4.1-auroraos-4) — open-source движок.
 - [AS2P plugin](https://github.com/) (Animated-Sprite2D-to-Polygon2D) — генерация коллизий.
@@ -330,7 +384,7 @@ of this software ...
 
 ---
 
-## 📬 Контакты
+## Контакты
 
 - **Issues / баги:** [GitHub Issues](https://github.com/top-it-090304/OmskDev)
 - **Email команды:** `rabotarabocij17@gmail.com n.shmykov@yandex.ru`

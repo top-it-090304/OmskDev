@@ -10,8 +10,12 @@ var _peers: Array[int] = []
 
 
 func _ready() -> void:
+	NetworkManager.reset_menu_navigation_flags()
 	if NetworkManager.is_multiplayer_active():
 		set_multiplayer_authority(NetworkManager.SERVER_ID)
+
+	_ignore_button_label_mouse($Panel/VBoxContainer/back_button)
+	_ignore_button_label_mouse(start_button)
 
 	start_button.visible = true
 	start_button.disabled = true
@@ -31,6 +35,14 @@ func _ready() -> void:
 	_refresh_peers_from_multiplayer()
 	call_deferred("_refresh_peers_from_multiplayer")
 	call_deferred("_register_my_character_choice")
+
+
+func _ignore_button_label_mouse(button: Control) -> void:
+	if button == null:
+		return
+	for child in button.get_children():
+		if child is Control:
+			(child as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
 func _get_local_ip() -> String:
@@ -68,7 +80,12 @@ func _on_disconnected() -> void:
 
 
 func _on_back_pressed() -> void:
-	NetworkManager.destroy_online_session_to_menu()
+	NetworkManager.reset_menu_navigation_flags()
+	if NetworkManager.is_game_online():
+		NetworkManager.destroy_online_session_to_menu()
+	else:
+		NetworkManager.disconnect_game(false)
+		get_tree().change_scene_to_file("res://World/UI/multiplayer_menu.tscn")
 
 
 func _set_status(text: String) -> void:

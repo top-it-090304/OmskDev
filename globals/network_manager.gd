@@ -93,6 +93,11 @@ func _clear_online_runtime_state() -> void:
 	if PlayerManager != null and PlayerManager.has_method("reset_multiplayer_runtime_state"):
 		PlayerManager.reset_multiplayer_runtime_state()
 
+func reset_menu_transition_flags() -> void:
+	_returning_to_menu = false
+	_destroying_online_session = false
+
+
 func disconnect_game(emit_disconnected_signal: bool = true) -> void:
 	var mp := get_tree().get_multiplayer()
 	var was_active := connection_state != ConnectionState.DISCONNECTED or mp.has_multiplayer_peer()
@@ -130,6 +135,12 @@ func destroy_online_session_to_menu() -> void:
 	return_to_main_menu()
 
 
+## Сброс флагов после смены сцены на главное меню (иначе «Назад» в лобби перестаёт работать).
+func reset_menu_navigation_flags() -> void:
+	_returning_to_menu = false
+	_destroying_online_session = false
+
+
 ## Главное меню: снять паузу, отключиться, сменить сцену.
 func return_to_main_menu() -> void:
 	if _returning_to_menu:
@@ -140,7 +151,13 @@ func return_to_main_menu() -> void:
 	AudioManager.stop_music()
 	disconnect_game(false)
 	if tree != null:
+		if not tree.scene_changed.is_connected(_on_main_menu_scene_changed):
+			tree.scene_changed.connect(_on_main_menu_scene_changed, CONNECT_ONE_SHOT)
 		tree.call_deferred("change_scene_to_file", MAIN_MENU_SCENE)
+
+
+func _on_main_menu_scene_changed() -> void:
+	reset_menu_navigation_flags()
 
 
 @rpc("authority", "call_remote", "reliable")

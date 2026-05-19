@@ -15,11 +15,21 @@ const CFG_PATH = "user://settings.cfg"
 var came_from_scene: String = ""
 
 func _ready() -> void:
+	for button in $ButtonContainer.find_children("*", "TextureButton", true, false):
+		_ignore_button_label_mouse(button as Control)
 	# Ждём немного чтобы сцена загрузилась
 	await get_tree().create_timer(0.1).timeout
 	_find_joysticks()
 	_load_joystick_settings()
 	_load_came_from()
+
+func _ignore_button_label_mouse(button: Control) -> void:
+	if button == null:
+		return
+	for child in button.get_children():
+		if child is Control:
+			(child as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+
 
 func _find_joysticks() -> void:
 	# Ищем в текущей сцене

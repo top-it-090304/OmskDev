@@ -13,6 +13,7 @@ var _syncing_code_input := false
 
 
 func _ready() -> void:
+	NetworkManager.reset_menu_transition_flags()
 	error_label.text = ""
 	code_input.virtual_keyboard_enabled = false
 	_ignore_button_label_mouse($Panel/VBoxContainer/PasteButton)
@@ -25,6 +26,10 @@ func _ready() -> void:
 		back_button.pressed.connect(_on_back_pressed)
 	_create_code_keyboard()
 	_apply_mobile_layout()
+	if panel:
+		panel.z_index = 2
+	if _code_keyboard:
+		_code_keyboard.z_index = 0
 	call_deferred("_focus_code_input")
 
 
@@ -32,6 +37,8 @@ func _apply_mobile_layout() -> void:
 	if panel == null or panel_box == null:
 		return
 	var compact := get_viewport_rect().size.y <= 320.0
+	# Панель выше HEX-клавиатуры (anchor_top 0.62), иначе «Назад» не нажимается.
+	panel.anchor_bottom = 0.56 if compact else 0.58
 	panel_box.add_theme_constant_override("separation", 2 if compact else 4)
 	_set_font_size($Panel/VBoxContainer/Title, 11 if compact else 14)
 	_set_font_size(code_input, 11 if compact else 13)
@@ -72,8 +79,8 @@ func _ignore_button_label_mouse(button: Control) -> void:
 
 
 func _focus_code_input() -> void:
+	# Только фокус: клавиатура по тапу в поле, чтобы не перекрыть «Назад» при входе.
 	code_input.grab_focus()
-	_show_virtual_keyboard()
 
 
 func _on_code_input_gui_input(event: InputEvent) -> void:
