@@ -13,7 +13,7 @@ var _syncing_code_input := false
 
 
 func _ready() -> void:
-	NetworkManager.reset_menu_transition_flags()
+	NetworkManager.reset_menu_navigation_flags()
 	error_label.text = ""
 	code_input.virtual_keyboard_enabled = false
 	_ignore_button_label_mouse($Panel/VBoxContainer/PasteButton)

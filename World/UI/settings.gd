@@ -24,8 +24,11 @@ func _ready() -> void:
 	_ignore_button_label_mouse(
 		get_node_or_null("VBoxContainer/ScrollContainer/SettingsList/TextureButton4") as Control
 	)
-	if back and not back.pressed.is_connected(_on_back_pressed):
-		back.pressed.connect(_on_back_pressed)
+	if back:
+		back.z_index = 4
+		back.mouse_filter = Control.MOUSE_FILTER_STOP
+		if not back.pressed.is_connected(_on_back_pressed):
+			back.pressed.connect(_on_back_pressed)
 	_load_settings()
 
 
