@@ -29,6 +29,7 @@ func _on_texture_button_2_pressed() -> void:
 	# Настройки
 	var new_scene_instance = scene_to_open.instantiate()
 	add_child(new_scene_instance)
+	move_child(new_scene_instance, -1)
 
 func _on_texture_button_3_pressed() -> void:
 	# Выход в главное меню
